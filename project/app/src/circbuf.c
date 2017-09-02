@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stdlib.h>
-#include "memory.h"
+#include <string.h>
 #include "circbuf.h"
 #include "log.h"
 
@@ -78,7 +78,7 @@ cb_enum_t circbuf_add_item(circbuf_t * buf, void * payload)
   // Wrap buffer if needed
   if ((buf->head) - (buf->buffer) == buf->length - 1)
   {
-    *(buf->head) = buf->buffer;
+    buf->head = buf->buffer;
   }
   // No wrap is necessary increment head
   else if (buf->count != 0)
@@ -120,7 +120,7 @@ cb_enum_t circbuf_remove_item(circbuf_t * buf, void ** payload)
   // Wrap buffer if needed
   if ((buf->tail) - (buf->buffer) == buf->length - 1)
   {
-    *(buf->tail) = buf->buffer;
+    buf->tail = buf->buffer;
   }
   // When normal circbuf is used head can equal tail with a count of 1
   else  if (buf->count != 0)

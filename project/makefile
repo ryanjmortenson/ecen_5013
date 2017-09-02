@@ -20,6 +20,16 @@ export $(ARM)
 export $(MK_DIR)
 export $(CFLAGS)
 
+# Unit test output filename
+UNIT_TEST_OUT=test.out
+
+# CMOCKA unit test variables
+CMOCKA_BUILD_DIR=cmocka-out
+CMOCKA_DIR=cmocka
+CMOCKA_LIB_OUT_DIR=$(CMOCKA_BUILD_DIR)/lib
+CMOCKA_INC_OUT_DIR=$(CMOCKA_BUILD_DIR)/include
+CMOCKA_LIB=$(CMOCKA_LIB_OUT_DIR)/libcmocka.a
+
 # Target out directories when building
 X86_OUT_DIR=$(OUT)/$(X86)
 ARM_OUT_DIR=$(OUT)/$(ARM)
@@ -114,7 +124,29 @@ BUILD_TARGET=@echo "Building Target $@"
 BUILD_WITH=@echo "Building with $<"
 
 # Set PHONY for all targets that don't have outputs for tracking
-.PHONY: build compile-all debug allasm alli allobjdump clean super-clean
+.PHONY: build compile-all debug allasm alli allobjdump clean super-clean test
+
+# PHONY target so you don't have to type .out
+test:
+	$(MAKE) $(UNIT_TEST_OUT)
+
+# Build the unit test binary
+$(UNIT_TEST_OUT): CFLAGS+=-I$(CMOCKA_INC_OUT_DIR) -D UNITTEST
+$(UNIT_TEST_OUT): $(CMOCKA_LIB) $(TEST_OBJS)
+	$(CC) $(CFLAGS) -o "$@" $(TEST_OBJS) $(CMOCKA_LIB)
+
+# Build the cmocka library
+$(CMOCKA_LIB):
+	@echo "Installing and making CMOCKA static library"
+	$(MK_DIR) $(CMOCKA_BUILD_DIR)
+	$(CD) $(CMOCKA_BUILD_DIR) && \
+	$(CMAKE_CMD) \
+	-DCMAKE_INSTALL_PREFIX=. \
+	-DCMAKE_BUILD_TYPE=debug \
+	-DCMAKE_C_COMPILER=$(CC) \
+	-DWITH_STATIC_LIB=ON \
+	../cmocka/ && \
+	$(MAKE_CMD) install
 
 # Build will build project
 build: $(OBJS)
