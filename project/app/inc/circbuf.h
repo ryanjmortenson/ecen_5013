@@ -24,10 +24,10 @@ typedef enum cb_enum
 // Circular buffer structure
 typedef struct circbuf
 {
-  uint8_t * buffer;
-  volatile uint8_t * head;
-  volatile uint8_t * tail;
-  volatile uint16_t count;
+  void ** buffer;
+  void ** head;
+  void ** tail;
+  uint16_t count;
   uint16_t length;
 } circbuf_t;
 
@@ -42,18 +42,6 @@ typedef struct circbuf
  *
  */
 cb_enum_t circbuf_init(circbuf_t ** buf, uint16_t length);
-
-/*
- * \brief circbuf_init: Initialize circular buffer with a length this will
- *                       call malloc to put the buffer and the structure
- *                       on the heap
- *
- * \param buf: pointer to a pointer for the circular buffer structure
- * \param length: length of the circular buffer
- * \return: success or error
- *
- */
-cb_enum_t circbuf_init_dma(circbuf_t ** buf, uint16_t length, uint8_t * addr);
 
 /*
  * \brief circbuf_destroy: calls free on the buffer and the structure
@@ -73,7 +61,7 @@ cb_enum_t circbuf_destroy(circbuf_t * buf);
  * \return: success or error
  *
  */
-cb_enum_t circbuf_add_item(circbuf_t * buf, uint8_t payload);
+cb_enum_t circbuf_add_item(circbuf_t * buf, void * payload);
 
 /*
  * \brief circbuf_remove_item: removes and item from tail and in payload
@@ -83,7 +71,7 @@ cb_enum_t circbuf_add_item(circbuf_t * buf, uint8_t payload);
  * \return: success or error
  *
  */
-cb_enum_t circbuf_remove_item(circbuf_t * buf, uint8_t * payload);
+cb_enum_t circbuf_remove_item(circbuf_t * buf, void ** payload);
 
 /*
  * \brief circbuf_full: checks if buffer is full
@@ -138,7 +126,7 @@ __attribute__((always_inline))static inline cb_enum_t circbuf_empty(circbuf_t * 
  * \return: success if empty or error if not empty
  *
  */
-cb_enum_t circbuf_peek(circbuf_t * buf, uint32_t index, uint8_t * payload);
+cb_enum_t circbuf_peek(circbuf_t * buf, uint32_t index, void ** payload);
 
 /*
  * \brief circbuf_null_buffer: nulls internal buffer
