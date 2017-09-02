@@ -1,4 +1,4 @@
-[submodule "cmocka"]
-	path = cmocka
+[submodule "project/cmocka"]
+	path = project/cmocka
 	url = https://git.cryptomilk.org/projects/cmocka.git/
 	branch = master
