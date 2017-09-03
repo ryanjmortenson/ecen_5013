@@ -43,24 +43,6 @@ cb_enum_t circbuf_init(circbuf_t ** buf, uint16_t length)
   return CB_ENUM_NO_ERROR;
 } // circbuf_init()
 
-cb_enum_t circbuf_destroy(circbuf_t * buf)
-{
-  FUNC_ENTRY;
-
-  // Check for null pointers
-  CB_CHECK_NULL(buf);
-  CB_CHECK_NULL(buf->buffer);
-
-  // Free the buffer
-  free(buf->buffer);
-
-  // Free the circular buffer structure
-  free(buf);
-
-  // Return success
-  return CB_ENUM_NO_ERROR;
-} // circbuf_destroy()
-
 cb_enum_t circbuf_add_item(circbuf_t * buf, void * payload)
 {
   FUNC_ENTRY;
@@ -163,6 +145,48 @@ cb_enum_t circbuf_peek(circbuf_t * buf, uint32_t index, void ** payload)
 
   return CB_ENUM_NO_ERROR;
 } // circbuf_peek()
+
+cb_enum_t circbuf_destroy_free(circbuf_t * buf)
+{
+  FUNC_ENTRY;
+  void * payload;
+
+  // Check for null pointers
+  CB_CHECK_NULL(buf);
+  CB_CHECK_NULL(buf->buffer);
+
+  while(circbuf_remove_item(buf, &payload) != CB_ENUM_EMPTY)
+  {
+    free(payload);
+  }
+
+  // Free the buffer
+  free(buf->buffer);
+
+  // Free the circular buffer structure
+  free(buf);
+
+  // Return success
+  return CB_ENUM_NO_ERROR;
+} // circbuf_destroy_free()
+
+cb_enum_t circbuf_destroy(circbuf_t * buf)
+{
+  FUNC_ENTRY;
+
+  // Check for null pointers
+  CB_CHECK_NULL(buf);
+  CB_CHECK_NULL(buf->buffer);
+
+  // Free the buffer
+  free(buf->buffer);
+
+  // Free the circular buffer structure
+  free(buf);
+
+  // Return success
+  return CB_ENUM_NO_ERROR;
+} // circbuf_destroy()
 
 #ifdef UNITTEST
 // This is a test function used to set buffer to null
