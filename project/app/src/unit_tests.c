@@ -1,3 +1,11 @@
+/** @file unit_tests.c
+*
+* @brief Run unit tests
+* @author Ryan Mortenson
+* @tools GCC 5.4.0, vim 7.4, make 4.1, Ubuntu 16.04
+*
+*/
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
