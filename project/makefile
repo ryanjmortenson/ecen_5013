@@ -126,6 +126,10 @@ BUILD_WITH=@echo "Building with $<"
 # Set PHONY for all targets that don't have outputs for tracking
 .PHONY: build compile-all debug allasm alli allobjdump clean super-clean test
 
+# Build will build project
+build: $(OBJS)
+	$(MAKE) $(EXERCISE_OUT_FILE)
+
 # PHONY target so you don't have to type .out
 test:
 	$(MAKE) $(UNIT_TEST_OUT)
@@ -147,10 +151,6 @@ $(CMOCKA_LIB):
 	-DWITH_STATIC_LIB=ON \
 	../cmocka/ && \
 	$(MAKE_CMD) install
-
-# Build will build project
-build: $(OBJS)
-	$(MAKE) $(EXERCISE_OUT_FILE)
 
 # Build will build project library
 build-lib: $(OBJS)

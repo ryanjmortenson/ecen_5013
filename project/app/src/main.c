@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "circbuf.h"
+#include "linkedlist.h"
 #include "log.h"
 
 #define NUM_STRUCTS (20)
@@ -10,29 +11,42 @@ typedef struct test_struct {
   uint16_t test3;
 } test_struct_t;
 
+uint8_t compare(void * data1, void * data2)
+{
+  if (*(uint8_t *)data1 == *(uint8_t *)data2)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
 int main()
 {
-  log_init();
-  circbuf_t * test;
-  circbuf_init(&test, NUM_STRUCTS);
+  node_t * head;
+  int32_t index;
 
-  for (uint32_t i = 0; i < NUM_STRUCTS; i++)
+  log_init();
+  ll_init(&head);
+  uint8_t * test;
+
+  for (uint16_t i = 0; i < 10; i++)
   {
-    LOG_FATAL("MALLOCING a test_struct");
-    test_struct_t * data = malloc(sizeof(*data));
-    data->test1 = random();
-    data->test2 = random();
-    data->test3 = random();
-    LOG_HIGH("%d, %d, %d", data->test1, data->test2, data->test3);
-    circbuf_add_item(test, data);
+    test = malloc(sizeof(*test));
+    *test = i;
+    ll_insert(head, test, INSERT_AT_END);
   }
-  for (uint32_t i = 0; i < NUM_STRUCTS; i++)
-  {
-    test_struct_t * data;
-    circbuf_remove_item(test, (void **)&data);
-    LOG_HIGH("%p, %d, %d, %d", &data, data->test1, data->test2, data->test3);
-  }
-  circbuf_destroy(test);
+
+  test = malloc(sizeof(*test));
+  *test = 4;
+  ll_search(head, test, compare, &index);
+  ll_remove(head, (void *)&test, 9);
+  *test = 9;
+  ll_search(head, test, compare, &index);
+  LOG_HIGH("*p_test %d", *test);
+  ll_destroy(head);
   log_destroy();
   return 0;
 }
