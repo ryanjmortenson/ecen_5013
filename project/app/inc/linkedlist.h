@@ -37,5 +37,5 @@ ll_enum_t ll_remove(node_t * head, void ** data, int32_t index);
 
 ll_enum_t ll_search(node_t * head, void * data, COMPAREFUNC func, int32_t * index);
 
-uint32_t ll_size(node_t * head, void * data, uint32_t index);
+uint32_t ll_size(node_t * head, int32_t * index);
 #endif /* _LINKED_LIST_H */
