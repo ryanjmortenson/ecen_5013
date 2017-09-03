@@ -23,15 +23,6 @@ TEST_SRC+= \
 	$(APP_SRC_DIR)/unit_tests.c \
 	$(APP_SRC_DIR)/unit_circbuf.c
 
-APP_SRC += \
-  $(NON_MAIN_SRC) \
-	$(APP_SRC_DIR)/main.c
-
-TEST_SRC+= \
-	$(NON_MAIN_SRC) \
-	$(APP_SRC_DIR)/unit_tests.c \
-	$(APP_SRC_DIR)/unit_circbuf.c
-
 # Make a src list without any directories to feed into the allasm/alli targets
 SRC_LIST = $(subst $(APP_SRC_DIR)/,,$(APP_SRC_C))
 SRC_LIST = $(subst $(APP_SRC_DIR)/,,$(APP_SRC_CPP))
