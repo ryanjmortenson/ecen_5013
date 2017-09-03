@@ -43,6 +43,7 @@ ll_enum_t ll_insert(node_t * head, void * data, int32_t index)
 
   LL_CHECK_NULL(head);
   LL_CHECK_NULL(data);
+
   node_t * current = head;
   node_t * new = NULL;
   volatile int32_t count = 0;
@@ -79,13 +80,14 @@ ll_enum_t ll_remove(node_t * head, void ** data, int32_t index)
 
   LL_CHECK_NULL(head);
   LL_CHECK_NULL(data);
+
   node_t * current = head;
   uint32_t count = 0;
 
   while (current->next != NULL)
   {
     current = current->next;
-    if (count == index)
+    if (count != REMOVE_AT_END && count == index)
     {
       break;
     }
@@ -104,22 +106,25 @@ ll_enum_t ll_search(node_t * head, void * data, COMPAREFUNC func, int32_t * inde
   node_t * current = head;
   uint32_t count = 0;
 
+  LL_CHECK_NULL(head);
+  LL_CHECK_NULL(data);
+  LL_CHECK_NULL(func);
+  LL_CHECK_NULL(index);
+
   while(current->next != NULL)
   {
     current = current->next;
     if (func(data, current->data))
     {
-      LOG_LOW("Found a match at %p, index %d", current, count);
       *index = count;
       return  LL_ENUM_NO_ERROR;
     }
     count++;
   }
-  LOG_ERROR("Data not found");
   return LL_DATA_NOT_FOUND;
 } // ll_search()
 
-uint32_t ll_size(node_t * head, int32_t * index)
+ll_enum_t ll_size(node_t * head, int32_t * size)
 {
   FUNC_ENTRY;
   node_t * current = head;
@@ -130,9 +135,28 @@ uint32_t ll_size(node_t * head, int32_t * index)
     current = current->next;
     count++;
   }
-  *index = count;
+  *size = count;
   return  LL_ENUM_NO_ERROR;
 } // ll_size()
+
+ll_enum_t ll_dump(node_t * head, PRINTFUNC func)
+{
+  FUNC_ENTRY;
+
+  LL_CHECK_NULL(head);
+  LL_CHECK_NULL(func);
+
+  node_t * current = head;
+  uint32_t count = 0;
+
+  while(current->next != NULL)
+  {
+    current = current->next;
+    func(current->data, count);
+    count++;
+  }
+  return  LL_ENUM_NO_ERROR;
+} // ll_dump()
 
 ll_enum_t ll_destroy(node_t * head)
 {
