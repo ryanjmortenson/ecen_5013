@@ -1,4 +1,11 @@
-# System info script
+#/usr/bin/env bash
+
+# @file osinfo.sh 
+#
+# @brief Gathers os info placing it in a file and catting that file 
+# @author Ryan Mortenson
+# @tools GCC 5.4.0, vim 7.4, make 4.1, Ubuntu 16.04
+#
 
 echo "Operating System Type `uname -o`" > osinfo.txt
 echo "Operating System Distribution:\n`lsb_release -a`" >> osinfo.txt
