@@ -1,9 +1,20 @@
+/** @file circbuf.h
+*
+* @brief Interface for circular buffer
+* @author Ryan Mortenson
+* @tools GCC 5.4.0, vim 7.4, make 4.1, Ubuntu 16.04
+*
+*/
+
 #ifndef __CIRCBUF_H__
 #define __CIRCBUF_H__
 
 #include <stdint.h>
 #include <stddef.h>
 #include "project_defs.h"
+
+// Export print function definition
+typedef void (*PRINTFUNC)(void * data, uint32_t index);
 
 // Check for null pointer
 #define CB_CHECK_NULL(x) if (x == NULL) {return CB_ENUM_NULL_POINTER;}
@@ -127,6 +138,16 @@ __attribute__((always_inline))static inline cb_enum_t circbuf_empty(circbuf_t * 
  *
  */
 cb_enum_t circbuf_peek(circbuf_t * buf, uint32_t index, void ** payload);
+
+/*
+ * \brief circbuf_dump: prints contents of circbuf
+ *
+ * \param buf: pointer to a pointer for the circular buffer structure
+ * \param func: function for printing data
+ * \return: success if empty or error if not empty
+ *
+ */
+cb_enum_t circbuf_dump(circbuf_t * buf, PRINTFUNC func);
 
 /*
  * \brief circbuf_null_buffer: nulls internal buffer

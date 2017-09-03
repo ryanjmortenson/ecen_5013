@@ -1,9 +1,16 @@
+/** @file circbuf.c
+*
+* @brief Implementation of circular buffer
+* @author Ryan Mortenson
+* @tools GCC 5.4.0, vim 7.4, make 4.1, Ubuntu 16.04
+*
+*/
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include "circbuf.h"
 #include "log.h"
-
 
 cb_enum_t circbuf_init(circbuf_t ** buf, uint16_t length)
 {
@@ -187,6 +194,27 @@ cb_enum_t circbuf_destroy(circbuf_t * buf)
   // Return success
   return CB_ENUM_NO_ERROR;
 } // circbuf_destroy()
+
+cb_enum_t circbuf_dump(circbuf_t * buf, PRINTFUNC func)
+{
+  void * current;
+
+  // Check for null pointers
+  CB_CHECK_NULL(buf);
+  CB_CHECK_NULL(buf->buffer);
+
+  // Loop over length printing data at index if it exists
+  for (uint32_t i = 0; i < buf->count; i++)
+  {
+    if (circbuf_peek(buf, i, &current) == CB_ENUM_NO_ERROR)
+    {
+      func(current, i);
+    }
+  }
+
+  // Return success
+  return CB_ENUM_NO_ERROR;
+}
 
 #ifdef UNITTEST
 // This is a test function used to set buffer to null
