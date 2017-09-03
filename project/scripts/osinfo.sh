@@ -1,3 +1,5 @@
+# System info script
+
 echo "Operating System Type `uname -o`" > osinfo.txt
 echo "Operating System Distribution:\n`lsb_release -a`" >> osinfo.txt
 echo "Kernel Version: `uname -r`" >> osinfo.txt
