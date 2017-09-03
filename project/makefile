@@ -47,6 +47,7 @@ MAPS=$(X86_OUT_DIR)/$(MAP_FILE) \
 
 # Project output file names
 EXERCISE_OUT_FILE=exercise1.out
+LIB_OUT_FILE=libexercise1.a
 
 # Set CFLAGS used by every build type
 CFLAGS=-I$(APP_INC_DIR) \
@@ -54,12 +55,16 @@ CFLAGS=-I$(APP_INC_DIR) \
        -Werror \
        -std=c99 \
        -D_POSIX_C_SOURCE=199309L \
-       -D_DEFAULT_SOURCE \
-       -D PROBLEM$(PROBLEM)
+       -D_DEFAULT_SOURCE
 
 # Set colored logs if specified
 ifneq ($(COLOR_LOGS),)
 	CFLAGS+=-D COLOR_LOGS
+endif
+
+# Set colored logs if specified
+ifneq ($(PROBLEM),)
+	CFLAGS+=-D PROBLEM=$(PROBLEM)
 endif
 
 # System log turned on
@@ -82,23 +87,17 @@ ARM_CC=arm-linux-gnueabihf-gcc
 X86_CC=gcc
 
 # Set compiler, flags, and objects based on platform type
-ifeq ($(PLATFORM),tegra)
+ifneq ($(or $(findstring bbb,$(PLATFORM)),$(findstring armv7,$(shell uname -a))),)
+ifeq ($(PLATFORM),bbb)
 	CC=$(ARM_CC)
-	CFLAGS+=-lrt \
-          -D TEGRA \
-          -I$(ARM_PROP_INC_DIR)
-	OBJS=$(ARM_PROP_OBJS) \
-       $(ARM_OBJS)
-	TEST_OBJS=$(ARM_TEST_OBJS)
-	OUT_DIR=$(ARM_APP_OUT)
 else ifneq ($(findstring armv7,$(shell uname -a)),)
 	CC=gcc
+endif
 	CFLAGS+=-lrt \
-          -D TEGRA \
+          -D BBB \
           -I$(ARM_PROP_INC_DIR)
 	OBJS=$(ARM_PROP_OBJS) \
        $(ARM_OBJS)
-	TEST_OBJS=$(ARM_TEST_OBJS)
 	OUT_DIR=$(ARM_APP_OUT)
 else
 	CC=gcc
@@ -124,7 +123,7 @@ BUILD_TARGET=@echo "Building Target $@"
 BUILD_WITH=@echo "Building with $<"
 
 # Set PHONY for all targets that don't have outputs for tracking
-.PHONY: build compile-all debug allasm alli allobjdump clean super-clean test
+.PHONY: build build-lib compile-all debug allasm alli allobjdump clean test
 
 # Build will build project
 build: $(OBJS)
@@ -160,14 +159,13 @@ build-lib: $(OBJS)
 debug:
 	@echo "Debug output"
 	@echo $(X86_OBJS)
-	@echo $(CLIENT_X86_OBJS)
 	@echo $(SERVER_X86_OBJS)
 
 # Compiles the project into project binary which can be executed with ./project*.out
-$(EXERCISE_OUT_FILE): CFLAGS+=$(MAP_FLAG) $(DEFINE) $(VERB) -pthread
-$(EXERCISE_OUT_FILE): $(OBJS) $(CLIENT_OBJS)
+$(EXERCISE_OUT_FILE): CFLAGS+=$(MAP_FLAG) -lpthread -lrt -lm
+$(EXERCISE_OUT_FILE): $(OBJS)
 	$(BUILD_TARGET)
-	$(CC) $(CFLAGS) -o "$@" $(OBJS) $(CLIENT_OBJS) -lm -lrt
+	$(CC) $(CFLAGS) -o "$@" $(OBJS)
 	$(SIZE) $@
 
 # Build the library file for static linking
@@ -200,12 +198,6 @@ alli :
 	@echo "Building all i files"
 	$(MAKE) $(patsubst %.c,%.i,$(SRC_LIST))
 
-# Builds .o file when a .cpp file is specified by command line
-%.o: $(APP_SRC_DIR)/%.cpp
-	$(BUILD_TARGET)
-	$(BUILD_WITH)
-	$(CC) $(CFLAGS) -c -o "$@" "$<"
-
 # Builds .o file when a .c file is specified by command line
 %.o: $(APP_SRC_DIR)/%.c
 	$(BUILD_TARGET)
@@ -231,16 +223,8 @@ allobjdump: $(OBJS) $(EXERCISE_OUT_FILE)
 	$(OBJDUMP) -D "$<" > "$@"
 
 # Builds .o files from .c files
-$(OUT_DIR)/%.o: CFLAGS+=-MD -MP $(DEFINE) $(VERB)
+$(OUT_DIR)/%.o: CFLAGS+=-MD -MP
 $(OUT_DIR)/%.o: $(APP_SRC_DIR)/%.c
-	$(BUILD_TARGET)
-	$(BUILD_WITH)
-	$(shell $(MK_DIR) $(OUT_DIR))
-	$(CC) $(CFLAGS) -c -o "$@" "$<"
-
-# Builds .o files from .cpp files
-$(OUT_DIR)/%.o: CFLAGS+=-MD -MP $(DEFINE) $(VERB)
-$(OUT_DIR)/%.o: $(APP_SRC_DIR)/%.cpp
 	$(BUILD_TARGET)
 	$(BUILD_WITH)
 	$(shell $(MK_DIR) $(OUT_DIR))
@@ -252,7 +236,6 @@ CLEAN+=$(OUT) \
        *.i \
        *.asm \
        *.o \
-       *.opp \
        exercise*.out \
        *.map \
        *.objdump \
