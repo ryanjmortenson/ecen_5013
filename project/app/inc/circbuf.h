@@ -64,6 +64,15 @@ cb_enum_t circbuf_init(circbuf_t ** buf, uint16_t length);
 cb_enum_t circbuf_destroy(circbuf_t * buf);
 
 /*
+ * \brief circbuf_destroy_free: destroys list and frees data
+ *
+ * \param buf: pointer to a pointer for the circular buffer structure
+ * \return: success or error
+ *
+ */
+cb_enum_t circbuf_destroy_free(circbuf_t * buf);
+
+/*
  * \brief circbuf_add_item: adds and item to the head pointer and increments
  *                           head
  *

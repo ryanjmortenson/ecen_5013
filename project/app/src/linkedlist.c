@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include "project_defs.h"
 #include "linkedlist.h"
 #include "log.h"
@@ -25,14 +26,14 @@ ll_enum_t ll_init(node_t ** head)
 
   LL_CHECK_NULL(head);
 
+  // Alloc a new head
   if ((*head = malloc(sizeof(node_t))) == NULL)
   {
     return LL_ENUM_ALLOC_FAILURE;
   }
 
-  (*head)->next = NULL;
-  (*head)->prev = NULL;
-  (*head)->data = NULL;
+  // Memset head
+  memset(*head, 0, sizeof(**head));
 
   return  LL_ENUM_NO_ERROR;
 } // ll_init()
@@ -48,6 +49,7 @@ ll_enum_t ll_insert(node_t * head, void * data, int32_t index)
   node_t * new = NULL;
   volatile int32_t count = 0;
 
+  // Look for index of end of list
   while (current->next != NULL)
   {
     current = current->next;
@@ -58,19 +60,25 @@ ll_enum_t ll_insert(node_t * head, void * data, int32_t index)
     count++;
   }
 
+  // Couldn't find index
   if (index != INSERT_AT_END && count != index)
   {
     return LL_ENUM_INDEX_TOO_LARGE;
   }
 
-  if ((new = malloc(sizeof(node_t))) == NULL)
+  // Create a new node
+  if ((new = malloc(sizeof(*new))) == NULL)
   {
     return LL_ENUM_ALLOC_FAILURE;
   }
 
+  // Memset and initialize new node
+  memset(new, 0, sizeof(*new));
   new->data = data;
   new->prev = current;
+  new->next = current->next;
   current->next = new;
+
   return  LL_ENUM_NO_ERROR;
 } // ll_insert()
 
@@ -84,6 +92,7 @@ ll_enum_t ll_remove(node_t * head, void ** data, int32_t index)
   node_t * current = head;
   uint32_t count = 0;
 
+  // Look for index
   while (current->next != NULL)
   {
     current = current->next;
@@ -94,9 +103,23 @@ ll_enum_t ll_remove(node_t * head, void ** data, int32_t index)
     count++;
   }
 
+  // Couldn't find index
+  if (index != REMOVE_AT_END && count != index)
+  {
+    return LL_ENUM_INDEX_TOO_LARGE;
+  }
+
+  // Node was found, remove and set data pointer
   *data = current->data;
   current->prev->next = current->next;
+  if (current->next != NULL)
+  {
+    current->next->prev = current->prev;
+  }
+
+  // Free the current node
   free(current);
+
   return  LL_ENUM_NO_ERROR;
 } // ll_remove()
 
@@ -111,11 +134,13 @@ ll_enum_t ll_search(node_t * head, void * data, COMPAREFUNC func, int32_t * inde
   LL_CHECK_NULL(func);
   LL_CHECK_NULL(index);
 
+  // Look through node using compare function to find data
   while(current->next != NULL)
   {
     current = current->next;
     if (func(data, current->data))
     {
+      // Data was found return the rest
       *index = count;
       return  LL_ENUM_NO_ERROR;
     }
@@ -130,11 +155,14 @@ ll_enum_t ll_size(node_t * head, int32_t * size)
   node_t * current = head;
   uint32_t count = 0;
 
+  // Loop until the end is found
   while(current->next != NULL)
   {
     current = current->next;
     count++;
   }
+
+  // Set size
   *size = count;
   return  LL_ENUM_NO_ERROR;
 } // ll_size()
@@ -149,6 +177,7 @@ ll_enum_t ll_dump(node_t * head, PRINTFUNC func)
   node_t * current = head;
   uint32_t count = 0;
 
+  // Loop over list calling the print function
   while(current->next != NULL)
   {
     current = current->next;
@@ -161,12 +190,19 @@ ll_enum_t ll_dump(node_t * head, PRINTFUNC func)
 ll_enum_t ll_destroy(node_t * head)
 {
   node_t * current = head;
+  uint32_t count = 0;
+
+  // Loop over list freeing data and nodes
   while(current->next != NULL)
   {
+    LOG_FATAL("count %d", count);
     current = current->next;
-    free(current->prev->data);
+    free(current->data);
     free(current->prev);
+    count++;
   }
-  free(head);
+
+  // Free the last node
+  free(current);
   return  LL_ENUM_NO_ERROR;
 } // ll_destroy()

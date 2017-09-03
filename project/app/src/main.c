@@ -128,8 +128,13 @@ void circbuf_test()
   const int buf_len = 10;
   const int extra = 3;
 
+  // Init circbuf
   circbuf_init(&buf, buf_len);
 
+  // Print the empty status
+  LOG_FATAL("circbuf_empty: %d", circbuf_empty(buf));
+
+  // Fill up circbuf
   for (uint32_t i = 0; i < buf_len; i++)
   {
     input = malloc(sizeof(*input));
@@ -140,8 +145,13 @@ void circbuf_test()
     circbuf_add_item(buf, input);
   }
 
+  // Dump contents
   circbuf_dump(buf, print);
 
+  // Check full status
+  LOG_FATAL("circbuf_full: %d", circbuf_full(buf));
+
+  // Remove some items
   for (uint32_t i = 0; i < buf_len / 2; i++)
   {
     circbuf_remove_item(buf, (void **)&input);
@@ -178,7 +188,7 @@ void circbuf_test()
 
   circbuf_dump(buf, print);
 
-  circbuf_destroy(buf);
+  circbuf_destroy_free(buf);
 }
 
 int main()
