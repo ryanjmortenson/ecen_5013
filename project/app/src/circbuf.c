@@ -12,6 +12,16 @@
 #include "circbuf.h"
 #include "log.h"
 
+// Circular buffer structure
+struct circbuf
+{
+  void ** buffer;
+  void ** head;
+  void ** tail;
+  uint32_t count;
+  uint32_t length;
+};
+
 cb_enum_t circbuf_init(circbuf_t ** buf, uint16_t length)
 {
   FUNC_ENTRY;
@@ -215,6 +225,36 @@ cb_enum_t circbuf_dump(circbuf_t * buf, PRINTFUNC func)
   // Return success
   return CB_ENUM_NO_ERROR;
 }
+
+cb_enum_t circbuf_full(circbuf_t * buf)
+{
+  // Check null pointer
+  CB_CHECK_NULL(buf);
+
+  // Buffer is full return success
+  if (buf->length == buf->count)
+  {
+    return CB_ENUM_FULL;
+  }
+
+  // Buffer is not full return failure
+  return CB_ENUM_FAILURE;
+} // circbuf_full()
+
+cb_enum_t circbuf_empty(circbuf_t * buf)
+{
+  // Check null pointer
+  CB_CHECK_NULL(buf);
+
+  // Buffer is full return success
+  if (buf->count == 0)
+  {
+    return CB_ENUM_EMPTY;
+  }
+
+  // Buffer is not full return failure
+  return CB_ENUM_FAILURE;
+} // circbuf_empty()
 
 #ifdef UNITTEST
 // This is a test function used to set buffer to null

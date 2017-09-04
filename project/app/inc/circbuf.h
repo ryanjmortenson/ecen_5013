@@ -10,8 +10,9 @@
 #define __CIRCBUF_H__
 
 #include <stdint.h>
-#include <stddef.h>
-#include "project_defs.h"
+
+// Circbuf typedef
+typedef struct circbuf circbuf_t;
 
 // Export print function definition
 typedef void (*PRINTFUNC)(void * data, uint32_t index);
@@ -31,16 +32,6 @@ typedef enum cb_enum
   CB_ENUM_FAILURE,
   CB_ENUM_BAD_INDEX
 } cb_enum_t;
-
-// Circular buffer structure
-typedef struct circbuf
-{
-  void ** buffer;
-  void ** head;
-  void ** tail;
-  uint16_t count;
-  uint16_t length;
-} circbuf_t;
 
 /*
  * \brief circbuf_init: Initialize circular buffer with a length this will
@@ -100,20 +91,7 @@ cb_enum_t circbuf_remove_item(circbuf_t * buf, void ** payload);
  * \return: success if full or error if not full
  *
  */
-__attribute__((always_inline))static inline cb_enum_t circbuf_full(circbuf_t * buf)
-{
-  // Check null pointer
-  CB_CHECK_NULL(buf);
-
-  // Buffer is full return success
-  if (buf->length == buf->count)
-  {
-    return CB_ENUM_FULL;
-  }
-
-  // Buffer is not full return failure
-  return CB_ENUM_FAILURE;
-} // circbuf_full()
+cb_enum_t circbuf_full(circbuf_t * buf);
 
 /*
  * \brief circbuf_empty: checks if buffer is empty
@@ -122,20 +100,7 @@ __attribute__((always_inline))static inline cb_enum_t circbuf_full(circbuf_t * b
  * \return: success if empty or error if not empty
  *
  */
-__attribute__((always_inline))static inline cb_enum_t circbuf_empty(circbuf_t * buf)
-{
-  // Check null pointer
-  CB_CHECK_NULL(buf);
-
-  // Buffer is full return success
-  if (buf->count == 0)
-  {
-    return CB_ENUM_EMPTY;
-  }
-
-  // Buffer is not full return failure
-  return CB_ENUM_FAILURE;
-} // circbuf_empty()
+cb_enum_t circbuf_empty(circbuf_t * buf);
 
 /*
  * \brief circbuf_peek: gets the index item from tail

@@ -9,10 +9,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "project_defs.h"
 #include "linkedlist.h"
 #include "log.h"
 
+// Linked list node structure
 struct node
 {
   struct node * next;
@@ -126,13 +126,14 @@ ll_enum_t ll_remove(node_t * head, void ** data, int32_t index)
 ll_enum_t ll_search(node_t * head, void * data, COMPAREFUNC func, int32_t * index)
 {
   FUNC_ENTRY;
-  node_t * current = head;
-  uint32_t count = 0;
 
   LL_CHECK_NULL(head);
   LL_CHECK_NULL(data);
   LL_CHECK_NULL(func);
   LL_CHECK_NULL(index);
+
+  node_t * current = head;
+  uint32_t count = 0;
 
   // Look through node using compare function to find data
   while(current->next != NULL)
@@ -152,6 +153,10 @@ ll_enum_t ll_search(node_t * head, void * data, COMPAREFUNC func, int32_t * inde
 ll_enum_t ll_size(node_t * head, int32_t * size)
 {
   FUNC_ENTRY;
+
+  LL_CHECK_NULL(head);
+  LL_CHECK_NULL(size);
+
   node_t * current = head;
   uint32_t count = 0;
 
@@ -189,13 +194,16 @@ ll_enum_t ll_dump(node_t * head, PRINTFUNC func)
 
 ll_enum_t ll_destroy(node_t * head)
 {
+  FUNC_ENTRY;
+
+  LL_CHECK_NULL(head);
+
   node_t * current = head;
   uint32_t count = 0;
 
   // Loop over list freeing data and nodes
   while(current->next != NULL)
   {
-    LOG_FATAL("count %d", count);
     current = current->next;
     free(current->data);
     free(current->prev);
