@@ -1,3 +1,11 @@
+/** @file unit_circbuf.h
+*
+* @brief Declarations for unit circbuf
+* @author Ryan Mortenson
+* @tools GCC 5.4.0, vim 7.4, make 4.1, Ubuntu 16.04
+*
+*/
+
 #ifndef __UNIT_CIRCBUF_H__
 #define __UNIT_CIRCBUF_H__
 

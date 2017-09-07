@@ -1,9 +1,26 @@
+/** @file circbuf.c
+*
+* @brief Implementation of circular buffer
+* @author Ryan Mortenson
+* @tools GCC 5.4.0, vim 7.4, make 4.1, Ubuntu 16.04
+*
+*/
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include "circbuf.h"
 #include "log.h"
 
+// Circular buffer structure
+struct circbuf
+{
+  void ** buffer;
+  void ** head;
+  void ** tail;
+  uint32_t count;
+  uint32_t length;
+};
 
 cb_enum_t circbuf_init(circbuf_t ** buf, uint16_t length)
 {
@@ -42,24 +59,6 @@ cb_enum_t circbuf_init(circbuf_t ** buf, uint16_t length)
   // Return success
   return CB_ENUM_NO_ERROR;
 } // circbuf_init()
-
-cb_enum_t circbuf_destroy(circbuf_t * buf)
-{
-  FUNC_ENTRY;
-
-  // Check for null pointers
-  CB_CHECK_NULL(buf);
-  CB_CHECK_NULL(buf->buffer);
-
-  // Free the buffer
-  free(buf->buffer);
-
-  // Free the circular buffer structure
-  free(buf);
-
-  // Return success
-  return CB_ENUM_NO_ERROR;
-} // circbuf_destroy()
 
 cb_enum_t circbuf_add_item(circbuf_t * buf, void * payload)
 {
@@ -163,6 +162,99 @@ cb_enum_t circbuf_peek(circbuf_t * buf, uint32_t index, void ** payload)
 
   return CB_ENUM_NO_ERROR;
 } // circbuf_peek()
+
+cb_enum_t circbuf_destroy_free(circbuf_t * buf)
+{
+  FUNC_ENTRY;
+  void * payload;
+
+  // Check for null pointers
+  CB_CHECK_NULL(buf);
+  CB_CHECK_NULL(buf->buffer);
+
+  while(circbuf_remove_item(buf, &payload) != CB_ENUM_EMPTY)
+  {
+    free(payload);
+  }
+
+  // Free the buffer
+  free(buf->buffer);
+
+  // Free the circular buffer structure
+  free(buf);
+
+  // Return success
+  return CB_ENUM_NO_ERROR;
+} // circbuf_destroy_free()
+
+cb_enum_t circbuf_destroy(circbuf_t * buf)
+{
+  FUNC_ENTRY;
+
+  // Check for null pointers
+  CB_CHECK_NULL(buf);
+  CB_CHECK_NULL(buf->buffer);
+
+  // Free the buffer
+  free(buf->buffer);
+
+  // Free the circular buffer structure
+  free(buf);
+
+  // Return success
+  return CB_ENUM_NO_ERROR;
+} // circbuf_destroy()
+
+cb_enum_t circbuf_dump(circbuf_t * buf, PRINTFUNC func)
+{
+  void * current;
+
+  // Check for null pointers
+  CB_CHECK_NULL(buf);
+  CB_CHECK_NULL(buf->buffer);
+
+  // Loop over length printing data at index if it exists
+  for (uint32_t i = 0; i < buf->count; i++)
+  {
+    if (circbuf_peek(buf, i, &current) == CB_ENUM_NO_ERROR)
+    {
+      func(current, i);
+    }
+  }
+
+  // Return success
+  return CB_ENUM_NO_ERROR;
+}
+
+cb_enum_t circbuf_full(circbuf_t * buf)
+{
+  // Check null pointer
+  CB_CHECK_NULL(buf);
+
+  // Buffer is full return success
+  if (buf->length == buf->count)
+  {
+    return CB_ENUM_FULL;
+  }
+
+  // Buffer is not full return failure
+  return CB_ENUM_FAILURE;
+} // circbuf_full()
+
+cb_enum_t circbuf_empty(circbuf_t * buf)
+{
+  // Check null pointer
+  CB_CHECK_NULL(buf);
+
+  // Buffer is full return success
+  if (buf->count == 0)
+  {
+    return CB_ENUM_EMPTY;
+  }
+
+  // Buffer is not full return failure
+  return CB_ENUM_FAILURE;
+} // circbuf_empty()
 
 #ifdef UNITTEST
 // This is a test function used to set buffer to null
