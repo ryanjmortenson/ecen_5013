@@ -85,7 +85,7 @@ static inline char * get_basename(char * p_filename, const char * p_path_seperat
 void log_init()
 {
 #ifdef SYS_LOG
-  openlog("ecen5623", LOG_CONS | LOG_PID, LOG_USER);
+  openlog("ecen5013", LOG_CONS | LOG_PID, LOG_USER);
 #endif
 } // log_init()
 
