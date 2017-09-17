@@ -34,7 +34,7 @@ void timer_cb(unsigned long data)
   i++;
   ret = mod_timer(&time, jiffies + msecs_to_jiffies(TIMER_MS));
 
-  if (ret != 1)
+  if (!(ret >= 0))
   {
     printk(KERN_INFO "Error in modifying timer");
   }
@@ -72,7 +72,7 @@ static void __exit timer_cleanup(void)
   printk(KERN_INFO "Entered %s", __FUNCTION__);
 
   ret = del_timer(&time);
-  if (ret != 0)
+  if (!(ret >= 0))
   {
     printk("Error in cleaning up timer");
   }
