@@ -1,7 +1,8 @@
-OUT=syscall.out
+IN=syscall.c
+OUT=$(patsubst %.c,%.out,$(IN))
 
 $(OUT):
-	gcc syscall.c -o $@
+	gcc $(IN) -o $@
 
 clean:
-	rm $(OUT)
+	rm -rf $(OUT)
