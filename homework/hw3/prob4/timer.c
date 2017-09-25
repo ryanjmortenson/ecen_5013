@@ -16,6 +16,22 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Mortenson");
 MODULE_DESCRIPTION("Module with 500 ms timer");
 
+void print_children(struct task_struct * task, struct task_struct * prev_task)
+{
+  struct list_head *pos;
+  struct task_struct * child_task;
+  // printk(KERN_INFO "prev_task name: %s, task name: %s\n", prev_task->comm, task->comm);
+  list_for_each(pos, &task->children)
+  {
+    child_task = list_entry(pos, struct task_struct, sibling);
+    if (prev_task->pid != task->pid)
+    {
+      printk(KERN_INFO "name: %s, pid: %d\n", child_task->comm, child_task->pid);
+      print_children(child_task, prev_task);
+    }
+  }
+}
+
 /*
  * \brief list_procs_init: timer module initialization
  *
@@ -23,30 +39,17 @@ MODULE_DESCRIPTION("Module with 500 ms timer");
  */
 static int __init list_procs_init(void)
 {
-  struct task_struct *task = current;
-  struct task_struct *current_task;
-  struct list_head *pos;
+  struct task_struct *task = current->parent;
+  struct task_struct *prev_task = current;
 
   printk(KERN_INFO "Entered %s", __FUNCTION__);
   printk(KERN_INFO "Initializing listing processes\n");
 
   while (task->pid != 0)
   {
-    printk("Looping over children\n");
-    printk("Current task pointer: %p, pid: %d, name: %s\n", task, task->pid, task->comm);
-    list_for_each(pos, &task->children)
-    {
-      current_task = (struct task_struct *)((char *)(list_entry(pos, struct task_struct, children)) - 0x10);
-      printk(KERN_INFO "pointer %p name %s, pid %d\n", current_task, (current_task)->comm, (current_task)->pid);
-    }
-#if 0
-    list_for_each_entry(current_task, &task->children, children)
-    {
-      printk(KERN_INFO "name %s, pid %d\n", current_task->comm, current_task->pid);
-    }
-#endif
-    printk("Moving to parent\n");
+    prev_task = task;
     task = task->parent;
+    print_children(task, prev_task);
   }
   return 0;
 }
