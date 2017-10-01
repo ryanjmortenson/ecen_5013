@@ -12,6 +12,8 @@ NON_MAIN_SRC += \
 	$(APP_SRC_DIR)/log.c \
 	$(APP_SRC_DIR)/profiler.c \
 	$(APP_SRC_DIR)/circbuf.c \
+	$(APP_SRC_DIR)/child1.c \
+	$(APP_SRC_DIR)/child2.c \
 	$(APP_SRC_DIR)/linkedlist.c
 
 APP_SRC_C += \

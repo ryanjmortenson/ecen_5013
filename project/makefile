@@ -46,14 +46,15 @@ MAPS=$(X86_OUT_DIR)/$(MAP_FILE) \
 -include sources.mk
 
 # Project output file names
-EXERCISE_OUT_FILE=exercise1.out
-LIB_OUT_FILE=libexercise1.a
+EXERCISE_OUT_FILE=exercise3.out
+LIB_OUT_FILE=libexercise3.a
 
 # Set CFLAGS used by every build type
 CFLAGS=-I$(APP_INC_DIR) \
        -Wall \
        -Werror \
        -std=c99 \
+			 -pthread \
        -D_POSIX_C_SOURCE=199309L \
        -D_DEFAULT_SOURCE
 

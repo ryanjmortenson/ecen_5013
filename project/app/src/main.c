@@ -6,205 +6,118 @@
 *
 */
 
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <pthread.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "linkedlist.h"
-#include "circbuf.h"
+#include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include "child1.h"
+#include "child2.h"
 #include "log.h"
+#include "project_defs.h"
 
-typedef struct test_struct {
-  uint32_t id;
-  uint8_t var1;
-  uint16_t var2;
-  uint32_t var3;
-} test_struct_t;
+uint32_t abort_signal = 0;
+volatile sig_atomic_t signal_interrupted = 0;
 
-void print(void * data, uint32_t index)
+void sigint_handler(int sig)
 {
-  test_struct_t * struct1 = (test_struct_t *)data;
-
-  LOG_LOW("Data for index %d", index);
-  LOG_LOW("id: %d, var1: %d, var2: %d, var3: %d",
-          struct1->id,
-          struct1->var1,
-          struct1->var2,
-          struct1->var3);
+  LOG_FATAL("SIGINT captured");
+  signal_interrupted = 1;
 }
 
-// Comparison function for ll_search
-uint8_t compare(void * data1, void * data2)
+int main(int argc, char *argv[])
 {
-  test_struct_t * struct1 = (test_struct_t *)data1;
-  test_struct_t * struct2 = (test_struct_t *)data2;
-  if (struct1->id == struct2->id)
-  {
-    return 1;
-  }
-  else
-  {
-    return 0;
-  }
-}
-
-void ll_test()
-{
-  FUNC_ENTRY;
-  node_t * head;
-  test_struct_t * input;
-  test_struct_t * output;
-  test_struct_t search;
-  int32_t index;
-  int32_t size;
-
-  // Initialize linked list
-  ll_init(&head);
-
-  // Loop 10 times adding random data and inserting into ll
-  for (uint16_t i = 0; i < 10; i++)
-  {
-    input = malloc(sizeof(*input));
-    input->id = i;
-    input->var1 = random();
-    input->var2 = random();
-    input->var3 = random();
-    if (i == 4)
-    {
-      search = *input;
-    }
-    ll_insert(head, input, INSERT_AT_END);
-  }
-
-  // Search for the same item to make sure it was removed
-  if (!ll_search(head, &search, compare, &index))
-  {
-    LOG_FATAL("Found node at index %d", index);
-  }
-  else
-  {
-    LOG_ERROR("Could not find node");
-  }
-
-  // Check size and print
-  ll_size(head, &size);
-  LOG_HIGH("size %d", size);
-
-  // Remove an item and check size
-  ll_remove(head, (void *)&output, index);
-  ll_size(head, &size);
-  LOG_HIGH("size %d", size);
-
-  // Shod found and searched data
-  LOG_HIGH("Searched Data:");
-  print(&search, -1);
-  LOG_HIGH("Found Data:");
-  print(output, index);
-
-  // Free the item removed
-  free(output);
-
-  // Search for the same item to make sure it was removed
-  if (!ll_search(head, &search, compare, &index))
-  {
-    LOG_FATAL("Found node at index %d", index);
-  }
-  else
-  {
-    LOG_ERROR("Could not find node");
-  }
-
-  // Dump the linked list
-  ll_dump(head, print);
-
-  // Clean up
-  ll_destroy(head);
-}
-
-void circbuf_test()
-{
-  FUNC_ENTRY;
-
-  circbuf_t * buf;
-  test_struct_t * input;
-  const int buf_len = 10;
-  const int extra = 3;
-
-  // Init circbuf
-  circbuf_init(&buf, buf_len);
-
-  // Print the empty status
-  LOG_FATAL("circbuf_empty: %d", circbuf_empty(buf));
-
-  // Fill up circbuf
-  for (uint32_t i = 0; i < buf_len; i++)
-  {
-    input = malloc(sizeof(*input));
-    input->id = i;
-    input->var1 = random();
-    input->var2 = random();
-    input->var3 = random();
-    circbuf_add_item(buf, input);
-  }
-
-  // Dump contents
-  circbuf_dump(buf, print);
-
-  // Check full status
-  LOG_FATAL("circbuf_full: %d", circbuf_full(buf));
-
-  // Remove some items
-  for (uint32_t i = 0; i < buf_len / 2; i++)
-  {
-    circbuf_remove_item(buf, (void **)&input);
-    free(input);
-  }
-
-  for (uint32_t i = 0; i < extra; i++)
-  {
-    input = malloc(sizeof(*input));
-    input->id = i + buf_len;
-    input->var1 = random();
-    input->var2 = random();
-    input->var3 = random();
-    circbuf_add_item(buf, input);
-  }
-
-  circbuf_dump(buf, print);
-
-  for (uint32_t i = 0; i < buf_len / 2; i++)
-  {
-    circbuf_remove_item(buf, (void **)&input);
-    free(input);
-  }
-
-  for (uint32_t i = 0; i < extra; i++)
-  {
-    input = malloc(sizeof(*input));
-    input->id = i + buf_len + extra;
-    input->var1 = random();
-    input->var2 = random();
-    input->var3 = random();
-    circbuf_add_item(buf, input);
-  }
-
-  circbuf_dump(buf, print);
-
-  circbuf_destroy_free(buf);
-}
-
-int main()
-{
-  FUNC_ENTRY;
+  int fd;
+  int ret;
+  char input;
+  char * file_name = argv[1];
+  pthread_t child1;
+  pthread_t child2;
+  struct sigaction int_handler = {.sa_handler=sigint_handler};
 
   // Initialize log
   log_init();
 
-  // Run a simple linked list test
-  ll_test();
+  FUNC_ENTRY;
 
-  // Run a simple circbuf test
-  circbuf_test();
+  if (argc != 2)
+  {
+    LOG_ERROR("Only 1 parameter (file name) is required, you provided %d", argc - 1);
+    return 1;
+  }
 
-  // Destroy log
+  // Display file name
+  LOG_LOW("File name: %s", file_name);
+
+  // Try and open the file
+  fd = open(file_name, O_WRONLY | O_CREAT | O_TRUNC, 0766);
+  if (fd < 0)
+  {
+    LOG_ERROR("Could not open %s, errno: %s", file_name, strerror(errno));
+    return 1;
+  }
+  else
+  {
+    LOG_HIGH("Opened %s, fd %d", file_name, fd);
+  }
+
+  // Initialize children threads
+  ret = child1_init(file_name, &child1);
+  if (ret != SUCCESS)
+  {
+    LOG_ERROR("Child 1 creation failed");
+    return 1;
+  }
+
+  ret = child2_init(&child2);
+  if (ret != SUCCESS)
+  {
+    LOG_ERROR("Child 2 creation failed");
+    return 1;
+  }
+
+  // Register signal handler
+  sigaction(SIGINT, &int_handler, 0);
+
+  // Loop until ctrl-c is pressed
+  while (!signal_interrupted)
+  {
+    input = getchar();
+    ret = write(fd, &input, sizeof(input));
+    if (ret < 0)
+    {
+      LOG_ERROR("Could not write data %c to file %s", input, file_name);
+    }
+  }
+
+  // Set the abort flag for all other threads
+  abort_signal = 1;
+
+  // Send the two signals to get threads to break out of their loops
+  kill(getpid(), SIGUSR2);
+  kill(getpid(), SIGUSR1);
+
+  // Wait for threads to hoin
+  pthread_join(child1, NULL);
+  LOG_HIGH("child1 joined");
+  pthread_join(child2, NULL);
+  LOG_HIGH("child2 joined");
+
+  // Close file
+  ret = close(fd);
+  if (ret < 0)
+  {
+    LOG_ERROR("Could not close %s, errno: %s", file_name, strerror(errno));
+  }
+
+  // Destory log
   log_destroy();
   return 0;
 }
