@@ -130,8 +130,9 @@ BUILD_WITH=@echo "Building with $<"
 
 # Build will build project
 build: $(OBJS)
-	$(MAKE) ex3prob5.out
-	$(MAKE) ex3prob3.out
+	$(MAKE) ex3prob2.out -j8
+	$(MAKE) ex3prob3.out -j8
+	$(MAKE) ex3prob5.out -j8
 
 # PHONY target so you don't have to type .out
 test:
