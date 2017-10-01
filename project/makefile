@@ -46,8 +46,8 @@ MAPS=$(X86_OUT_DIR)/$(MAP_FILE) \
 -include sources.mk
 
 # Project output file names
-EXERCISE_OUT_FILE=exercise3.out
-LIB_OUT_FILE=libexercise3.a
+EXERCISE_OUT_FILE=exercise3problem5.out
+LIB_OUT_FILE=libexercise3problem5.a
 
 # Set CFLAGS used by every build type
 CFLAGS=-I$(APP_INC_DIR) \
@@ -107,6 +107,8 @@ else
 	OUT_DIR=$(X86_APP_OUT)
 endif
 
+OBJS+=$(OUT_DIR)/$(patsubst %.out,%.o,$(MAKECMDGOALS))
+
 # Create names for size, ar, and objdump binaries
 SIZE=$(subst gcc,size,$(CC))
 AR=$(subst gcc,ar,$(CC))
@@ -128,7 +130,8 @@ BUILD_WITH=@echo "Building with $<"
 
 # Build will build project
 build: $(OBJS)
-	$(MAKE) $(EXERCISE_OUT_FILE)
+	$(MAKE) ex3prob5.out
+	$(MAKE) ex3prob3.out
 
 # PHONY target so you don't have to type .out
 test:
@@ -162,9 +165,11 @@ debug:
 	@echo $(X86_OBJS)
 	@echo $(SERVER_X86_OBJS)
 
+
 # Compiles the project into project binary which can be executed with ./project*.out
-$(EXERCISE_OUT_FILE): CFLAGS+=$(MAP_FLAG) -lpthread -lrt -lm
-$(EXERCISE_OUT_FILE): $(OBJS)
+%.out: CFLAGS+=$(MAP_FLAG) -lpthread -lrt -lm
+%.out:
+%.out: $(OBJS)
 	$(BUILD_TARGET)
 	$(CC) $(CFLAGS) -o "$@" $(OBJS)
 	$(SIZE) $@
@@ -240,6 +245,7 @@ CLEAN+=$(OUT) \
        exercise*.out \
        *.map \
        *.objdump \
+			 *.out \
        $(UNIT_TEST_OUT) \
        $(LIB_OUT_FILE) \
        $(CMOCKA_LIB)
