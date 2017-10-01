@@ -14,22 +14,30 @@
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Mortenson");
-MODULE_DESCRIPTION("Module with 500 ms timer");
+MODULE_DESCRIPTION("List find all kernel threads by checking task->mm == NULL");
 
-void print_children(struct task_struct * task, struct task_struct * prev_task)
+int print_children(struct task_struct * task, struct task_struct * prev_task)
 {
   struct list_head *pos;
   struct task_struct * child_task;
-  // printk(KERN_INFO "prev_task name: %s, task name: %s\n", prev_task->comm, task->comm);
+  size_t count = 0;
+  size_t children = 0;
+
   list_for_each(pos, &task->children)
   {
+    count++;
     child_task = list_entry(pos, struct task_struct, sibling);
-    if (prev_task->pid != task->pid)
+    if (prev_task->pid != task->pid && task->mm == NULL)
     {
-      printk(KERN_INFO "name: %s, pid: %d\n", child_task->comm, child_task->pid);
-      print_children(child_task, prev_task);
+      children = print_children(child_task, prev_task);
+      printk(KERN_INFO "name: %s, pid: %d, num children: %zu, state: %lu\n",
+                       child_task->comm,
+                       child_task->pid,
+                       children,
+                       child_task->state);
     }
   }
+  return count;
 }
 
 /*
