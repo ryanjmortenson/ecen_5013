@@ -78,6 +78,10 @@ ll_enum_t ll_insert(node_t * head, void * data, int32_t index)
   new->prev = current;
   new->next = current->next;
   current->next = new;
+  if (new->next != NULL)
+  {
+    new->next->prev = new;
+  }
 
   return  LL_ENUM_NO_ERROR;
 } // ll_insert()
@@ -90,16 +94,16 @@ ll_enum_t ll_remove(node_t * head, void ** data, int32_t index)
   LL_CHECK_NULL(data);
 
   node_t * current = head;
-  uint32_t count = 0;
+  int32_t count = -1;
 
   // Look for index
   while (current->next != NULL)
   {
-    current = current->next;
     if (count != REMOVE_AT_END && count == index)
     {
       break;
     }
+    current = current->next;
     count++;
   }
 

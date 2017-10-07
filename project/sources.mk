@@ -8,20 +8,19 @@ APP_OUT=app/out
 X86_APP_OUT=$(APP_OUT)/$(X86)
 ARM_APP_OUT=$(APP_OUT)/$(ARM)
 
-NON_MAIN_SRC += \
+APP_SRC_C += \
 	$(APP_SRC_DIR)/log.c \
 	$(APP_SRC_DIR)/profiler.c \
 	$(APP_SRC_DIR)/circbuf.c \
+	$(APP_SRC_DIR)/child1.c \
+	$(APP_SRC_DIR)/child2.c \
 	$(APP_SRC_DIR)/linkedlist.c
-
-APP_SRC_C += \
-  $(NON_MAIN_SRC) \
-	$(APP_SRC_DIR)/main.c
 
 TEST_SRC+= \
 	$(NON_MAIN_SRC) \
 	$(APP_SRC_DIR)/unit_tests.c \
-	$(APP_SRC_DIR)/unit_circbuf.c
+	$(APP_SRC_DIR)/unit_circbuf.c \
+	$(APP_SRC_DIR)/unit_linkedlist.c
 
 # Make a src list without any directories to feed into the allasm/alli targets
 SRC_LIST = $(subst $(APP_SRC_DIR)/,,$(APP_SRC_C))
