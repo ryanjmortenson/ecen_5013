@@ -54,7 +54,6 @@ CFLAGS=-I$(APP_INC_DIR) \
        -Wall \
        -Werror \
        -std=c99 \
-			 -pthread \
        -D_POSIX_C_SOURCE=199309L \
        -D_DEFAULT_SOURCE
 
@@ -130,9 +129,7 @@ BUILD_WITH=@echo "Building with $<"
 
 # Build will build project
 build: $(OBJS)
-	$(MAKE) ex3prob2.out -j8
-	$(MAKE) ex3prob3.out -j8
-	$(MAKE) ex3prob5.out -j8
+	$(MAKE) main.out COLOR_LOGS=true -j8
 
 # PHONY target so you don't have to type .out
 test:
@@ -168,11 +165,11 @@ debug:
 
 
 # Compiles the project into project binary which can be executed with ./project*.out
-%.out: CFLAGS+=$(MAP_FLAG) -lpthread -lrt -lm
+%.out: CFLAGS+=$(MAP_FLAG)
 %.out:
 %.out: $(OBJS)
 	$(BUILD_TARGET)
-	$(CC) $(CFLAGS) -o "$@" $(OBJS)
+	$(CC) $(CFLAGS) -o "$@" $(OBJS) -lrt -lpthread
 	$(SIZE) $@
 
 # Build the library file for static linking
@@ -246,7 +243,7 @@ CLEAN+=$(OUT) \
        exercise*.out \
        *.map \
        *.objdump \
-			 *.out \
+			 main.out \
        $(UNIT_TEST_OUT) \
        $(LIB_OUT_FILE) \
        $(CMOCKA_LIB)

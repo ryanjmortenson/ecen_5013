@@ -7,6 +7,17 @@
 #ifndef __PROJECT_DEFS_H__
 #define __PROJECT_DEFS_H__
 
+typedef void * (*CALLBACK)(void * params);
+
+typedef enum type {
+  BROADCAST  = 0,
+  LOG        = 1,
+  READ_LIGHT = 2,
+  READ_TEMP  = 4,
+  MAIN_MSG   = 8,
+  TEST       = 16
+} type_t;
+
 typedef enum status {
   SUCCESS,
   FAILURE
