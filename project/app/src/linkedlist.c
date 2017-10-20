@@ -154,6 +154,39 @@ ll_enum_t ll_search(node_t * head, void * data, COMPAREFUNC func, int32_t * inde
   return LL_DATA_NOT_FOUND;
 } // ll_search()
 
+ll_enum_t ll_peek(node_t * head, void ** data, int32_t index)
+{
+  FUNC_ENTRY;
+
+  LL_CHECK_NULL(head);
+  LL_CHECK_NULL(data);
+
+  node_t * current = head;
+  uint32_t count = 0;
+
+  // Look for index
+  while (current->next != NULL)
+  {
+    current = current->next;
+    if (count == index)
+    {
+      break;
+    }
+    count++;
+  }
+
+  // Couldn't find index
+  if (count != index)
+  {
+    return LL_ENUM_INDEX_TOO_LARGE;
+  }
+
+  // Node was found, remove and set data pointer
+  *data = current->data;
+
+  return LL_ENUM_NO_ERROR;
+} // ll_peek()
+
 ll_enum_t ll_size(node_t * head, int32_t * size)
 {
   FUNC_ENTRY;

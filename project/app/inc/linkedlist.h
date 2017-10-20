@@ -90,6 +90,17 @@ ll_enum_t ll_remove(node_t * head, void ** data, int32_t index);
 ll_enum_t ll_search(node_t * head, void * data, COMPAREFUNC func, int32_t * index);
 
 /*
+ * \brief ll_peek: Get data for a node int the linked list
+ *
+ * \param head: pointer to head.
+ * \param data: pointer to be returned
+ * \param index: index of node to peek
+ * \return: success or error
+ *
+ */
+ll_enum_t ll_peek(node_t * head, void ** data, int32_t index);
+
+/*
  * \brief ll_dump: Print all of linked list
  *
  * \param head: pointer to head.
