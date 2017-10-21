@@ -96,6 +96,12 @@ void * worker_thread(void * param)
         LOG_ERROR("Couldn't not receive, %s", strerror(errno));
       }
 
+      if (msg.type == SHUTDOWN)
+      {
+        LOG_ERROR("Got shutdown");
+        break;
+      }
+
       // Read lock the linked list
       pthread_rwlock_rdlock(&ll_rwlock);
       res = ll_iter(reg_head, &iter);
@@ -105,10 +111,6 @@ void * worker_thread(void * param)
         if (res == LL_ENUM_NO_ERROR && (reg->type & msg.type))
         {
           reg->cb((void *)msg.msg);
-        }
-        else if (res == LL_ENUM_NO_ERROR && msg.type == SHUTDOWN)
-        {
-          break;
         }
       }
       pthread_rwlock_unlock(&ll_rwlock);
@@ -150,6 +152,7 @@ status_t register_cb(type_t type, CALLBACK cb)
 
 status_t init_workers()
 {
+  FUNC_ENTRY;
   status_t status = SUCCESS;
 
   // Clean up old queue in case there is junk left in it
@@ -164,9 +167,60 @@ status_t init_workers()
   // Create worker threads
   for (uint32_t i = 0; i < NUM_WORKERS; i++)
   {
-    LOG_FATAL("Creating thread");
+    LOG_LOW("Creating thread");
     pthread_create(&workers[i], NULL, worker_thread, NULL);
   }
 
   return status;
+}
+
+status_t dest_workers()
+{
+  FUNC_ENTRY;
+  status_t status = SUCCESS;
+
+  mqd_t msg_q = get_writeable_queue();
+
+  // Send a shutdown message to each worker
+  for (uint32_t i = 0; i < NUM_WORKERS; i++)
+  {
+    message_t msg;
+    msg.type = SHUTDOWN;
+    mq_send(msg_q, (char *)&msg, sizeof(msg), 0);
+    LOG_FATAL("Sent shutdown");
+  }
+
+  // Create worker threads
+  for (uint32_t i = 0; i < NUM_WORKERS; i++)
+  {
+    pthread_join(workers[i], NULL);
+    LOG_LOW("Thread joined");
+  }
+
+  // Create a linked list for registrations
+  if (ll_destroy(reg_head) != LL_ENUM_NO_ERROR)
+  {
+    LOG_ERROR("Couldn't destroy linked list");
+    status = FAILURE;
+  }
+
+  // Clean up old queue in case there is junk left in it
+  mq_unlink(WORKER_QUEUE);
+  return status;
+}
+
+status_t flush_queue()
+{
+  FUNC_ENTRY;
+  struct mq_attr attr;
+  mqd_t msg_q = get_readable_queue();
+  message_t msg;
+  mq_getattr(msg_q, &attr);
+
+  while (attr.mq_curmsgs)
+  {
+    mq_receive(msg_q, (char *)&msg, attr.mq_msgsize, NULL);
+    mq_getattr(msg_q, &attr);
+  }
+  return SUCCESS;
 }

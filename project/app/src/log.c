@@ -16,11 +16,11 @@
 #include <string.h>
 #include <stdarg.h>
 #include <syslog.h>
+#include <sys/time.h>
 
 #include "log.h"
 #include "project_defs.h"
 
-// TODO: Make this work on both Linux and Windows for cross compilation
 #define LOG_BUFFER_MAX (1024)
 #define STRNCAT_MAX (LOG_BUFFER_MAX - 1)
 
@@ -46,17 +46,30 @@ static const char * p_log_color_str[] = {
 };
 
 // Format for color
-#define LOG_COLOR_FMT   "%s%-7s %-12s in [%20s] line %4u: "
+#define LOG_COLOR_FMT   "%s%-10s %-7s %-10.10s [%10.10s] %4u: "
 
 #else
 // Format for non-color logs
-#define LOG_FMT         "%-7s %-12s in [%20s] line %4u: "
+#define LOG_FMT         "%-10s %-7s %-10.10s [%10.10s] %4u: "
 
 #endif /* COLOR_LOGS */
 
-const char * get_log_leve_string(log_level_t level)
+const char * get_log_level_string(log_level_t level)
 {
   return p_log_level_str[level];
+}
+
+static inline status_t get_time_stamp(char * buf)
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  create_timestamp(&tv, buf);
+  return SUCCESS;
+}
+
+void create_timestamp(struct timeval * tv, char * buf)
+{
+  snprintf(buf, TIMESTAMP_LEN, "%f", (double) (tv->tv_sec + ((double) tv->tv_usec / 1000000)));
 }
 
 /*!
@@ -105,6 +118,7 @@ void log_destroy()
 void log_level
 (
   log_level_t level,
+  char * timestamp,
   char * p_filename,
   const char * p_function,
   uint32_t line_no,
@@ -115,6 +129,7 @@ void log_level
   char * fmt;
   char log_buffer[LOG_BUFFER_MAX];
   char fmt_buffer[LOG_BUFFER_MAX];
+  char ts[TIMESTAMP_LEN];
 
   // Point to the last argument where the variadic arguments start
   va_start(printf_args, line_no);
@@ -122,12 +137,19 @@ void log_level
   // Get the first argument which will be the format for the printf statement
   fmt = va_arg(printf_args, char *);
 
+  if (timestamp == NULL)
+  {
+    get_time_stamp(ts);
+    timestamp = ts;
+  }
+
 #ifdef COLOR_LOGS
   // Print header in color
   snprintf(log_buffer,
            LOG_BUFFER_MAX,
            LOG_COLOR_FMT,
            p_log_color_str[level],
+           timestamp,
            p_log_level_str[level],
            get_basename(p_filename, PATH_SEPARATOR),
            p_function,
@@ -137,6 +159,7 @@ void log_level
   snprintf(log_buffer,
            LOG_BUFFER_MAX,
            LOG_FMT,
+           timestamp,
            p_log_level_str[level],
            get_basename(p_filename, PATH_SEPARATOR),
            p_function,

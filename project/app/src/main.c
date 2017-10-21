@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <sys/time.h>
 #include <pthread.h>
 #include <unistd.h>
 
@@ -22,6 +23,8 @@ int abort_signal = 0;
 
 void sigint_handler(int sig)
 {
+  LOG_FATAL("Sigint handler");
+  flush_queue();
   abort_signal = 1;
 }
 
@@ -36,9 +39,11 @@ int main()
   sigaction(SIGINT, &int_handler, 0);
   while(!abort_signal)
   {
-    SEND_LOG_FATAL("Test");
-    SEND_LOG_FATAL("Test");
-    SEND_LOG_FATAL("Test");
+    SEND_LOG_HIGH("Test");
+    SEND_LOG_MED("Test");
+    SEND_LOG_LOW("Test");
   }
+  LOG_FATAL("Broke out of loop");
+  dest_workers();
   return 0;
 }

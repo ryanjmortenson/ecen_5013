@@ -9,12 +9,15 @@
 #ifndef _LOG_MSG_H
 #define _LOG_MSG_H
 
+#include <sys/time.h>
+
 typedef struct log_msg {
   log_level_t level;
   char file_name[128];
   char function[32];
   uint32_t line_no;
   char message[256];
+  struct timeval tv;
 } log_msg_t;
 
 status_t log_msg_init(char * file_name);

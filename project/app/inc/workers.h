@@ -17,5 +17,7 @@ typedef struct message {
 } message_t;
 
 status_t init_workers();
+status_t dest_workers();
 mqd_t get_writeable_queue();
 status_t register_cb(type_t type, CALLBACK cb);
+status_t flush_queue();
