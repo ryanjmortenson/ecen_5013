@@ -7,6 +7,7 @@
 */
 
 #include <mqueue.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -14,30 +15,30 @@
 
 #include "workers.h"
 #include "log.h"
+#include "log_msg.h"
 
 // Abort signal for all threads
 int abort_signal = 0;
 
-void * print_cb(void * params)
+void sigint_handler(int sig)
 {
-  LOG_LOW("cb called");
-  return NULL;
+  abort_signal = 1;
 }
 
 int main()
 {
+  log_init();
   init_workers();
-  register_cb(LOG, print_cb);
-  uint32_t a = 1;
-  uint32_t b = 2;
+  log_msg_init("output.log");
+  struct sigaction int_handler = {.sa_handler=sigint_handler};
 
-  mqd_t msg_q = get_writeable_queue();
-  for (int i = 0; i < 10000; i++)
+  // Register signal handler
+  sigaction(SIGINT, &int_handler, 0);
+  while(!abort_signal)
   {
-    mq_send(msg_q, (char *)&a, sizeof(a), 0);
-    mq_send(msg_q, (char *)&b, sizeof(b), 0);
+    SEND_LOG_FATAL("Test");
+    SEND_LOG_FATAL("Test");
+    SEND_LOG_FATAL("Test");
   }
-
-  usleep(1000000);
   return 0;
 }

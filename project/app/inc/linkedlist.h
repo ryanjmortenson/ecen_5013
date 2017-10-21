@@ -119,4 +119,7 @@ ll_enum_t ll_dump(node_t * head, PRINTFUNC func);
  *
  */
 ll_enum_t ll_size(node_t * head, int32_t * size);
+
+ll_enum_t ll_iter_next(node_t ** iter, void ** data);
+ll_enum_t ll_iter(node_t * head, node_t ** iter);
 #endif /* _LINKED_LIST_H */

@@ -10,12 +10,12 @@
 typedef void * (*CALLBACK)(void * params);
 
 typedef enum type {
-  BROADCAST  = 0,
+  SHUTDOWN   = 0,
   LOG        = 1,
   READ_LIGHT = 2,
   READ_TEMP  = 4,
   MAIN_MSG   = 8,
-  TEST       = 16
+  TEST       = 16,
 } type_t;
 
 typedef enum status {

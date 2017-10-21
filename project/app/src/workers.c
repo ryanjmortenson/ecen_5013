@@ -14,12 +14,16 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "linkedlist.h"
 #include "log.h"
 #include "project_defs.h"
 #include "workers.h"
+#include "profiler.h"
+
+extern int abort_signal;
 
 // Worker threads
 #define NUM_WORKERS (5)
@@ -59,9 +63,9 @@ void * worker_thread(void * param)
   struct mq_attr attr;
   status_t status = SUCCESS;
   int32_t res = 0;
-  int32_t msg = 0;
-  int32_t reg_len;
+  message_t msg;
   registartion_t * reg;
+  node_t * iter;
 
   do
   {
@@ -84,10 +88,9 @@ void * worker_thread(void * param)
 
   if (status == SUCCESS)
   {
-    while (1)
+    while (!abort_signal)
     {
       res = mq_receive(msg_q, (char *)&msg, attr.mq_msgsize, NULL);
-      LOG_HIGH("pid: %d msg: %d", pthread_self(), msg);
       if (res < 0)
       {
         LOG_ERROR("Couldn't not receive, %s", strerror(errno));
@@ -95,13 +98,17 @@ void * worker_thread(void * param)
 
       // Read lock the linked list
       pthread_rwlock_rdlock(&ll_rwlock);
-      res = ll_size(reg_head, &reg_len);
-      for (int i = 0; i < reg_len; i++)
+      res = ll_iter(reg_head, &iter);
+      while (res == LL_ENUM_NO_ERROR)
       {
-        res = ll_peek(reg_head, (void *)&reg, i);
-        if (res == LL_ENUM_NO_ERROR && (reg->type & msg))
+        res = ll_iter_next(&iter, (void *)&reg);
+        if (res == LL_ENUM_NO_ERROR && (reg->type & msg.type))
         {
-          reg->cb((void *)&msg);
+          reg->cb((void *)msg.msg);
+        }
+        else if (res == LL_ENUM_NO_ERROR && msg.type == SHUTDOWN)
+        {
+          break;
         }
       }
       pthread_rwlock_unlock(&ll_rwlock);
@@ -110,7 +117,6 @@ void * worker_thread(void * param)
 
   // Shutdown everything
   mq_close(msg_q);
-  mq_unlink(WORKER_QUEUE);
   pthread_exit((void *)&status);
 }
 
@@ -146,15 +152,21 @@ status_t init_workers()
 {
   status_t status = SUCCESS;
 
+  // Clean up old queue in case there is junk left in it
+  mq_unlink(WORKER_QUEUE);
+
+  // Create a linked list for registrations
   if (ll_init(&reg_head) != LL_ENUM_NO_ERROR)
   {
     status = FAILURE;
   }
 
+  // Create worker threads
   for (uint32_t i = 0; i < NUM_WORKERS; i++)
   {
     LOG_FATAL("Creating thread");
     pthread_create(&workers[i], NULL, worker_thread, NULL);
   }
+
   return status;
 }

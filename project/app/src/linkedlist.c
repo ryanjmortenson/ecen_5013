@@ -251,3 +251,36 @@ ll_enum_t ll_destroy(node_t * head)
   free(current);
   return  LL_ENUM_NO_ERROR;
 } // ll_destroy()
+
+ll_enum_t ll_iter(node_t * head, node_t ** iter)
+{
+  FUNC_ENTRY;
+
+  LL_CHECK_NULL(head);
+  LL_CHECK_NULL(iter);
+
+  *iter = head;
+
+  return  LL_ENUM_NO_ERROR;
+} // ll_iterator()
+
+ll_enum_t ll_iter_next(node_t ** iter, void ** data)
+{
+  FUNC_ENTRY;
+
+  LL_CHECK_NULL(data);
+  LL_CHECK_NULL(iter);
+
+
+  if ((*iter)->next != NULL)
+  {
+    *iter = (*iter)->next;
+    *data = (*iter)->data;
+  }
+  else
+  {
+    return LL_ENUM_INDEX_TOO_LARGE;
+  }
+
+  return  LL_ENUM_NO_ERROR;
+} // ll_iterator()

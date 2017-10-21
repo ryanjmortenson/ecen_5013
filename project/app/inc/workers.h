@@ -11,6 +11,11 @@
 
 #define WORKER_QUEUE "/worker"
 
+typedef struct message {
+  type_t type;
+  char msg[512];
+} message_t;
+
 status_t init_workers();
 mqd_t get_writeable_queue();
 status_t register_cb(type_t type, CALLBACK cb);

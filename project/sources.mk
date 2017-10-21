@@ -10,11 +10,9 @@ ARM_APP_OUT=$(APP_OUT)/$(ARM)
 
 APP_SRC_C += \
 	$(APP_SRC_DIR)/log.c \
-	$(APP_SRC_DIR)/profiler.c \
-	$(APP_SRC_DIR)/circbuf.c \
-	$(APP_SRC_DIR)/child1.c \
-	$(APP_SRC_DIR)/child2.c \
+	$(APP_SRC_DIR)/log_msg.c \
 	$(APP_SRC_DIR)/workers.c \
+	$(APP_SRC_DIR)/profiler.c \
 	$(APP_SRC_DIR)/linkedlist.c
 
 TEST_SRC+= \

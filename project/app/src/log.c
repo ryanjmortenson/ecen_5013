@@ -21,7 +21,6 @@
 #include "project_defs.h"
 
 // TODO: Make this work on both Linux and Windows for cross compilation
-#define PATH_SEPARATOR "/"
 #define LOG_BUFFER_MAX (1024)
 #define STRNCAT_MAX (LOG_BUFFER_MAX - 1)
 
@@ -30,6 +29,7 @@ static const char * p_log_level_str[] = {
   "HIGH",
   "MEDIUM",
   "LOW",
+  "FUNC",
   "ERROR",
   "FATAL"
 };
@@ -40,6 +40,7 @@ static const char * p_log_color_str[] = {
   "\e[1;96m", // High=CYAN
   "\e[1;93m", // Medium=YELLOW
   "\e[1;97m", // Low=WHITE
+  "\e[1;30m", // Func=GRAY
   "\e[1;91m", // Error=RED
   "\e[1;95m", // Fatal=PURPLE
 };
@@ -53,13 +54,18 @@ static const char * p_log_color_str[] = {
 
 #endif /* COLOR_LOGS */
 
+const char * get_log_leve_string(log_level_t level)
+{
+  return p_log_level_str[level];
+}
+
 /*!
 * @brief Get the file basename in a OS that uses "/" for the separator
 * @param[in] p_filename pointer to the file name
 * @param[in] p_path_separator pointer to the path separator
 * @return pointer to the basename
 */
-static inline char * get_basename(char * p_filename, const char * p_path_seperator)
+char * get_basename(char * p_filename, const char * p_path_seperator)
 {
   uint8_t found_last_occurence = 0;
 

@@ -16,9 +16,15 @@ typedef enum {
   LOG_LEVEL_HIGH,
   LOG_LEVEL_MEDIUM,
   LOG_LEVEL_LOW,
+  LOG_LEVEL_FUNC,
   LOG_LEVEL_ERROR,
   LOG_LEVEL_FATAL
 } log_level_t;
+
+#define PATH_SEPARATOR "/"
+
+char * get_basename(char * p_filename, const char * p_path_seperator);
+const char * get_log_leve_string(log_level_t level);
 
 /*!
 * @brief Initializes the syslog
@@ -73,8 +79,14 @@ void log_level
 #define LOG_LOW(...)
 #endif  /* LOG_LEVEL > 2 */
 
+#if LOG_LEVEL > 3
+#define LOG_FUNC(...)  LOG(LOG_LEVEL_FUNC, __VA_ARGS__)
+#else
+#define LOG_FUNC(...)
+#endif  /* LOG_LEVEL > 2 */
+
 // Function entry log.  This should be placed at the beginning of each function
-#define FUNC_ENTRY LOG_MED("Entering %s()", __FUNCTION__)
+#define FUNC_ENTRY LOG_FUNC("Entering %s()", __FUNCTION__)
 
 // Error and Fatal definitions.  Fatal should be used sparingly and
 // mostly debugging
