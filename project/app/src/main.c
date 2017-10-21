@@ -23,17 +23,24 @@ int abort_signal = 0;
 
 void sigint_handler(int sig)
 {
-  LOG_FATAL("Sigint handler");
+  FUNC_ENTRY;
+
+  // Flush the queue otherwise system process deadlocks
   flush_queue();
+
+  // Set the abort signal
   abort_signal = 1;
 }
 
 int main()
 {
+  FUNC_ENTRY;
+  struct sigaction int_handler = {.sa_handler=sigint_handler};
+
+  // Initialize everything
   log_init();
   init_workers();
   log_msg_init("output.log");
-  struct sigaction int_handler = {.sa_handler=sigint_handler};
 
   // Register signal handler
   sigaction(SIGINT, &int_handler, 0);
@@ -43,7 +50,10 @@ int main()
     SEND_LOG_MED("Test");
     SEND_LOG_LOW("Test");
   }
-  LOG_FATAL("Broke out of loop");
+
+  // Destroy everything
+  log_msg_dest();
   dest_workers();
+  log_destroy();
   return 0;
 }

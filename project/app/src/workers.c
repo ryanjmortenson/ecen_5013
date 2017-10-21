@@ -25,6 +25,8 @@
 
 extern int abort_signal;
 
+#define WORKER_QUEUE "/worker"
+
 // Worker threads
 #define NUM_WORKERS (5)
 pthread_t workers[NUM_WORKERS];
@@ -98,7 +100,6 @@ void * worker_thread(void * param)
 
       if (msg.type == SHUTDOWN)
       {
-        LOG_ERROR("Got shutdown");
         break;
       }
 
@@ -122,6 +123,22 @@ void * worker_thread(void * param)
   pthread_exit((void *)&status);
 }
 
+/*!
+* @brief Compare registrations
+* @return SUCCESS/FAILURE
+*/
+static uint8_t compare(void * data1, void * data2)
+{
+  registartion_t * reg1 = (registartion_t *) data1;
+  registartion_t * reg2 = (registartion_t *) data2;
+
+  if ((reg1->type == reg2->type) && (reg1->cb == reg2->cb))
+  {
+    return 1;
+  }
+  return 0;
+}
+
 mqd_t get_writeable_queue()
 {
   return mq_open(WORKER_QUEUE, O_WRONLY | O_CREAT, S_IRWXU, NULL);
@@ -136,6 +153,7 @@ status_t register_cb(type_t type, CALLBACK cb)
 
   if (reg != NULL)
   {
+    // Set registration struct
     reg->type = type;
     reg->cb = cb;
 
@@ -147,6 +165,32 @@ status_t register_cb(type_t type, CALLBACK cb)
     }
     pthread_rwlock_unlock(&ll_rwlock);
   }
+  return res;
+}
+
+status_t unregister_cb(type_t type, CALLBACK cb)
+{
+  registartion_t reg;
+  registartion_t * preg = &reg;
+  status_t res = FAILURE;
+  int32_t index = 0;
+
+  // Set registration struct
+  reg.type = type;
+  reg.cb = cb;
+
+  // Write lock the linked list
+  pthread_rwlock_wrlock(&ll_rwlock);
+  if (ll_search(reg_head, &reg, compare, &index) == LL_ENUM_NO_ERROR)
+  {
+    if (ll_remove(reg_head, (void *)&preg, index) == LL_ENUM_NO_ERROR)
+    {
+      LOG_MED("Removing %p", preg);
+      free(preg);
+      res = SUCCESS;
+    }
+  }
+  pthread_rwlock_unlock(&ll_rwlock);
   return res;
 }
 
@@ -187,7 +231,6 @@ status_t dest_workers()
     message_t msg;
     msg.type = SHUTDOWN;
     mq_send(msg_q, (char *)&msg, sizeof(msg), 0);
-    LOG_FATAL("Sent shutdown");
   }
 
   // Create worker threads
@@ -213,10 +256,13 @@ status_t flush_queue()
 {
   FUNC_ENTRY;
   struct mq_attr attr;
-  mqd_t msg_q = get_readable_queue();
   message_t msg;
+
+  // Get a readable queue and the attributes
+  mqd_t msg_q = get_readable_queue();
   mq_getattr(msg_q, &attr);
 
+  // Loop over messages in queue until empty
   while (attr.mq_curmsgs)
   {
     mq_receive(msg_q, (char *)&msg, attr.mq_msgsize, NULL);

@@ -27,7 +27,8 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static int fd = 0;
 static mqd_t msg_q;
 
-#define LOG_FMT "%-6s %-10.10s [%10.10s] %4u: %s\n"
+// Log format Timestamp, level, file, function, line no, pthread id, message
+#define LOG_FMT "%s %-6s %-10.10s [%10.10s] %4u: (%lu) %s\n"
 #define LOG_BUFFER_MAX (256)
 #define FILE_NAME_BUF_MAX (32)
 #define FUNCTION_MAX (20)
@@ -55,23 +56,26 @@ void send_log
   char * fmt;
   char fmt_buffer[LOG_BUFFER_MAX];
 
-  // Fill out the "easy" parts of the log message
-  log.level = level;
-  log.line_no = line_no;
-  memcpy(log.file_name, file_name, FILE_NAME_BUF_MAX);
-  memcpy(log.function, function, FUNCTION_MAX);
+  if (msg_q > 0)
+  {
+    // Fill out the "easy" parts of the log message
+    log.level = level;
+    log.line_no = line_no;
+    memcpy(log.file_name, file_name, FILE_NAME_BUF_MAX);
+    memcpy(log.function, function, FUNCTION_MAX);
 
-  // File out the message porition by going through var args
-  va_start(var_args, line_no);
-  fmt = va_arg(var_args, char *);
-  vsnprintf(fmt_buffer, FILE_NAME_BUF_MAX, fmt, var_args);
-  memcpy(log.message, fmt_buffer, FILE_NAME_BUF_MAX);
+    // File out the message porition by going through var args
+    va_start(var_args, line_no);
+    fmt = va_arg(var_args, char *);
+    vsnprintf(fmt_buffer, FILE_NAME_BUF_MAX, fmt, var_args);
+    memcpy(log.message, fmt_buffer, FILE_NAME_BUF_MAX);
 
-  // Send the top level message
-  gettimeofday(&log.tv, NULL);
-  msg.type = LOG;
-  memcpy(&msg.msg, &log, sizeof(log));
-  mq_send(msg_q, (char *)&msg, sizeof(msg), 0);
+    // Send the top level message
+    gettimeofday(&log.tv, NULL);
+    msg.type = LOG;
+    memcpy(&msg.msg, &log, sizeof(log));
+    mq_send(msg_q, (char *)&msg, sizeof(msg), 0);
+  }
 }
 
 /*!
@@ -79,7 +83,7 @@ void send_log
 * @param[in] param log msg struct
 * @return NULL
 */
-void * print_log(void * param)
+static void * print_log(void * param)
 {
   log_msg_t * log = (log_msg_t *)param;
   char ts[TIMESTAMP_LEN];
@@ -100,33 +104,34 @@ void * print_log(void * param)
 * @param[in] param log msg struct
 * @return NULL
 */
-void * write_log(void * param)
+static void * write_log(void * param)
 {
   log_msg_t * log = (log_msg_t *)param;
   char log_buf[LOG_BUFFER_MAX];
   size_t len;
+  char ts[TIMESTAMP_LEN];
+  create_timestamp(&log->tv, ts);
   len = snprintf(log_buf,
                  LOG_BUFFER_MAX,
                  LOG_FMT,
+                 ts,
                  get_log_level_string(log->level),
                  get_basename(log->file_name, PATH_SEPARATOR),
                  log->function,
                  log->line_no,
+                 pthread_self(),
                  log->message);
-  int res = write(fd, log_buf, len + 1);
-
-  if (res < 0)
+  if (fd > 0)
   {
-    LOG_ERROR("Failed to write log");
+    int res = write(fd, log_buf, len + 1);
+    if (res < 0)
+    {
+      LOG_ERROR("Failed to write log");
+    }
   }
   return NULL;
 }
 
-/*!
-* @brief Initiate the log message catching functionality
-* @param[in] file_name file name of log file
-* @return SUCCESS/FAILURE
-*/
 status_t log_msg_init(char * file_name)
 {
   FUNC_ENTRY;
@@ -146,8 +151,15 @@ status_t log_msg_init(char * file_name)
     LOG_MED("Opened file %s", file_name);
 
     // Register call backs for both printing and writing logs
-    res = register_cb(LOG, print_log);
     res = register_cb(LOG, write_log);
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not register callback, %s", strerror(errno));
+      status = FAILURE;
+      break;
+    }
+
+    res = register_cb(LOG, print_log);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not register callback, %s", strerror(errno));
@@ -163,6 +175,55 @@ status_t log_msg_init(char * file_name)
       status = FAILURE;
       break;
     }
+  } while(0);
+  return status;
+}
+
+status_t log_msg_dest()
+{
+  FUNC_ENTRY;
+  status_t status = SUCCESS;
+  status_t res;
+
+  do
+  {
+    // Close queue
+    res = mq_close(msg_q);
+    if (close < 0)
+    {
+      LOG_ERROR("Could not close message queue, %s", strerror(errno));
+      status = FAILURE;
+      break;
+    }
+    msg_q = -1;
+
+    // Unegister call backs for printing
+    res = unregister_cb(LOG, print_log);
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not unregister callback, %s", strerror(errno));
+      status = FAILURE;
+      break;
+    }
+
+    // Unegister call backs for writing log
+    res = unregister_cb(LOG, write_log);
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not register callback, %s", strerror(errno));
+      status = FAILURE;
+      break;
+    }
+
+    // Close file
+    res = close(fd);
+    if (fd < 0)
+    {
+      LOG_ERROR("Could not open file, %s", strerror(errno));
+      status = FAILURE;
+      break;
+    }
+    fd = -1;
   } while(0);
   return status;
 }

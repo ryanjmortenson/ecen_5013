@@ -26,11 +26,13 @@ typedef enum {
 
 /*!
 * @brief Initializes the syslog
+* @return nothing
 */
 void log_init();
 
 /*!
 * @brief Destroy syslog
+* @return nothing
 */
 void log_destroy();
 

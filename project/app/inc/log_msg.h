@@ -20,7 +20,18 @@ typedef struct log_msg {
   struct timeval tv;
 } log_msg_t;
 
+/*!
+* @brief Initiate the log message catching functionality
+* @param[in] file_name file name of log file
+* @return SUCCESS/FAILURE
+*/
 status_t log_msg_init(char * file_name);
+
+/*!
+* @brief Destroy the log message catching functionality
+* @return SUCCESS/FAILURE
+*/
+status_t log_msg_dest();
 
 void send_log
 (
