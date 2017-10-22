@@ -12,6 +12,7 @@ APP_SRC_C += \
 	$(APP_SRC_DIR)/log.c \
 	$(APP_SRC_DIR)/log_msg.c \
 	$(APP_SRC_DIR)/workers.c \
+	$(APP_SRC_DIR)/temp.c \
 	$(APP_SRC_DIR)/profiler.c \
 	$(APP_SRC_DIR)/linkedlist.c
 

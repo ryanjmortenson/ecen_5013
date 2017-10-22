@@ -18,6 +18,7 @@
 #include "workers.h"
 #include "log.h"
 #include "log_msg.h"
+#include "temp.h"
 
 // Abort signal for all threads
 int abort_signal = 0;
@@ -68,17 +69,27 @@ int main(int argc, char *argv[])
   // Initialize the rest
   init_workers(num_workers);
   log_msg_init(file_name);
+  init_temp();
 
   // Register signal handler
   sigaction(SIGINT, &int_handler, 0);
+  int count = 0;
   while(!abort_signal)
   {
     SEND_LOG_HIGH("Test");
     SEND_LOG_MED("Test");
     SEND_LOG_LOW("Test");
+    get_temp_f(count % 2);
+    count++;
+    get_temp_c(count % 2);
+    count++;
+    get_temp_k(count % 2);
+    count++;
+    usleep(500);
   }
 
   // Destroy everything
+  dest_temp();
   log_msg_dest();
   dest_workers();
   log_destroy();
