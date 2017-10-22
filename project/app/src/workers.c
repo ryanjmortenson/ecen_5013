@@ -226,6 +226,7 @@ status_t init_workers(uint32_t num)
     for (uint32_t i = 0; i < num_workers; i++)
     {
       LOG_LOW("Creating worker thread %d", i);
+      pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
       pthread_create(&workers[i], NULL, worker_thread, NULL);
     }
   }
@@ -237,14 +238,11 @@ status_t dest_workers()
   FUNC_ENTRY;
   status_t status = SUCCESS;
 
-  mqd_t msg_q = get_writeable_queue();
-
-  // Send a shutdown message to each worker
+  // Create worker threads
   for (uint32_t i = 0; i < num_workers; i++)
   {
-    message_t msg;
-    msg.type = SHUTDOWN;
-    mq_send(msg_q, (char *)&msg, sizeof(msg), 0);
+    pthread_cancel(workers[i]);
+    LOG_LOW("Worker thread %d cancelled", i);
   }
 
   // Create worker threads

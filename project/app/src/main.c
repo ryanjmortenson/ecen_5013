@@ -27,11 +27,11 @@ void sigint_handler(int sig)
 {
   FUNC_ENTRY;
 
-  // Flush the queue otherwise system process deadlocks
-  flush_queue();
-
   // Set the abort signal
   abort_signal = 1;
+
+  // Flush queue
+  flush_queue();
 }
 
 int main(int argc, char *argv[])
