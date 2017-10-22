@@ -17,10 +17,10 @@ typedef void * (*CALLBACK)(void * params);
 typedef enum type {
   SHUTDOWN   = 0,
   LOG        = 1,
-  READ_LIGHT = 2,
-  READ_TEMP  = 4,
-  MAIN_MSG   = 8,
-  TEST       = 16,
+  TEMP_REQ   = 2,
+  TEMP_RSP   = 4,
+  LIGHT_REQ  = 8,
+  LIGHT_RSP  = 16,
 } type_t;
 
 // Message structure
