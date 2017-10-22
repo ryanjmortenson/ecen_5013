@@ -28,7 +28,7 @@ static int fd = 0;
 static mqd_t msg_q;
 
 // Log format Timestamp, level, file, function, line no, pthread id, message
-#define LOG_FMT "%s %-6s %-10.10s [%10.10s] %4u: (%lu) %s\n"
+#define LOG_FMT "%s %-6s %-10.10s [%10.10s] %4u: %s\n"
 #define LOG_BUFFER_MAX (256)
 #define FILE_NAME_BUF_MAX (32)
 #define FUNCTION_MAX (20)
@@ -67,8 +67,8 @@ void send_log
     // File out the message porition by going through var args
     va_start(var_args, line_no);
     fmt = va_arg(var_args, char *);
-    vsnprintf(fmt_buffer, FILE_NAME_BUF_MAX, fmt, var_args);
-    memcpy(log.message, fmt_buffer, FILE_NAME_BUF_MAX);
+    vsnprintf(fmt_buffer, LOG_BUFFER_MAX, fmt, var_args);
+    memcpy(log.message, fmt_buffer, LOG_BUFFER_MAX);
 
     // Send the top level message
     gettimeofday(&log.tv, NULL);
@@ -93,8 +93,7 @@ static void * print_log(void * param)
             log->file_name,
             log->function,
             log->line_no,
-            "M (%lu) %s",
-            pthread_self(),
+            "M %s",
             log->message);
   return NULL;
 }
@@ -119,7 +118,6 @@ static void * write_log(void * param)
                  get_basename(log->file_name, PATH_SEPARATOR),
                  log->function,
                  log->line_no,
-                 pthread_self(),
                  log->message);
   if (fd > 0)
   {
