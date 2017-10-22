@@ -93,9 +93,7 @@ ifeq ($(PLATFORM),bbb)
 else ifneq ($(findstring armv7,$(shell uname -a)),)
 	CC=gcc
 endif
-	CFLAGS+=-lrt \
-          -D BBB \
-          -I$(ARM_PROP_INC_DIR)
+	CFLAGS+=-DBBB
 	OBJS=$(ARM_PROP_OBJS) \
        $(ARM_OBJS)
 	OUT_DIR=$(ARM_APP_OUT)
