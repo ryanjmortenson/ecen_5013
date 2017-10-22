@@ -225,7 +225,7 @@ status_t init_workers(uint32_t num)
     // Create worker threads
     for (uint32_t i = 0; i < num_workers; i++)
     {
-      LOG_LOW("Creating thread %d", i);
+      LOG_LOW("Creating worker thread %d", i);
       pthread_create(&workers[i], NULL, worker_thread, NULL);
     }
   }
@@ -251,7 +251,7 @@ status_t dest_workers()
   for (uint32_t i = 0; i < num_workers; i++)
   {
     pthread_join(workers[i], NULL);
-    LOG_LOW("Thread joined");
+    LOG_LOW("Worker thread joined");
   }
 
   // Create a linked list for registrations
