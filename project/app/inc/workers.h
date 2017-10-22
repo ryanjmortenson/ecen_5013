@@ -33,7 +33,7 @@ typedef struct message {
 * @brief Initialize worker threads
 * @return status of initializing workers
 */
-status_t init_workers();
+status_t init_workers(uint32_t num);
 
 /*!
 * @brief Destroy workers

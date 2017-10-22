@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -32,15 +33,41 @@ void sigint_handler(int sig)
   abort_signal = 1;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
   FUNC_ENTRY;
+  char * file_name;
+  uint32_t num_workers = 1;
   struct sigaction int_handler = {.sa_handler=sigint_handler};
 
-  // Initialize everything
+  // Initialize log to print errors
   log_init();
-  init_workers();
-  log_msg_init("output.log");
+
+  // The first argument is required which is the log name
+  if (argc < 2)
+  {
+    LOG_ERROR("The log name is a required argument");
+    exit(1);
+  }
+  else
+  {
+    file_name = argv[1];
+    LOG_HIGH("Log output file is %s", file_name);
+  }
+
+  if (argc > 2)
+  {
+    num_workers = atoi(argv[2]);
+    if (num_workers < 1 || num_workers > 20)
+    {
+      LOG_ERROR("Number of worker threads must be between 1 and 20");
+      exit(1);
+    }
+  }
+
+  // Initialize the rest
+  init_workers(num_workers);
+  log_msg_init(file_name);
 
   // Register signal handler
   sigaction(SIGINT, &int_handler, 0);

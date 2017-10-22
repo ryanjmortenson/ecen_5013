@@ -28,8 +28,8 @@ extern int abort_signal;
 #define WORKER_QUEUE "/worker"
 
 // Worker threads
-#define NUM_WORKERS (5)
-pthread_t workers[NUM_WORKERS];
+static uint32_t num_workers;
+pthread_t * workers;
 
 // Registration
 typedef struct registration {
@@ -194,27 +194,41 @@ status_t unregister_cb(type_t type, CALLBACK cb)
   return res;
 }
 
-status_t init_workers()
+status_t init_workers(uint32_t num)
 {
   FUNC_ENTRY;
   status_t status = SUCCESS;
+  num_workers = num;
 
   // Clean up old queue in case there is junk left in it
   mq_unlink(WORKER_QUEUE);
 
-  // Create a linked list for registrations
-  if (ll_init(&reg_head) != LL_ENUM_NO_ERROR)
+  do
   {
-    status = FAILURE;
-  }
+    // Create a linked list for registrations
+    if (ll_init(&reg_head) != LL_ENUM_NO_ERROR)
+    {
+      LOG_ERROR("Could not create registration linked list");
+      status = FAILURE;
+    }
 
-  // Create worker threads
-  for (uint32_t i = 0; i < NUM_WORKERS; i++)
+    workers = malloc(num_workers*sizeof(*workers));
+    if (workers == NULL)
+    {
+      LOG_ERROR("Could not malloc workers");
+      status = FAILURE;
+    }
+  } while(0);
+
+  if (status == SUCCESS)
   {
-    LOG_LOW("Creating thread");
-    pthread_create(&workers[i], NULL, worker_thread, NULL);
+    // Create worker threads
+    for (uint32_t i = 0; i < num_workers; i++)
+    {
+      LOG_LOW("Creating thread %d", i);
+      pthread_create(&workers[i], NULL, worker_thread, NULL);
+    }
   }
-
   return status;
 }
 
@@ -226,7 +240,7 @@ status_t dest_workers()
   mqd_t msg_q = get_writeable_queue();
 
   // Send a shutdown message to each worker
-  for (uint32_t i = 0; i < NUM_WORKERS; i++)
+  for (uint32_t i = 0; i < num_workers; i++)
   {
     message_t msg;
     msg.type = SHUTDOWN;
@@ -234,7 +248,7 @@ status_t dest_workers()
   }
 
   // Create worker threads
-  for (uint32_t i = 0; i < NUM_WORKERS; i++)
+  for (uint32_t i = 0; i < num_workers; i++)
   {
     pthread_join(workers[i], NULL);
     LOG_LOW("Thread joined");
