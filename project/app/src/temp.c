@@ -151,6 +151,14 @@ status_t dest_temp()
     LOG_HIGH("Temp task joined");
   }
 
+  // Unregister temp request handler
+  res = unregister_cb(TEMP_REQ, handle_temp_req);
+  if (res == FAILURE)
+  {
+    LOG_ERROR("Could not unregister callback, %s", strerror(errno));
+    status = FAILURE;
+  }
+
   mq_close(msg_q);
   return status;
 }
