@@ -7,6 +7,13 @@
 #ifndef __PROJECT_DEFS_H__
 #define __PROJECT_DEFS_H__
 
+// Read a new value or return stashed value
+typedef enum staleness
+{
+  STALENESS_NEW,
+  STALENESS_OLD
+} staleness_t;
+
 typedef enum status {
   SUCCESS,
   FAILURE

@@ -17,13 +17,6 @@ typedef enum temp_units
   TEMP_UNITS_F
 } temp_units_t;
 
-// Read a new value or return stashed value
-typedef enum staleness
-{
-  STALENESS_NEW,
-  STALENESS_OLD
-} staleness_t;
-
 typedef struct temp_req
 {
   temp_units_t temp_units;
