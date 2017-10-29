@@ -9,6 +9,7 @@ X86_APP_OUT=$(APP_OUT)/$(X86)
 ARM_APP_OUT=$(APP_OUT)/$(ARM)
 
 APP_SRC_C += \
+	$(APP_SRC_DIR)/light.c \
 	$(APP_SRC_DIR)/log.c \
 	$(APP_SRC_DIR)/log_msg.c \
 	$(APP_SRC_DIR)/mock_i2c.c \

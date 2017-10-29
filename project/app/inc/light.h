@@ -9,6 +9,18 @@
 #ifndef _LIGHT_H
 #define _LIGHT_H
 
+#include "project_defs.h"
+
+typedef struct light_req
+{
+  staleness_t staleness;
+} light_req_t;
+
+typedef struct light_rsp
+{
+  uint32_t light;
+} light_rsp_t;
+
 /*!
 * @brief Initialize light task
 * @return status of initializing light
@@ -26,5 +38,13 @@ status_t dest_light();
 * @return status of making call
 */
 status_t is_dark();
+
+/*!
+* @brief Sends a request for light
+* @param light_units units for the light to returned in
+* @param staleness of reading (read new or keep old)
+* @return status of destroying light
+*/
+status_t send_light_req(staleness_t staleness);
 
 #endif /* _LIGHT_H */
