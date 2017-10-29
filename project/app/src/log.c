@@ -26,12 +26,12 @@
 
 // String log levels
 static const char * p_log_level_str[] = {
-  "HIGH",
-  "MEDIUM",
+  "HGH",
+  "MED",
   "LOW",
-  "FUNC",
-  "ERROR",
-  "FATAL"
+  "FNC",
+  "ERR",
+  "FTL"
 };
 
 #ifdef COLOR_LOGS
@@ -46,11 +46,11 @@ static const char * p_log_color_str[] = {
 };
 
 // Format for color
-#define LOG_COLOR_FMT   "%s%-10s %-7s %-10.10s [%10.10s] %4u: "
+#define LOG_COLOR_FMT   "%s%-10s %-4s %-12.12s [%15.15s] %4u: "
 
 #else
 // Format for non-color logs
-#define LOG_FMT         "%-10s %-7s %-10.10s [%10.10s] %4u: "
+#define LOG_FMT         "%-10s %-4s %-12.12s [%15.15s] %4u: "
 
 #endif /* COLOR_LOGS */
 
