@@ -13,18 +13,24 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "apds9301.h"
 #include "light.h"
 #include "log.h"
+#include "log_msg.h"
 #include "project_defs.h"
 #include "workers.h"
 
 #define PERIOD_US (1000000)
+
+// Map staleness enum to staleness string
+extern char * staleness_str[];
 
 // Abort from main thread
 extern int32_t abort_signal;
 
 static mqd_t msg_q;
 static pthread_t light_task;
+static uint32_t stale_reading;
 
 status_t send_light_req(staleness_t staleness)
 {
@@ -41,9 +47,28 @@ status_t send_light_req(staleness_t staleness)
   return status;
 }
 
-void * handle_light_req(void * param)
+void * light_req(void * param)
 {
-  LOG_HIGH("Handling light request");
+  FUNC_ENTRY;
+  light_req_t * light_req = (light_req_t *)param;
+  light_rsp_t light_rsp;
+  SEND_LOG_FATAL("%s %s",
+                 staleness_str[light_req->staleness]);
+  if (light_req->staleness == STALENESS_NEW)
+  {
+    SEND_LOG_HIGH("Reading new lux");
+    apds9301_r_lux((uint8_t *)&light_rsp.lux);
+  }
+  else
+  {
+    SEND_LOG_HIGH("Getting stale lux");
+    light_rsp.lux = stale_reading;
+  }
+
+  if (send_msg(msg_q, LIGHT_RSP, &light_rsp, sizeof(light_rsp)) != SUCCESS)
+  {
+    LOG_ERROR("Could not send light response");
+  }
   return NULL;
 }
 
@@ -53,8 +78,11 @@ void * light_thread(void * param)
 
   while(!abort_signal)
   {
-    LOG_HIGH("Sleeping for %d", PERIOD_US);
     usleep(PERIOD_US);
+    if (apds9301_r_lux((uint8_t *)&stale_reading) != SUCCESS)
+    {
+      LOG_ERROR("Could not read lux for stashed reading");
+    }
   }
   return NULL;
 }
@@ -68,7 +96,7 @@ status_t init_light()
   do
   {
     // Register light request handler
-    res = register_cb(LIGHT_REQ, handle_light_req);
+    res = register_cb(LIGHT_REQ, light_req);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not register callback, %s", strerror(errno));
@@ -131,7 +159,7 @@ status_t dest_light()
   }
 
   // Unregister light request handler
-  res = unregister_cb(LIGHT_REQ, handle_light_req);
+  res = unregister_cb(LIGHT_REQ, light_req);
   if (res == FAILURE)
   {
     LOG_ERROR("Could not unregister callback");

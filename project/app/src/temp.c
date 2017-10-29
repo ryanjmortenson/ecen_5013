@@ -23,15 +23,14 @@
 
 #define PERIOD_US (1000000)
 
+// Map staleness enum to staleness string
+extern char * staleness_str[];
+
+// Map units enum to units string
 char * temp_units_str[] = {
   "TEMP_UNITS_C",
   "TEMP_UNITS_K",
   "TEMP_UNITS_F"
-};
-
-char * staleness_str[] = {
-  "STALENESS_NEW",
-  "STALENESS_OLD"
 };
 
 // Abort from main thread
@@ -57,13 +56,13 @@ status_t send_temp_req(temp_units_t temp_units, staleness_t staleness)
   return status;
 }
 
-void * handle_temp_req(void * param)
+void * temp_req(void * param)
 {
   FUNC_ENTRY;
   temp_req_t * temp_req = (temp_req_t *)param;
   temp_rsp_t temp_rsp;
   uint8_t temp;
-  SEND_LOG_FATAL("Temp req for %s %s",
+  SEND_LOG_FATAL("%s %s",
                  temp_units_str[temp_req->temp_units],
                  staleness_str[temp_req->staleness]);
 
@@ -111,7 +110,7 @@ status_t init_temp()
   do
   {
     // Register temp request handler
-    res = register_cb(TEMP_REQ, handle_temp_req);
+    res = register_cb(TEMP_REQ, temp_req);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not register callback, %s", strerror(errno));
@@ -174,7 +173,7 @@ status_t dest_temp()
   }
 
   // Unregister temp request handler
-  res = unregister_cb(TEMP_REQ, handle_temp_req);
+  res = unregister_cb(TEMP_REQ, temp_req);
   if (res == FAILURE)
   {
     LOG_ERROR("Could not unregister callback, %s", strerror(errno));

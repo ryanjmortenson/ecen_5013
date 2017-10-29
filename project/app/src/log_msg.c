@@ -23,6 +23,11 @@
 #include "log_msg.h"
 #include "workers.h"
 
+char * staleness_str[] = {
+  "STALENESS_NEW",
+  "STALENESS_OLD"
+};
+
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static int fd = 0;
 static mqd_t msg_q;
