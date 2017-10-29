@@ -12,6 +12,9 @@
 #include "linkedlist.h"
 #include "log.h"
 
+// Remove comments if you want function prints from ll_iter functions
+//#define LL_ITER_DEBUG
+
 // Linked list node structure
 struct node
 {
@@ -254,7 +257,9 @@ ll_enum_t ll_destroy(node_t * head)
 
 ll_enum_t ll_iter(node_t * head, node_t ** iter)
 {
+#ifdef LL_ITER_DEBUG
   FUNC_ENTRY;
+#endif
 
   LL_CHECK_NULL(head);
   LL_CHECK_NULL(iter);
@@ -266,7 +271,9 @@ ll_enum_t ll_iter(node_t * head, node_t ** iter)
 
 ll_enum_t ll_iter_next(node_t ** iter, void ** data)
 {
+#ifdef LL_ITER_DEBUG
   FUNC_ENTRY;
+#endif
 
   LL_CHECK_NULL(data);
   LL_CHECK_NULL(iter);
