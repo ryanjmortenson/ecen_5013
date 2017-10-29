@@ -51,7 +51,6 @@ void send_log
 )
 {
   log_msg_t log;
-  message_t msg;
   va_list var_args;
   char * fmt;
   char fmt_buffer[LOG_BUFFER_MAX];
@@ -72,9 +71,10 @@ void send_log
 
     // Send the top level message
     gettimeofday(&log.tv, NULL);
-    msg.type = LOG;
-    memcpy(&msg.msg, &log, sizeof(log));
-    mq_send(msg_q, (char *)&msg, sizeof(msg), 0);
+    if (send_msg(msg_q, LOG, &log, sizeof(log)))
+    {
+      LOG_ERROR("Could not send log message");
+    }
   }
 }
 

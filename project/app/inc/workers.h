@@ -68,3 +68,13 @@ status_t flush_queue();
 * @return queue descriptor
 */
 mqd_t get_writeable_queue();
+
+/*!
+* @brief Sends a message
+* @param[in] msg_q message queue descriptor for send
+* @param[in] type type of message to send
+* @param[in] data data to send
+* @param[in] len length of data to send
+* @return Status of send
+*/
+status_t send_msg(mqd_t msg_q, type_t type, void * data, uint32_t len);

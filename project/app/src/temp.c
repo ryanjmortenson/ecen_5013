@@ -44,40 +44,14 @@ static uint32_t stale_reading;
 status_t send_temp_req(temp_units_t temp_units, staleness_t staleness)
 {
   FUNC_ENTRY;
-  message_t msg;
   temp_req_t temp_req;
   status_t status = SUCCESS;
 
-  if (msg_q > 0)
+  temp_req.temp_units = temp_units;
+  temp_req.staleness = staleness;
+  if (send_msg(msg_q, TEMP_REQ, &temp_req, sizeof(temp_req)) != SUCCESS)
   {
-    temp_req.temp_units = temp_units;
-    temp_req.staleness = staleness;
-    msg.type = TEMP_REQ;
-    memcpy(&msg.msg, &temp_req, sizeof(temp_req));
-    mq_send(msg_q, (char *)&msg, sizeof(msg), 0);
-  }
-  else
-  {
-    status = FAILURE;
-  }
-  return status;
-}
-
-static status_t send_temp_rsp(temp_rsp_t * temp_rsp)
-{
-  FUNC_ENTRY;
-  CHECK_NULL(temp_rsp);
-  status_t status = SUCCESS;
-  message_t msg;
-
-  if (msg_q > 0)
-  {
-    msg.type = TEMP_RSP;
-    memcpy(&msg.msg, temp_rsp, sizeof(*temp_rsp));
-    mq_send(msg_q, (char *)&msg, sizeof(msg), 0);
-  }
-  else
-  {
+    LOG_ERROR("Could not send temp reading");
     status = FAILURE;
   }
   return status;
@@ -106,7 +80,7 @@ void * handle_temp_req(void * param)
     temp_rsp.temp = stale_reading;
   }
 
-  if (send_temp_rsp(&temp_rsp) != SUCCESS)
+  if (send_msg(msg_q, TEMP_RSP, &temp_rsp, sizeof(temp_rsp)) != SUCCESS)
   {
     LOG_ERROR("Could not send temp reading");
   }
