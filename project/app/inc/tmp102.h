@@ -13,8 +13,8 @@
 
 #include "project_defs.h"
 
-status_t tmp102_r_reg(uint8_t * byte);
-status_t tmp102_w_reg(uint8_t byte);
+status_t tmp102_r_reg(uint8_t reg, uint8_t * byte);
+status_t tmp102_w_reg(uint8_t reg, uint8_t byte);
 
 status_t tmp102_w_cfg(uint8_t byte);
 status_t tmp102_r_cfg(uint8_t * byte);
