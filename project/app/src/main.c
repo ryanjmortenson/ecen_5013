@@ -16,6 +16,7 @@
 #include <unistd.h>
 
 #include "workers.h"
+#include "light.h"
 #include "log.h"
 #include "log_msg.h"
 #include "temp.h"
@@ -39,6 +40,7 @@ int main(int argc, char *argv[])
   FUNC_ENTRY;
   char * file_name;
   uint32_t num_workers = 1;
+  status_t res = SUCCESS;
   struct sigaction int_handler = {.sa_handler=sigint_handler};
 
   // Initialize log to print errors
@@ -67,31 +69,60 @@ int main(int argc, char *argv[])
   }
 
   // Initialize the rest
-  init_workers(num_workers);
-  log_msg_init(file_name);
-  init_temp();
-
-  // Register signal handler
-  sigaction(SIGINT, &int_handler, 0);
-  int count = 0;
-  while(!abort_signal)
+  do
   {
-    SEND_LOG_HIGH("Test");
-    SEND_LOG_MED("Test");
-    SEND_LOG_LOW("Test");
-    get_temp_f(count % 2);
-    count++;
-    get_temp_c(count % 2);
-    count++;
-    get_temp_k(count % 2);
-    count++;
-    usleep(500);
-  }
+    if (init_workers(num_workers) != SUCCESS)
+    {
+      LOG_ERROR("Could not initialize workers");
+      res = FAILURE;
+      break;
+    }
 
-  // Destroy everything
-  dest_temp();
-  log_msg_dest();
-  dest_workers();
-  log_destroy();
-  return 0;
+    if (log_msg_init(file_name) != SUCCESS)
+    {
+      LOG_ERROR("Could not initialize logging");
+      res = FAILURE;
+      break;
+    }
+
+    if (init_temp() != SUCCESS)
+    {
+      LOG_ERROR("Could not initialize logging");
+      res = FAILURE;
+      break;
+    }
+
+    if (init_light() != SUCCESS)
+    {
+      LOG_ERROR("Could not initialize logging");
+      res = FAILURE;
+      break;
+    }
+  } while(0);
+
+  if (res == SUCCESS)
+  {
+    // Register signal handler
+    sigaction(SIGINT, &int_handler, 0);
+    int count = 0;
+    while(!abort_signal)
+    {
+      get_temp_f(count % 2);
+      send_light_req(count % 2);
+      count++;
+      usleep(1000000);
+    }
+
+    // Destroy everything
+    dest_light();
+    dest_temp();
+    log_msg_dest();
+    dest_workers();
+    log_destroy();
+    return 0;
+  }
+  else
+  {
+    return 1;
+  }
 }
