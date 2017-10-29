@@ -71,7 +71,7 @@ void * handle_temp_req(void * param)
   if (temp_req->staleness == STALENESS_NEW)
   {
     SEND_LOG_HIGH("Reading new temp");
-    tmp102_r_reg(&temp);
+    tmp102_r_tmp(&temp);
     temp_rsp.temp = (uint32_t)temp;
   }
   else
@@ -94,7 +94,7 @@ void * temp_thread(void * param)
   while(!abort_signal)
   {
     usleep(PERIOD_US);
-    if (tmp102_r_reg((uint8_t *) &stale_reading) != SUCCESS)
+    if (tmp102_r_tmp((uint8_t *) &stale_reading) != SUCCESS)
     {
       LOG_ERROR("Could not read temp for stashed reading");
     }
@@ -130,7 +130,8 @@ status_t init_temp()
     res = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     if (res < 0)
     {
-      LOG_ERROR("Could not set cancellability of temp task");
+      LOG_ERROR("Could not set cancellability of temp task, %s"),
+                strerror(res);
       status = FAILURE;
       break;
     }
@@ -138,7 +139,7 @@ status_t init_temp()
     res = pthread_create(&temp_task, NULL, temp_thread, NULL);
     if (res < 0)
     {
-      LOG_ERROR("Could not create temp task");
+      LOG_ERROR("Could not create temp task, %s", strerror(res));
       status = FAILURE;
       break;
     }
@@ -155,14 +156,16 @@ status_t dest_temp()
   res = pthread_cancel(temp_task);
   if (res < 0)
   {
-    LOG_ERROR("Could not create temp task, continuing with shutdown");
+    LOG_ERROR("Could not create temp task, continuing with shutdown, %s",
+              strerror(res));
     status = FAILURE;
   }
 
   res = pthread_join(temp_task, NULL);
   if (res < 0)
   {
-    LOG_ERROR("Temp task could not join, continuing with shutdown");
+    LOG_ERROR("Temp task could not join, continuing with shutdown %s",
+              strerror(res));
     status = FAILURE;
   }
   else

@@ -224,6 +224,7 @@ status_t init_workers(uint32_t num)
   FUNC_ENTRY;
   status_t status = SUCCESS;
   num_workers = num;
+  int32_t res;
 
   // Clean up old queue in case there is junk left in it
   mq_unlink(WORKER_QUEUE);
@@ -251,8 +252,21 @@ status_t init_workers(uint32_t num)
     for (uint32_t i = 0; i < num_workers; i++)
     {
       LOG_LOW("Creating worker thread %d", i);
-      pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-      pthread_create(&workers[i], NULL, worker_thread, NULL);
+      res = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+      if (res < 0)
+      {
+        LOG_ERROR("Could not set cancel type, %s", strerror(res));
+        status = FAILURE;
+        break;
+      }
+
+      res = pthread_create(&workers[i], NULL, worker_thread, NULL);
+      if (res < 0)
+      {
+        LOG_ERROR("Could create pthread, %s", strerror(res));
+        status = FAILURE;
+        break;
+      }
     }
   }
   return status;
