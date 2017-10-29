@@ -10,6 +10,7 @@
 #define __LOG_H__
 
 #include <stdio.h>
+#include <sys/time.h>
 
 // Logging level enumerations
 typedef enum {
