@@ -6,18 +6,24 @@ APP_OUT=app/out
 
 # Build the output names for the application
 X86_APP_OUT=$(APP_OUT)/$(X86)
-ARM_APP_OUT=$(APP_OUT)/$(ARM)
+BBB_APP_OUT=$(APP_OUT)/$(BBB)
 
 APP_SRC_C += \
+	$(APP_SRC_DIR)/apds9301.c \
 	$(APP_SRC_DIR)/light.c \
 	$(APP_SRC_DIR)/log.c \
 	$(APP_SRC_DIR)/log_msg.c \
-	$(APP_SRC_DIR)/mock_i2c.c \
 	$(APP_SRC_DIR)/workers.c \
 	$(APP_SRC_DIR)/temp.c \
 	$(APP_SRC_DIR)/tmp102.c \
 	$(APP_SRC_DIR)/profiler.c \
 	$(APP_SRC_DIR)/linkedlist.c
+
+# Add mock i2c if platform isn't
+ifeq ($(PLATFORM),workstation)
+APP_SRC_C += \
+	$(APP_SRC_DIR)/mock_i2c.c
+endif
 
 TEST_SRC+= \
 	$(NON_MAIN_SRC) \
@@ -31,17 +37,17 @@ SRC_LIST = $(subst $(APP_SRC_DIR)/,,$(APP_SRC_CPP))
 
 # Build a list objects for each platform
 X86_OBJS = $(subst src,out/$(X86),$(patsubst %.c,%.o,$(APP_SRC_C)))
-ARM_OBJS = $(subst src,out/$(ARM),$(patsubst %.c,%.o,$(APP_SRC_C)))
+BBB_OBJS = $(subst src,out/$(BBB),$(patsubst %.c,%.o,$(APP_SRC_C)))
 X86_TEST_OBJS = $(subst src,out/$(X86),$(patsubst %.c,%.o,$(TEST_SRC)))
-ARM_TEST_OBJS = $(subst src,out/$(ARM),$(patsubst %.c,%.o,$(TEST_SRC)))
+BBB_TEST_OBJS = $(subst src,out/$(BBB),$(patsubst %.c,%.o,$(TEST_SRC)))
 
 # Build a list of .d files to clean
-APP_DEPS += $(patsubst %.o,%.d, $(OBJS) $(25Z_OBJS) $(ARM_OBJS))
+APP_DEPS += $(patsubst %.o,%.d, $(OBJS) $(25Z_OBJS) $(BBB_OBJS))
 
 # Add to List of items that need to be cleaned
-CLEAN+=$(ARM_OBJS) \
+CLEAN+=$(BBB_OBJS) \
        $(X86_OBJS) \
        $(X86_TEST_OBJS) \
-       $(ARM_TEST_OBJS) \
+       $(BBB_TEST_OBJS) \
        $(APP_DEPS) \
        $(APP_OUT)

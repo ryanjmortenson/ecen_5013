@@ -11,12 +11,12 @@ CMAKE_CMD=cmake
 
 # Directory names used for building targets
 OUT=out
-ARM=linux-arm
+BBB=bbb
 X86=linux-x86
 
 # Export variables to use in submake
 export $(X86)
-export $(ARM)
+export $(BBB)
 export $(MK_DIR)
 export $(CFLAGS)
 
@@ -32,18 +32,19 @@ CMOCKA_LIB=$(CMOCKA_LIB_OUT_DIR)/libcmocka.a
 
 # Target out directories when building
 X86_OUT_DIR=$(OUT)/$(X86)
-ARM_OUT_DIR=$(OUT)/$(ARM)
+BBB_OUT_DIR=$(OUT)/$(BBB)
 
 # Target names for 2 built types
-ARM_OUT=$(ARM_OUT_DIR)/$(OUT_FILE)
+BBB_OUT=$(BBB_OUT_DIR)/$(OUT_FILE)
 X86_OUT=$(X86_OUT_DIR)/$(OUT_FILE)
 
 # List of map files used for cleaning
 MAPS=$(X86_OUT_DIR)/$(MAP_FILE) \
-     $(ARM_OUT_DIR)/$(MAP_FILE)
+     $(BBB_OUT_DIR)/$(MAP_FILE)
 
 # Call sub make files to build dependencies for each target
 -include sources.mk
+-include prop/bbb/subdir.mk
 
 # Project output file names
 EXERCISE_OUT_FILE=exercise3problem5.out
@@ -57,6 +58,10 @@ CFLAGS=-I$(APP_INC_DIR) \
        -D_POSIX_C_SOURCE=199309L \
        -D_DEFAULT_SOURCE
 
+# Set the platform type
+ifeq ($(PLATFORM),)
+	PLATFORM=workstation
+endif
 # Set colored logs if specified
 ifneq ($(COLOR_LOGS),)
 	CFLAGS+=-D COLOR_LOGS
@@ -83,20 +88,20 @@ endif
 MAP_FLAG=-Wl,-Map,"$@.map"
 
 # Set of 2 compilers use
-ARM_CC=arm-linux-gnueabihf-gcc
+BBB_CC=arm-linux-gnueabihf-gcc
 X86_CC=gcc
 
 # Set compiler, flags, and objects based on platform type
 ifneq ($(or $(findstring bbb,$(PLATFORM)),$(findstring armv7,$(shell uname -a))),)
 ifeq ($(PLATFORM),bbb)
-	CC=$(ARM_CC)
+	CC=$(BBB_CC)
 else ifneq ($(findstring armv7,$(shell uname -a)),)
 	CC=gcc
 endif
 	CFLAGS+=-DBBB
-	OBJS=$(ARM_PROP_OBJS) \
-       $(ARM_OBJS)
-	OUT_DIR=$(ARM_APP_OUT)
+	OBJS=$(BBB_PROP_OBJS) \
+       $(BBB_OBJS)
+	OUT_DIR=$(BBB_APP_OUT)
 else
 	CC=gcc
 	OBJS=$(X86_OBJS)
