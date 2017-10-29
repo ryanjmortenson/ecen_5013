@@ -11,6 +11,7 @@ ARM_APP_OUT=$(APP_OUT)/$(ARM)
 APP_SRC_C += \
 	$(APP_SRC_DIR)/log.c \
 	$(APP_SRC_DIR)/log_msg.c \
+	$(APP_SRC_DIR)/mock_i2c.c \
 	$(APP_SRC_DIR)/workers.c \
 	$(APP_SRC_DIR)/temp.c \
 	$(APP_SRC_DIR)/profiler.c \
