@@ -168,7 +168,6 @@ status_t send_msg(mqd_t msg_q, type_t type, void * data, uint32_t len)
   return status;
 }
 
-
 status_t register_cb(type_t type, CALLBACK cb)
 {
   registartion_t * reg;
