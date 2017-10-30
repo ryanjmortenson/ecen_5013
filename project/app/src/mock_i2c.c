@@ -12,20 +12,33 @@
 #include "log.h"
 #include "project_defs.h"
 
-status_t i2c_write_byte(uint8_t addr, uint8_t reg, uint8_t byte)
+struct i2c_descriptor {
+  int32_t addr;
+};
+
+i2c_descriptor_t desc;
+
+status_t i2c_init(int32_t i2c_bus, i2c_descriptor_t ** i2cd, uint8_t addr)
+{
+
+  *i2cd = &desc;
+  return SUCCESS;
+}
+
+status_t i2c_write_byte(i2c_descriptor_t * i2cd, uint8_t byte)
 {
   FUNC_ENTRY;
   return SUCCESS;
 }
 
-status_t i2c_write_bytes(uint8_t addr, uint8_t reg, uint8_t * bytes, uint8_t len)
+status_t i2c_write_bytes(i2c_descriptor_t * i2cd, uint8_t * bytes, uint8_t len)
 {
   FUNC_ENTRY;
   CHECK_NULL(bytes);
   return SUCCESS;
 }
 
-status_t i2c_read_byte(uint8_t addr, uint8_t reg, uint8_t * byte)
+status_t i2c_read_byte(i2c_descriptor_t * i2cd, uint8_t * byte)
 {
   FUNC_ENTRY;
   CHECK_NULL(byte);
@@ -33,7 +46,7 @@ status_t i2c_read_byte(uint8_t addr, uint8_t reg, uint8_t * byte)
   return SUCCESS;
 }
 
-status_t i2c_read_bytes(uint8_t addr, uint8_t reg, uint8_t * bytes, uint8_t len)
+status_t i2c_read_bytes(i2c_descriptor_t * i2cd, uint8_t * bytes, uint8_t len)
 {
   FUNC_ENTRY;
   CHECK_NULL(bytes);
@@ -41,5 +54,11 @@ status_t i2c_read_bytes(uint8_t addr, uint8_t reg, uint8_t * bytes, uint8_t len)
   {
     *(bytes + i) = 15;
   }
+  return SUCCESS;
+}
+
+status_t i2c_dest(i2c_descriptor_t * i2cd)
+{
+  FUNC_ENTRY;
   return SUCCESS;
 }
