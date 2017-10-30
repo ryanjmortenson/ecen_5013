@@ -52,7 +52,7 @@ void * light_req(void * param)
   FUNC_ENTRY;
   light_req_t * light_req = (light_req_t *)param;
   light_rsp_t light_rsp;
-  SEND_LOG_FATAL("%s %s",
+  SEND_LOG_FATAL("%s",
                  staleness_str[light_req->staleness]);
   if (light_req->staleness == STALENESS_NEW)
   {
@@ -155,7 +155,7 @@ status_t dest_light()
   }
   else
   {
-    LOG_HIGH("Temp task joined");
+    LOG_HIGH("Light task joined");
   }
 
   // Unregister light request handler
