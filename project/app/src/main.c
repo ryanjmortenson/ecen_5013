@@ -108,9 +108,9 @@ int main(int argc, char *argv[])
     while(!abort_signal)
     {
       get_temp_f(count % 2);
-      send_light_req(count % 2);
+      // send_light_req(count % 2);
       count++;
-      usleep(1000000);
+      usleep(500000);
     }
 
     // Destroy everything

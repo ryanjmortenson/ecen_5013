@@ -26,7 +26,7 @@ typedef struct temp_req
 typedef struct temp_rsp
 {
   temp_units_t temp_units;
-  uint32_t temp;
+  float temp;
 } temp_rsp_t;
 
 /*!

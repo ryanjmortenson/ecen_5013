@@ -38,7 +38,7 @@ extern int32_t abort_signal;
 
 static mqd_t msg_q;
 static pthread_t temp_task;
-static uint32_t stale_reading;
+static float stale_reading;
 
 status_t send_temp_req(temp_units_t temp_units, staleness_t staleness)
 {
@@ -61,7 +61,7 @@ void * temp_req(void * param)
   FUNC_ENTRY;
   temp_req_t * temp_req = (temp_req_t *)param;
   temp_rsp_t temp_rsp;
-  uint8_t temp;
+  float temp;
   SEND_LOG_FATAL("%s %s",
                  temp_units_str[temp_req->temp_units],
                  staleness_str[temp_req->staleness]);
@@ -71,7 +71,7 @@ void * temp_req(void * param)
   {
     SEND_LOG_HIGH("Reading new temp");
     tmp102_r_tmp(&temp);
-    temp_rsp.temp = (uint32_t)temp;
+    temp_rsp.temp = temp;
   }
   else
   {
@@ -89,13 +89,25 @@ void * temp_req(void * param)
 void * temp_thread(void * param)
 {
   FUNC_ENTRY;
+  config_reg_t config;
 
   while(!abort_signal)
   {
     usleep(PERIOD_US);
-    if (tmp102_r_tmp((uint8_t *) &stale_reading) != SUCCESS)
+    if (tmp102_r_tmp(&stale_reading) != SUCCESS)
     {
       LOG_ERROR("Could not read temp for stashed reading");
+    }
+
+    if (tmp102_r_cfg(&config) != SUCCESS)
+    {
+      LOG_ERROR("Could not read temp for stashed reading");
+    }
+
+    config.config.conv_rate = 3;
+    if (tmp102_w_cfg(&config))
+    {
+      LOG_ERROR("Could not write config");
     }
   }
   return NULL;
@@ -109,6 +121,14 @@ status_t init_temp()
 
   do
   {
+    res = tmp102_init(2);
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not initialize tmp102");
+      status = FAILURE;
+      break;
+    }
+
     // Register temp request handler
     res = register_cb(TEMP_REQ, temp_req);
     if (res == FAILURE)
