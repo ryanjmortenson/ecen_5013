@@ -19,18 +19,21 @@ status_t apds9301_r_reg(uint8_t reg, uint8_t * byte)
 {
   FUNC_ENTRY;
   CHECK_NULL(byte);
-  return i2c_read_byte(APDS9301_ADD, reg, byte);
+  return SUCCESS;
+  // return i2c_read_byte(APDS9301_ADD, reg, byte);
 }
 
 status_t apds9301_w_reg(uint8_t reg, uint8_t byte)
 {
   FUNC_ENTRY;
-  return i2c_write_byte(APDS9301_ADD, reg, byte);
+  return SUCCESS;
+  //return i2c_write_byte(APDS9301_ADD, reg, byte);
 }
 
 status_t apds9301_r_lux(uint8_t * byte)
 {
   FUNC_ENTRY;
   CHECK_NULL(byte);
-  return apds9301_r_reg(1, byte);
+  return SUCCESS;
+  // return apds9301_r_reg(1, byte);
 }
