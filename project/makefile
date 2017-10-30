@@ -42,10 +42,6 @@ X86_OUT=$(X86_OUT_DIR)/$(OUT_FILE)
 MAPS=$(X86_OUT_DIR)/$(MAP_FILE) \
      $(BBB_OUT_DIR)/$(MAP_FILE)
 
-# Call sub make files to build dependencies for each target
--include sources.mk
--include prop/bbb/subdir.mk
-
 # Project output file names
 EXERCISE_OUT_FILE=exercise3problem5.out
 LIB_OUT_FILE=libexercise3problem5.a
@@ -58,10 +54,11 @@ CFLAGS=-I$(APP_INC_DIR) \
        -D_POSIX_C_SOURCE=199309L \
        -D_DEFAULT_SOURCE
 
-# Set the platform type
-ifeq ($(PLATFORM),)
-	PLATFORM=workstation
+# Set compiler, flags, and objects based on platform type
+ifneq ($(or $(findstring bbb,$(PLATFORM)),$(findstring armv7,$(shell uname -a))),)
+	PLATFORM=bbb
 endif
+
 # Set colored logs if specified
 ifneq ($(COLOR_LOGS),)
 	CFLAGS+=-D COLOR_LOGS
@@ -83,6 +80,10 @@ ifeq ($(LOG_LEVEL),)
 else
 	CFLAGS+=-D LOG_LEVEL=$(LOG_LEVEL)
 endif
+
+# Call sub make files to build dependencies for each target
+-include sources.mk
+-include prop/bbb/subdir.mk
 
 # Set a map flag to be added CFLAGS for certain targets
 MAP_FLAG=-Wl,-Map,"$@.map"
@@ -163,9 +164,7 @@ build-lib: $(OBJS)
 # Debug target is just used for debugging the make file
 debug:
 	@echo "Debug output"
-	@echo $(X86_OBJS)
-	@echo $(SERVER_X86_OBJS)
-
+	@echo $(PLATFORM)
 
 # Compiles the project into project binary which can be executed with ./project*.out
 %.out: CFLAGS+=$(MAP_FLAG)

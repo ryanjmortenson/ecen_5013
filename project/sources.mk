@@ -20,7 +20,7 @@ APP_SRC_C += \
 	$(APP_SRC_DIR)/linkedlist.c
 
 # Add mock i2c if platform isn't
-ifeq ($(PLATFORM),workstation)
+ifeq ($(PLATFORM),)
 APP_SRC_C += \
 	$(APP_SRC_DIR)/mock_i2c.c
 endif
