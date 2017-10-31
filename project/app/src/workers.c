@@ -82,7 +82,7 @@ void * worker_thread(void * param)
     res = mq_getattr(msg_q, &attr);
     if (res < 0)
     {
-      LOG_ERROR("Could not open queue, %s", strerror(errno));
+      LOG_ERROR("Could not read queue attributes, %s", strerror(errno));
       status = FAILURE;
       break;
     }
@@ -95,7 +95,7 @@ void * worker_thread(void * param)
       res = mq_receive(msg_q, (char *)&msg, attr.mq_msgsize, NULL);
       if (res < 0)
       {
-        LOG_ERROR("Couldn't not receive, %s", strerror(errno));
+        LOG_ERROR("Could not receive, %s", strerror(errno));
       }
 
       if (msg.type == SHUTDOWN)
@@ -141,7 +141,7 @@ static uint8_t compare(void * data1, void * data2)
 
 mqd_t get_writeable_queue()
 {
-  return mq_open(WORKER_QUEUE, O_WRONLY | O_CREAT, S_IRWXU, NULL);
+  return mq_open(WORKER_QUEUE, O_NONBLOCK | O_WRONLY | O_CREAT, S_IRWXU, NULL);
 }
 
 status_t send_msg(mqd_t msg_q, type_t type, void * data, uint32_t len)
