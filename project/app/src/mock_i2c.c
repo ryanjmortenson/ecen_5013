@@ -20,7 +20,7 @@ i2c_descriptor_t desc;
 
 status_t i2c_init(int32_t i2c_bus, i2c_descriptor_t ** i2cd, uint8_t addr)
 {
-
+  FUNC_ENTRY;
   *i2cd = &desc;
   return SUCCESS;
 }
