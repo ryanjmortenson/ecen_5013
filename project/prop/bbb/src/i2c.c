@@ -39,8 +39,6 @@ status_t i2c_init(int32_t i2c_bus, i2c_descriptor_t ** i2cd, uint8_t addr)
 
   do
   {
-    // Create path filename
-    memcpy(i2c_path, I2C_PATH, strlen(I2C_PATH));
     snprintf(i2c_path, I2C_PATH_MAX_LEN, "%s%d", I2C_PATH, i2c_bus);
     *i2cd = malloc(sizeof(**i2cd));
     if (*i2cd == NULL)
