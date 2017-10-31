@@ -61,7 +61,6 @@ void * temp_req(void * param)
   FUNC_ENTRY;
   temp_req_t * temp_req = (temp_req_t *)param;
   temp_rsp_t temp_rsp;
-  float temp;
   SEND_LOG_FATAL("%s %s",
                  temp_units_str[temp_req->temp_units],
                  staleness_str[temp_req->staleness]);
@@ -70,14 +69,15 @@ void * temp_req(void * param)
   if (temp_req->staleness == STALENESS_NEW)
   {
     SEND_LOG_HIGH("Reading new temp");
-    tmp102_r_tmp(&temp);
-    temp_rsp.temp = temp;
+    tmp102_r_tmp(&temp_rsp.temp);
   }
   else
   {
     SEND_LOG_HIGH("Getting stale temp");
     temp_rsp.temp = stale_reading;
   }
+
+  SEND_LOG_MED("Temperature %f", temp_rsp.temp);
 
   if (send_msg(msg_q, TEMP_RSP, &temp_rsp, sizeof(temp_rsp)) != SUCCESS)
   {
@@ -89,7 +89,6 @@ void * temp_req(void * param)
 void * temp_thread(void * param)
 {
   FUNC_ENTRY;
-  config_reg_t config;
 
   while(!abort_signal)
   {
@@ -97,17 +96,6 @@ void * temp_thread(void * param)
     if (tmp102_r_tmp(&stale_reading) != SUCCESS)
     {
       LOG_ERROR("Could not read temp for stashed reading");
-    }
-
-    if (tmp102_r_cfg(&config) != SUCCESS)
-    {
-      LOG_ERROR("Could not read temp for stashed reading");
-    }
-
-    config.config.conv_rate = 3;
-    if (tmp102_w_cfg(&config))
-    {
-      LOG_ERROR("Could not write config");
     }
   }
   return NULL;

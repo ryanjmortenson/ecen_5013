@@ -14,7 +14,6 @@
 #include "project_defs.h"
 #include "tmp102.h"
 
-#define TMP102_W_ADD (0x48)
 #define TMP102_R_ADD (0x49)
 #define TMP102_TEMP_REG (0x12)
 #define TMP102_READ_CMD_LEN (3)
