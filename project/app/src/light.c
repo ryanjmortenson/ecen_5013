@@ -52,12 +52,15 @@ void * light_req(void * param)
   FUNC_ENTRY;
   light_req_t * light_req = (light_req_t *)param;
   light_rsp_t light_rsp;
+  command_reg_t cmd;
+  uint8_t bytes[2];
+
   SEND_LOG_FATAL("%s",
                  staleness_str[light_req->staleness]);
   if (light_req->staleness == STALENESS_NEW)
   {
     SEND_LOG_HIGH("Reading new lux");
-    apds9301_r_lux((uint8_t *)&light_rsp.lux);
+    apds9301_r_reg(cmd, bytes);
   }
   else
   {
@@ -95,6 +98,14 @@ status_t init_light()
 
   do
   {
+    res = apds9301_init(2);
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not init apds9301");
+      status = FAILURE;
+      break;
+    }
+
     // Register light request handler
     res = register_cb(LIGHT_REQ, light_req);
     if (res == FAILURE)
@@ -163,6 +174,13 @@ status_t dest_light()
   if (res == FAILURE)
   {
     LOG_ERROR("Could not unregister callback");
+    status = FAILURE;
+  }
+
+  res = apds9301_dest();
+  if (res == FAILURE)
+  {
+    LOG_ERROR("Could not destroy apds9301");
     status = FAILURE;
   }
 
