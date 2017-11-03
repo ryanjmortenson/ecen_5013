@@ -144,18 +144,16 @@ mqd_t get_writeable_queue()
   return mq_open(WORKER_QUEUE, O_NONBLOCK | O_WRONLY | O_CREAT, S_IRWXU, NULL);
 }
 
-status_t send_msg(mqd_t msg_q, type_t type, void * data, uint32_t len)
+status_t send_msg(mqd_t msg_q, message_t * msg, void * data, uint32_t len)
 {
   FUNC_ENTRY;
   CHECK_NULL(data);
-  message_t msg;
   status_t status = SUCCESS;
 
   if (msg_q > 0)
   {
-    msg.type = type;
-    memcpy(&msg.msg, data, len);
-    if (mq_send(msg_q, (char *)&msg, sizeof(msg), 0) < 0)
+    memcpy(msg->msg, data, len);
+    if (mq_send(msg_q, (char *)msg, sizeof(*msg), 0) < 0)
     {
       LOG_ERROR("Could not send message %s", strerror(errno));
       status = FAILURE;

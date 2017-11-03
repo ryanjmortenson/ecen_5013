@@ -108,8 +108,8 @@ int main(int argc, char *argv[])
     int count = 0;
     while(!abort_signal)
     {
-      get_temp_f(count % 2);
-      send_light_req(count % 2);
+      get_temp_f(count % 2, MAIN_TASK);
+      send_light_req(count % 2, MAIN_TASK);
       count++;
       usleep(500000);
     }

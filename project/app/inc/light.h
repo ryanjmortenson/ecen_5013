@@ -10,6 +10,7 @@
 #define _LIGHT_H
 
 #include "project_defs.h"
+#include "workers.h"
 
 typedef struct light_req
 {
@@ -45,6 +46,6 @@ status_t is_dark();
 * @param staleness of reading (read new or keep old)
 * @return status of destroying light
 */
-status_t send_light_req(staleness_t staleness);
+status_t send_light_req(staleness_t staleness, task_id_t from);
 
 #endif /* _LIGHT_H */

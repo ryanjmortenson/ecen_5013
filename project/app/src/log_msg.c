@@ -59,6 +59,7 @@ void send_log
   va_list var_args;
   char * fmt;
   char fmt_buffer[LOG_BUFFER_MAX];
+  message_t msg = MSG_INIT(LOG, LOG_TASK, MAIN_TASK);
 
   if (msg_q > 0)
   {
@@ -76,7 +77,7 @@ void send_log
 
     // Send the top level message
     gettimeofday(&log.tv, NULL);
-    if (send_msg(msg_q, LOG, &log, sizeof(log)))
+    if (send_msg(msg_q, &msg, &log, sizeof(log)))
     {
       LOG_ERROR("Could not send log message");
     }

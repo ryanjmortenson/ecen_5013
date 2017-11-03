@@ -9,6 +9,8 @@
 #ifndef _TEMP_H
 #define _TEMP_H
 
+#include "workers.h"
+
 // What the reading should be in
 typedef enum temp_units
 {
@@ -47,10 +49,15 @@ status_t dest_temp();
 * @param staleness of reading (read new or keep old)
 * @return status of destroying temp
 */
-status_t send_temp_req(temp_units_t temp_units, staleness_t staleness);
+status_t send_temp_req
+(
+  temp_units_t temp_units,
+  staleness_t staleness,
+  task_id_t from
+);
 
 // Macros for getting temp with different units
-#define get_temp_f(staleness) send_temp_req(TEMP_UNITS_F, staleness);
-#define get_temp_c(staleness) send_temp_req(TEMP_UNITS_C, staleness);
-#define get_temp_k(staleness) send_temp_req(TEMP_UNITS_K, staleness);
+#define get_temp_f(staleness, from) send_temp_req(TEMP_UNITS_F, staleness, from);
+#define get_temp_c(staleness, from) send_temp_req(TEMP_UNITS_C, staleness, from);
+#define get_temp_k(staleness, from) send_temp_req(TEMP_UNITS_K, staleness, from);
 #endif /* _TEMP_H */

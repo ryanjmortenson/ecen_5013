@@ -5,6 +5,10 @@
 * @tools GCC 5.4.0, vim 7.4, make 4.1, Ubuntu 16.04
 *
 */
+
+#ifndef _WORKERS_H
+#define _WORKERS_H
+
 #include <mqueue.h>
 
 #include "project_defs.h"
@@ -23,9 +27,19 @@ typedef enum type {
   LIGHT_RSP  = 16,
 } type_t;
 
+typedef enum task_id {
+  ALL_TASKS,
+  MAIN_TASK,
+  LIGHT_TASK,
+  TEMP_TASK,
+  LOG_TASK
+} task_id_t;
+
 // Message structure
 typedef struct message {
   type_t type;
+  task_id_t to;
+  task_id_t from;
   char msg[512];
 } message_t;
 
@@ -77,4 +91,8 @@ mqd_t get_writeable_queue();
 * @param[in] len length of data to send
 * @return Status of send
 */
-status_t send_msg(mqd_t msg_q, type_t type, void * data, uint32_t len);
+status_t send_msg(mqd_t msg_q, message_t * msg, void * data, uint32_t len);
+
+#define MSG_INIT(_type, _to, _from) {.type = _type, .to = _to, .from = _from}
+
+#endif // _WORKERS_H

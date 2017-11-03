@@ -40,15 +40,16 @@ static mqd_t msg_q;
 static pthread_t temp_task;
 static float stale_reading;
 
-status_t send_temp_req(temp_units_t temp_units, staleness_t staleness)
+status_t send_temp_req(temp_units_t temp_units, staleness_t staleness, task_id_t from)
 {
   FUNC_ENTRY;
   temp_req_t temp_req;
   status_t status = SUCCESS;
+  message_t msg = MSG_INIT(TEMP_REQ, TEMP_TASK, from);
 
   temp_req.temp_units = temp_units;
   temp_req.staleness = staleness;
-  if (send_msg(msg_q, TEMP_REQ, &temp_req, sizeof(temp_req)) != SUCCESS)
+  if (send_msg(msg_q, &msg, &temp_req, sizeof(temp_req)) != SUCCESS)
   {
     LOG_ERROR("Could not send temp reading");
     status = FAILURE;
@@ -61,6 +62,8 @@ void * temp_req(void * param)
   FUNC_ENTRY;
   temp_req_t * temp_req = (temp_req_t *)param;
   temp_rsp_t temp_rsp;
+  message_t msg = MSG_INIT(TEMP_RSP, MAIN_TASK, TEMP_TASK);
+
   SEND_LOG_FATAL("%s %s",
                  temp_units_str[temp_req->temp_units],
                  staleness_str[temp_req->staleness]);
@@ -79,7 +82,7 @@ void * temp_req(void * param)
 
   SEND_LOG_MED("Temperature %f", temp_rsp.temp);
 
-  if (send_msg(msg_q, TEMP_RSP, &temp_rsp, sizeof(temp_rsp)) != SUCCESS)
+  if (send_msg(msg_q, &msg, &temp_rsp, sizeof(temp_rsp)) != SUCCESS)
   {
     LOG_ERROR("Could not send temp reading");
   }

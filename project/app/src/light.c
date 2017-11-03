@@ -32,14 +32,15 @@ static mqd_t msg_q;
 static pthread_t light_task;
 static float stale_reading;
 
-status_t send_light_req(staleness_t staleness)
+status_t send_light_req(staleness_t staleness, task_id_t from)
 {
   FUNC_ENTRY;
   light_req_t light_req;
   status_t status = SUCCESS;
+  message_t msg = MSG_INIT(LIGHT_REQ, LIGHT_TASK, from);
 
   light_req.staleness = staleness;
-  if (send_msg(msg_q, LIGHT_REQ, &light_req, sizeof(light_req)) != SUCCESS)
+  if (send_msg(msg_q, &msg, &light_req, sizeof(light_req)) != SUCCESS)
   {
     LOG_ERROR("Could not send light request");
     status = FAILURE;
@@ -52,6 +53,7 @@ void * light_req(void * param)
   FUNC_ENTRY;
   light_req_t * light_req = (light_req_t *)param;
   light_rsp_t light_rsp;
+  message_t msg = MSG_INIT(LIGHT_RSP, MAIN_TASK, LIGHT_TASK);
 
   if (light_req->staleness == STALENESS_NEW)
   {
@@ -66,7 +68,7 @@ void * light_req(void * param)
 
   SEND_LOG_MED("Lux %f", stale_reading);
 
-  if (send_msg(msg_q, LIGHT_RSP, &light_rsp, sizeof(light_rsp)) != SUCCESS)
+  if (send_msg(msg_q, &msg, &light_rsp, sizeof(light_rsp)) != SUCCESS)
   {
     LOG_ERROR("Could not send light response");
   }
