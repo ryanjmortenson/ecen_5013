@@ -171,7 +171,7 @@ debug:
 %.out:
 %.out: $(OBJS)
 	$(BUILD_TARGET)
-	$(CC) $(CFLAGS) -o "$@" $(OBJS) -lrt -lpthread
+	$(CC) $(CFLAGS) -o "$@" $(OBJS) -lrt -lpthread -lm
 	$(SIZE) $@
 
 # Build the library file for static linking

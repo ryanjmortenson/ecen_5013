@@ -18,7 +18,7 @@ typedef struct light_req
 
 typedef struct light_rsp
 {
-  uint32_t lux;
+  float lux;
 } light_rsp_t;
 
 /*!

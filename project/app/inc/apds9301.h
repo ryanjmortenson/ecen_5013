@@ -41,13 +41,14 @@ typedef union command_reg {
 
 status_t apds9301_init(int32_t i2c_bus);
 status_t apds9301_dest();
-status_t apds9301_r_reg(command_reg_t cmd, uint8_t * byte);
-status_t apds9301_w_reg(uint8_t reg, uint8_t byte);
+status_t apds9301_r_byte(command_reg_t cmd, uint8_t * byte);
+status_t apds9301_r_word(command_reg_t cmd, uint8_t * bytes);
+status_t apds9301_w_byte(command_reg_t cmd, uint8_t byte);
+status_t apds9301_w_word(command_reg_t cmd, uint8_t * bytes);
+status_t apds9301_r_lux(float * lux);
 
-status_t apds9301_r_lux(uint8_t * byte);
-
-#define COMMAND_INIT(_addr, _word, _clear, _cmd) {.command.addr = _addr,   \
-                                                  .command.word = _word,   \
-                                                  .command.clear = _clear, \
-                                                  .command.cmd = _cmd}
+#define COMMAND_INIT(_addr, _word) {.command.addr  = _addr,   \
+                                    .command.word  = _word,   \
+                                    .command.clear = 0,       \
+                                    .command.cmd   = 1}
 #endif /* _APDS9301_H */
