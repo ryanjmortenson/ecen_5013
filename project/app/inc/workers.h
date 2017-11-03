@@ -20,11 +20,13 @@ typedef void * (*CALLBACK)(void * params);
 // registration is for this type of message
 typedef enum type {
   SHUTDOWN   = 0,
-  LOG        = 1,
-  TEMP_REQ   = 2,
-  TEMP_RSP   = 4,
-  LIGHT_REQ  = 8,
-  LIGHT_RSP  = 16,
+  LOG,
+  TEMP_REQ,
+  TEMP_RSP,
+  LIGHT_REQ,
+  LIGHT_RSP,
+  HEARTBEAT_SETUP,
+  HEARTBEAT
 } type_t;
 
 typedef enum task_id {
@@ -61,7 +63,7 @@ status_t dest_workers();
 * @param[in] callback used when message is received
 * @return status of registering callback
 */
-status_t register_cb(type_t type, CALLBACK cb);
+status_t register_cb(type_t type, task_id_t to, CALLBACK cb);
 
 /*!
 * @brief Unregister a callback
@@ -69,7 +71,7 @@ status_t register_cb(type_t type, CALLBACK cb);
 * @param[in] callback used when message is received
 * @return status of unregistering callback
 */
-status_t unregister_cb(type_t type, CALLBACK cb);
+status_t unregister_cb(type_t type, task_id_t to, CALLBACK cb);
 
 /*!
 * @brief flushes queue

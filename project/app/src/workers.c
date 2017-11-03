@@ -34,6 +34,8 @@ pthread_t * workers;
 // Registration
 typedef struct registration {
   CALLBACK cb;
+  task_id_t to;
+  task_id_t from;
   type_t  type;
 } registartion_t;
 
@@ -98,20 +100,17 @@ void * worker_thread(void * param)
         LOG_ERROR("Could not receive, %s", strerror(errno));
       }
 
-      if (msg.type == SHUTDOWN)
-      {
-        break;
-      }
-
       // Read lock the linked list
       pthread_rwlock_rdlock(&ll_rwlock);
       res = ll_iter(reg_head, &iter);
       while (res == LL_ENUM_NO_ERROR)
       {
         res = ll_iter_next(&iter, (void *)&reg);
-        if (res == LL_ENUM_NO_ERROR && (reg->type & msg.type))
+        if (res == LL_ENUM_NO_ERROR &&
+            (reg->type == msg.type) &&
+            (reg->to == msg.to))
         {
-          reg->cb((void *)msg.msg);
+          reg->cb((void *)&msg);
         }
       }
       pthread_rwlock_unlock(&ll_rwlock);
@@ -132,7 +131,9 @@ static uint8_t compare(void * data1, void * data2)
   registartion_t * reg1 = (registartion_t *) data1;
   registartion_t * reg2 = (registartion_t *) data2;
 
-  if ((reg1->type == reg2->type) && (reg1->cb == reg2->cb))
+  if ((reg1->type == reg2->type) &&
+      (reg1->cb == reg2->cb) &&
+      (reg1->to == reg2->to))
   {
     return 1;
   }
@@ -166,18 +167,19 @@ status_t send_msg(mqd_t msg_q, message_t * msg, void * data, uint32_t len)
   return status;
 }
 
-status_t register_cb(type_t type, CALLBACK cb)
+status_t register_cb(type_t type, task_id_t to, CALLBACK cb)
 {
   registartion_t * reg;
   status_t res = FAILURE;
 
-  reg = malloc(sizeof(reg));
+  reg = malloc(sizeof(*reg));
 
   if (reg != NULL)
   {
     // Set registration struct
     reg->type = type;
     reg->cb = cb;
+    reg->to = to;
 
     // Write lock the linked list
     pthread_rwlock_wrlock(&ll_rwlock);
@@ -190,7 +192,7 @@ status_t register_cb(type_t type, CALLBACK cb)
   return res;
 }
 
-status_t unregister_cb(type_t type, CALLBACK cb)
+status_t unregister_cb(type_t type, task_id_t to, CALLBACK cb)
 {
   registartion_t reg;
   registartion_t * preg = &reg;
@@ -200,6 +202,7 @@ status_t unregister_cb(type_t type, CALLBACK cb)
   // Set registration struct
   reg.type = type;
   reg.cb = cb;
+  reg.to = to;
 
   // Write lock the linked list
   pthread_rwlock_wrlock(&ll_rwlock);

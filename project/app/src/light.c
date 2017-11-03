@@ -51,9 +51,10 @@ status_t send_light_req(staleness_t staleness, task_id_t from)
 void * light_req(void * param)
 {
   FUNC_ENTRY;
-  light_req_t * light_req = (light_req_t *)param;
+  message_t * in = (message_t *)param;
+  light_req_t * light_req = (light_req_t *)in->msg;
   light_rsp_t light_rsp;
-  message_t msg = MSG_INIT(LIGHT_RSP, MAIN_TASK, LIGHT_TASK);
+  message_t out = MSG_INIT(LIGHT_RSP, in->from, LIGHT_TASK);
 
   if (light_req->staleness == STALENESS_NEW)
   {
@@ -68,7 +69,7 @@ void * light_req(void * param)
 
   SEND_LOG_MED("Lux %f", stale_reading);
 
-  if (send_msg(msg_q, &msg, &light_rsp, sizeof(light_rsp)) != SUCCESS)
+  if (send_msg(msg_q, &out, &light_rsp, sizeof(light_rsp)) != SUCCESS)
   {
     LOG_ERROR("Could not send light response");
   }
@@ -107,7 +108,7 @@ status_t init_light()
     }
 
     // Register light request handler
-    res = register_cb(LIGHT_REQ, light_req);
+    res = register_cb(LIGHT_REQ, LIGHT_TASK, light_req);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not register callback, %s", strerror(errno));
@@ -170,7 +171,7 @@ status_t dest_light()
   }
 
   // Unregister light request handler
-  res = unregister_cb(LIGHT_REQ, light_req);
+  res = unregister_cb(LIGHT_REQ, LIGHT_TASK, light_req);
   if (res == FAILURE)
   {
     LOG_ERROR("Could not unregister callback");

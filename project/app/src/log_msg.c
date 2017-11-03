@@ -91,7 +91,7 @@ void send_log
 */
 static void * print_log(void * param)
 {
-  log_msg_t * log = (log_msg_t *)param;
+  log_msg_t * log = (log_msg_t *)((message_t*)param)->msg;
   char ts[TIMESTAMP_LEN];
   create_timestamp(&log->tv, ts);
   log_level(log->level,
@@ -111,7 +111,7 @@ static void * print_log(void * param)
 */
 static void * write_log(void * param)
 {
-  log_msg_t * log = (log_msg_t *)param;
+  log_msg_t * log = (log_msg_t*)((message_t *)param)->msg;
   char log_buf[LOG_BUFFER_MAX];
   size_t len;
   char ts[TIMESTAMP_LEN];
@@ -155,7 +155,7 @@ status_t log_msg_init(char * file_name)
     LOG_MED("Opened file %s", file_name);
 
     // Register call backs for both printing and writing logs
-    res = register_cb(LOG, write_log);
+    res = register_cb(LOG, LOG_TASK, write_log);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not register callback, %s", strerror(errno));
@@ -163,7 +163,7 @@ status_t log_msg_init(char * file_name)
       break;
     }
 
-    res = register_cb(LOG, print_log);
+    res = register_cb(LOG, LOG_TASK, print_log);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not register callback, %s", strerror(errno));
@@ -202,7 +202,7 @@ status_t log_msg_dest()
     msg_q = -1;
 
     // Unegister call backs for printing
-    res = unregister_cb(LOG, print_log);
+    res = unregister_cb(LOG, LOG_TASK, print_log);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not unregister callback, %s", strerror(errno));
@@ -211,7 +211,7 @@ status_t log_msg_dest()
     }
 
     // Unegister call backs for writing log
-    res = unregister_cb(LOG, write_log);
+    res = unregister_cb(LOG, LOG_TASK, write_log);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not register callback, %s", strerror(errno));

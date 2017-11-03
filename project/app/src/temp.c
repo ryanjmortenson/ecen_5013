@@ -60,9 +60,10 @@ status_t send_temp_req(temp_units_t temp_units, staleness_t staleness, task_id_t
 void * temp_req(void * param)
 {
   FUNC_ENTRY;
-  temp_req_t * temp_req = (temp_req_t *)param;
+  message_t * in = (message_t *)param;
+  temp_req_t * temp_req = (temp_req_t *)in->msg;
   temp_rsp_t temp_rsp;
-  message_t msg = MSG_INIT(TEMP_RSP, MAIN_TASK, TEMP_TASK);
+  message_t out = MSG_INIT(TEMP_RSP, in->from, TEMP_TASK);
 
   SEND_LOG_FATAL("%s %s",
                  temp_units_str[temp_req->temp_units],
@@ -82,7 +83,7 @@ void * temp_req(void * param)
 
   SEND_LOG_MED("Temperature %f", temp_rsp.temp);
 
-  if (send_msg(msg_q, &msg, &temp_rsp, sizeof(temp_rsp)) != SUCCESS)
+  if (send_msg(msg_q, &out, &temp_rsp, sizeof(temp_rsp)) != SUCCESS)
   {
     LOG_ERROR("Could not send temp reading");
   }
@@ -121,7 +122,7 @@ status_t init_temp()
     }
 
     // Register temp request handler
-    res = register_cb(TEMP_REQ, temp_req);
+    res = register_cb(TEMP_REQ, TEMP_TASK, temp_req);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not register callback, %s", strerror(errno));
@@ -184,7 +185,7 @@ status_t dest_temp()
   }
 
   // Unregister temp request handler
-  res = unregister_cb(TEMP_REQ, temp_req);
+  res = unregister_cb(TEMP_REQ, TEMP_TASK, temp_req);
   if (res == FAILURE)
   {
     LOG_ERROR("Could not unregister callback, %s", strerror(errno));
