@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
   {
     // Register signal handler
     sigaction(SIGINT, &int_handler, 0);
+    sigaction(SIGTERM, &int_handler, 0);
     int count = 0;
     while(!abort_signal)
     {
