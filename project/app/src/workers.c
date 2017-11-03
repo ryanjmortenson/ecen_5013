@@ -98,6 +98,7 @@ void * worker_thread(void * param)
       if (res < 0)
       {
         LOG_ERROR("Could not receive, %s", strerror(errno));
+        continue;
       }
 
       // Read lock the linked list
@@ -162,6 +163,7 @@ status_t send_msg(mqd_t msg_q, message_t * msg, void * data, uint32_t len)
   }
   else
   {
+    LOG_ERROR("Message queue descriptor isn't valid");
     status = FAILURE;
   }
   return status;
@@ -185,6 +187,7 @@ status_t register_cb(type_t type, task_id_t to, CALLBACK cb)
     pthread_rwlock_wrlock(&ll_rwlock);
     if (ll_insert(reg_head, reg, INSERT_AT_END) == LL_ENUM_NO_ERROR)
     {
+      LOG_LOW("Inserted type: %d to: %d", type, to);
       res = SUCCESS;
     }
     pthread_rwlock_unlock(&ll_rwlock);
@@ -210,7 +213,7 @@ status_t unregister_cb(type_t type, task_id_t to, CALLBACK cb)
   {
     if (ll_remove(reg_head, (void *)&preg, index) == LL_ENUM_NO_ERROR)
     {
-      LOG_MED("Removing %p", preg);
+      LOG_LOW("Removing %p", preg);
       free(preg);
       res = SUCCESS;
     }

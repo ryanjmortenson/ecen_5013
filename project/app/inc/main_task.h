@@ -9,10 +9,17 @@
 #ifndef _MAIN_TASK_H
 #define _MAIN_TASK_H
 
+#include "workers.h"
 #include "project_defs.h"
+
+typedef struct hb_setup {
+  uint32_t period_seconds;
+} hb_setup_t;
 
 status_t init_main_task(int argc, char *argv[]);
 status_t dest_main_task();
+status_t send_hb_setup(uint32_t period_seconds, task_id_t from);
+status_t send_hb(task_id_t from);
 void main_task();
 
 #endif /* _MAIN_TASK_H */

@@ -17,6 +17,7 @@
 #include "light.h"
 #include "log.h"
 #include "log_msg.h"
+#include "main_task.h"
 #include "project_defs.h"
 #include "workers.h"
 
@@ -83,6 +84,7 @@ void * light_thread(void * param)
 
   while(!abort_signal)
   {
+    send_hb(LIGHT_TASK);
     if (apds9301_r_lux(&stale_reading) != SUCCESS)
     {
       LOG_ERROR("Could not read lux for stashed reading");
@@ -121,6 +123,13 @@ status_t init_light()
     if (msg_q < 0)
     {
       LOG_ERROR("Could not get message queue");
+      status = FAILURE;
+      break;
+    }
+
+    if (send_hb_setup(PERIOD_US / 1000000, LIGHT_TASK))
+    {
+      LOG_ERROR("Could not set up heartbeat");
       status = FAILURE;
       break;
     }

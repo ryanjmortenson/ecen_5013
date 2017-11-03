@@ -17,6 +17,7 @@
 
 #include "log.h"
 #include "log_msg.h"
+#include "main_task.h"
 #include "temp.h"
 #include "tmp102.h"
 #include "workers.h"
@@ -66,10 +67,6 @@ void * temp_req(void * param)
   temp_rsp_t temp_rsp;
   message_t out = MSG_INIT(TEMP_RSP, in->from, TEMP_TASK);
 
-  SEND_LOG_FATAL("%s %s",
-                 temp_units_str[temp_req->temp_units],
-                 staleness_str[temp_req->staleness]);
-
   temp_rsp.temp_units = temp_req->temp_units;
   if (temp_req->staleness == STALENESS_NEW)
   {
@@ -97,11 +94,12 @@ void * temp_thread(void * param)
 
   while(!abort_signal)
   {
-    usleep(PERIOD_US);
+    send_hb(TEMP_TASK);
     if (tmp102_r_tmp(&stale_reading) != SUCCESS)
     {
       LOG_ERROR("Could not read temp for stashed reading");
     }
+    usleep(PERIOD_US);
   }
   return NULL;
 }
@@ -144,6 +142,13 @@ status_t init_temp()
     {
       LOG_ERROR("Could not set cancellability of temp task, %s"),
                 strerror(res);
+      status = FAILURE;
+      break;
+    }
+
+    if (send_hb_setup(PERIOD_US / 1000000 + 1, TEMP_TASK))
+    {
+      LOG_ERROR("Could not set up heartbeat");
       status = FAILURE;
       break;
     }

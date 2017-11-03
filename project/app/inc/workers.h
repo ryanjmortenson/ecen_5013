@@ -26,7 +26,7 @@ typedef enum type {
   LIGHT_REQ,
   LIGHT_RSP,
   HEARTBEAT_SETUP,
-  HEARTBEAT
+  HEARTBEAT,
 } type_t;
 
 typedef enum task_id {
@@ -34,7 +34,8 @@ typedef enum task_id {
   MAIN_TASK,
   LIGHT_TASK,
   TEMP_TASK,
-  LOG_TASK
+  LOG_TASK,
+  TASK_ID_LIST_END
 } task_id_t;
 
 // Message structure
