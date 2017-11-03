@@ -51,34 +51,10 @@ void send_log
                                             from,                  \
                                             __VA_ARGS__)
 
-
-// Different log levels which can be turned on/off by setting LOG_LEVEL
-#if LOG_LEVEL > 0
 #define SEND_LOG_HIGH(...) SEND_LOG(LOG_LEVEL_HIGH, TASK_ID, __VA_ARGS__)
-#else
-#define SEND_LOG_HIGH(...)
-#endif /* LOG_LEVEL > 0 */
-
-#if LOG_LEVEL > 1
 #define SEND_LOG_MED(...)  SEND_LOG(LOG_LEVEL_MEDIUM, TASK_ID, __VA_ARGS__)
-#else
-#define SEND_LOG_MED(...)
-#endif  /* LOG_LEVEL > 1 */
-
-#if LOG_LEVEL > 2
 #define SEND_LOG_LOW(...)  SEND_LOG(LOG_LEVEL_LOW, TASK_ID, __VA_ARGS__)
-#else
-#define SEND_LOG_LOW(...)
-#endif  /* LOG_LEVEL > 2 */
-
-#if LOG_LEVEL > 3
 #define SEND_LOG_FUNC(...) SEND_LOG(LOG_LEVEL_FUNC, TASK_ID, __VA_ARGS__)
-#else
-#define SEND_LOG_FUNC(...)
-#endif  /* LOG_LEVEL > 2 */
-
-// Error and Fatal definitions.  Fatal should be used sparingly and
-// mostly debugging
 #define SEND_LOG_ERROR(...) SEND_LOG(LOG_LEVEL_ERROR, TASK_ID, __VA_ARGS__)
 #define SEND_LOG_FATAL(...) SEND_LOG(LOG_LEVEL_FATAL, TASK_ID, __VA_ARGS__)
 
