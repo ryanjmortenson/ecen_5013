@@ -70,16 +70,16 @@ void * temp_req(void * param)
   temp_rsp.temp_units = temp_req->temp_units;
   if (temp_req->staleness == STALENESS_NEW)
   {
-    SEND_LOG_HIGH("Reading new temp");
+    SEND_LOG_MED("Reading new temp");
     tmp102_r_tmp(&temp_rsp.temp);
   }
   else
   {
-    SEND_LOG_HIGH("Getting stale temp");
+    SEND_LOG_MED("Getting stale temp");
     temp_rsp.temp = stale_reading;
   }
 
-  SEND_LOG_MED("Temperature %f", temp_rsp.temp);
+  SEND_LOG_HIGH("Temperature %f", temp_rsp.temp);
 
   if (send_msg(msg_q, &out, &temp_rsp, sizeof(temp_rsp)) != SUCCESS)
   {

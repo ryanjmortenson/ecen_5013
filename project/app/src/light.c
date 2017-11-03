@@ -60,16 +60,16 @@ void * light_req(void * param)
 
   if (light_req->staleness == STALENESS_NEW)
   {
-    SEND_LOG_HIGH("Reading new lux");
+    SEND_LOG_MED("Reading new lux");
     apds9301_r_lux(&light_rsp.lux);
   }
   else
   {
-    SEND_LOG_HIGH("Getting stale lux");
+    SEND_LOG_MED("Getting stale lux");
     light_rsp.lux = stale_reading;
   }
 
-  SEND_LOG_MED("Lux %f", stale_reading);
+  SEND_LOG_HIGH("Lux %f", stale_reading);
 
   if (send_msg(msg_q, &out, &light_rsp, sizeof(light_rsp)) != SUCCESS)
   {

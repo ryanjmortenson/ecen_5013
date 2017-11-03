@@ -104,14 +104,17 @@ static void * print_log(void * param)
   log_msg_t * log = (log_msg_t *)msg->msg;
   char ts[TIMESTAMP_LEN];
   create_timestamp(&log->tv, ts);
-  log_level(log->level,
-            ts,
-            log->file_name,
-            log->function,
-            log->line_no,
-            "(%10.10s) %s",
-            task_str[msg->from],
-            log->message);
+  if (log->level < LOG_LEVEL)
+  {
+    log_level(log->level,
+              ts,
+              log->file_name,
+              log->function,
+              log->line_no,
+              "(%10.10s) %s",
+              task_str[msg->from],
+              log->message);
+  }
   return NULL;
 }
 
