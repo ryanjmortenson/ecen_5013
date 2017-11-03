@@ -164,7 +164,7 @@ void main_task()
     get_temp_f(count % 2, MAIN_TASK);
     send_light_req(count % 2, MAIN_TASK);
     count++;
-    usleep(500000);
+    usleep(5000000);
   }
 }
 

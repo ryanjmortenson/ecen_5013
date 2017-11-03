@@ -28,12 +28,20 @@ char * staleness_str[] = {
   "STALENESS_OLD"
 };
 
+char * task_str[] = {
+  [ALL_TASKS] = "ALL_TASKS",
+  [MAIN_TASK] = "MAIN_TASK",
+  [LIGHT_TASK] = "LIGHT_TASK",
+  [TEMP_TASK] = "TEMP_TASK",
+  [LOG_TASK] = "LOG_TASK"
+};
+
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static int fd = 0;
 static mqd_t msg_q;
 
 // Log format Timestamp, level, file, function, line no, pthread id, message
-#define LOG_FMT "%s %-6s %-10.10s [%10.10s] %4u: %s\n"
+#define LOG_FMT "%s %-6s %-10.10s [%10.10s] %4u: (%10.10s) %s\n"
 #define LOG_BUFFER_MAX (256)
 #define FILE_NAME_BUF_MAX (32)
 #define FUNCTION_MAX (20)
@@ -52,6 +60,7 @@ void send_log
   char * file_name,
   const char * function,
   uint32_t line_no,
+  task_id_t from,
   ...
 )
 {
@@ -59,7 +68,7 @@ void send_log
   va_list var_args;
   char * fmt;
   char fmt_buffer[LOG_BUFFER_MAX];
-  message_t msg = MSG_INIT(LOG, LOG_TASK, MAIN_TASK);
+  message_t msg = MSG_INIT(LOG, LOG_TASK, from);
 
   if (msg_q > 0)
   {
@@ -70,7 +79,7 @@ void send_log
     memcpy(log.function, function, FUNCTION_MAX);
 
     // File out the message porition by going through var args
-    va_start(var_args, line_no);
+    va_start(var_args, from);
     fmt = va_arg(var_args, char *);
     vsnprintf(fmt_buffer, LOG_BUFFER_MAX, fmt, var_args);
     memcpy(log.message, fmt_buffer, LOG_BUFFER_MAX);
@@ -91,7 +100,8 @@ void send_log
 */
 static void * print_log(void * param)
 {
-  log_msg_t * log = (log_msg_t *)((message_t*)param)->msg;
+  message_t * msg = (message_t *)param;
+  log_msg_t * log = (log_msg_t *)msg->msg;
   char ts[TIMESTAMP_LEN];
   create_timestamp(&log->tv, ts);
   log_level(log->level,
@@ -99,7 +109,8 @@ static void * print_log(void * param)
             log->file_name,
             log->function,
             log->line_no,
-            "M %s",
+            "(%10.10s) %s",
+            task_str[msg->from],
             log->message);
   return NULL;
 }
@@ -111,7 +122,8 @@ static void * print_log(void * param)
 */
 static void * write_log(void * param)
 {
-  log_msg_t * log = (log_msg_t*)((message_t *)param)->msg;
+  message_t * msg = (message_t *)param;
+  log_msg_t * log = (log_msg_t*)msg->msg;
   char log_buf[LOG_BUFFER_MAX];
   size_t len;
   char ts[TIMESTAMP_LEN];
@@ -124,7 +136,9 @@ static void * write_log(void * param)
                  get_basename(log->file_name, PATH_SEPARATOR),
                  log->function,
                  log->line_no,
+                 task_str[msg->from],
                  log->message);
+
   if (fd > 0)
   {
     int res = write(fd, log_buf, len + 1);

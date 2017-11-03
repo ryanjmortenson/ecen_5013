@@ -27,6 +27,7 @@ extern char * staleness_str[];
 
 // Abort from main thread
 extern int32_t abort_signal;
+static const task_id_t TASK_ID = LIGHT_TASK;
 
 static mqd_t msg_q;
 static pthread_t light_task;

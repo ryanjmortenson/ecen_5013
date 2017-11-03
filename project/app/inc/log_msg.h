@@ -10,6 +10,7 @@
 #define _LOG_MSG_H
 
 #include <sys/time.h>
+#include "workers.h"
 
 typedef struct log_msg {
   log_level_t level;
@@ -39,44 +40,46 @@ void send_log
   char * file_name,
   const char * function,
   uint32_t line_no,
+  task_id_t from,
   ...
 );
 
-#define SEND_LOG(level, ...) send_log(level,                 \
-                                      (char *)__FILE__,      \
-                                      __FUNCTION__,          \
-                                      __LINE__,              \
-                                      __VA_ARGS__)
+#define SEND_LOG(level, from, ...) send_log(level,                 \
+                                            (char *)__FILE__,      \
+                                            __FUNCTION__,          \
+                                            __LINE__,              \
+                                            from,                  \
+                                            __VA_ARGS__)
 
 
 // Different log levels which can be turned on/off by setting LOG_LEVEL
 #if LOG_LEVEL > 0
-#define SEND_LOG_HIGH(...) SEND_LOG(LOG_LEVEL_HIGH, __VA_ARGS__)
+#define SEND_LOG_HIGH(...) SEND_LOG(LOG_LEVEL_HIGH, TASK_ID, __VA_ARGS__)
 #else
 #define SEND_LOG_HIGH(...)
 #endif /* LOG_LEVEL > 0 */
 
 #if LOG_LEVEL > 1
-#define SEND_LOG_MED(...)  SEND_LOG(LOG_LEVEL_MEDIUM, __VA_ARGS__)
+#define SEND_LOG_MED(...)  SEND_LOG(LOG_LEVEL_MEDIUM, TASK_ID, __VA_ARGS__)
 #else
 #define SEND_LOG_MED(...)
 #endif  /* LOG_LEVEL > 1 */
 
 #if LOG_LEVEL > 2
-#define SEND_LOG_LOW(...)  SEND_LOG(LOG_LEVEL_LOW, __VA_ARGS__)
+#define SEND_LOG_LOW(...)  SEND_LOG(LOG_LEVEL_LOW, TASK_ID, __VA_ARGS__)
 #else
 #define SEND_LOG_LOW(...)
 #endif  /* LOG_LEVEL > 2 */
 
 #if LOG_LEVEL > 3
-#define SEND_LOG_FUNC(...) SEND_LOG(LOG_LEVEL_FUNC, __VA_ARGS__)
+#define SEND_LOG_FUNC(...) SEND_LOG(LOG_LEVEL_FUNC, TASK_ID, __VA_ARGS__)
 #else
 #define SEND_LOG_FUNC(...)
 #endif  /* LOG_LEVEL > 2 */
 
 // Error and Fatal definitions.  Fatal should be used sparingly and
 // mostly debugging
-#define SEND_LOG_ERROR(...) SEND_LOG(LOG_LEVEL_ERROR, __VA_ARGS__)
-#define SEND_LOG_FATAL(...) SEND_LOG(LOG_LEVEL_FATAL, __VA_ARGS__)
+#define SEND_LOG_ERROR(...) SEND_LOG(LOG_LEVEL_ERROR, TASK_ID, __VA_ARGS__)
+#define SEND_LOG_FATAL(...) SEND_LOG(LOG_LEVEL_FATAL, TASK_ID, __VA_ARGS__)
 
 #endif /* _LOG_MSG_H */

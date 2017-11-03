@@ -25,6 +25,7 @@
 
 // Map staleness enum to staleness string
 extern char * staleness_str[];
+static const task_id_t TASK_ID = TEMP_TASK;
 
 // Map units enum to units string
 char * temp_units_str[] = {
