@@ -13,6 +13,7 @@ APP_SRC_C += \
 	$(APP_SRC_DIR)/light.c \
 	$(APP_SRC_DIR)/log.c \
 	$(APP_SRC_DIR)/log_msg.c \
+	$(APP_SRC_DIR)/main_task.c \
 	$(APP_SRC_DIR)/workers.c \
 	$(APP_SRC_DIR)/temp.c \
 	$(APP_SRC_DIR)/tmp102.c \
