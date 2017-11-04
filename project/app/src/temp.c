@@ -146,7 +146,7 @@ status_t init_temp()
       break;
     }
 
-    if (send_hb_setup(PERIOD_US / 1000000 + 1, TEMP_TASK))
+    if (send_hb_setup(PERIOD_US / 1000000, TEMP_TASK))
     {
       LOG_ERROR("Could not set up heartbeat");
       status = FAILURE;
