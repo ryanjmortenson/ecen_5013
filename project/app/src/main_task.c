@@ -56,6 +56,11 @@ mqd_t msg_q;
                       Internal funtions
  ***********************************************************/
 
+/*!
+* @brief Handle light response from light request
+* @param param msg holding light response
+* @return NULL
+*/
 void * light_rsp_handler(void * param)
 {
   FUNC_ENTRY;
@@ -66,6 +71,11 @@ void * light_rsp_handler(void * param)
   return NULL;
 }
 
+/*!
+* @brief Handle temp response from temp request
+* @param param msg holding temp response
+* @return NULL
+*/
 void * temp_rsp_handler(void * param)
 {
   FUNC_ENTRY;
@@ -78,6 +88,11 @@ void * temp_rsp_handler(void * param)
   return NULL;
 }
 
+/*!
+* @brief Handle heartbeats
+* @param param msg holding heartbeat
+* @return NULL
+*/
 void * hb_handler(void * param)
 {
   FUNC_ENTRY;
@@ -103,33 +118,11 @@ void * hb_handler(void * param)
   return NULL;
 }
 
-void hb_timeout_handler(int sig, siginfo_t * info, void * data)
-{
-  FUNC_ENTRY;
-  for (uint16_t i = 0; i < TASK_ID_LIST_END; i++)
-  {
-    if (info->si_value.sival_ptr == &hb_reg[i].timerid)
-    {
-      LOG_ERROR("Timer for %d expired aborting", i);
-#ifdef BBB
-      set_brightness(USR3_LED, ON_BRIGHTNESS);
-#endif // BBB
-      SIGNAL_ABORT();
-    }
-  }
-}
-
-void sigint_handler(int sig)
-{
-  FUNC_ENTRY;
-
-  // Set the abort signalf
-  SIGNAL_ABORT();
-
-  // Flush queue
-  flush_queue();
-}
-
+/*!
+* @brief Handle heartbeat set up
+* @param param msg holding heartbeat set up request
+* @return NULL
+*/
 void * hb_setup(void * param)
 {
   FUNC_ENTRY;
@@ -193,8 +186,44 @@ void * hb_setup(void * param)
             hb_setup->period_seconds,
             &reg->timerid);
   }
-
   return NULL;
+}
+
+/*!
+* @brief Handle heartbeat timeout
+* @param sig signal that invoke handler
+* @param info provided information for handler
+* @param data some data
+*/
+void hb_timeout_handler(int sig, siginfo_t * info, void * data)
+{
+  FUNC_ENTRY;
+  for (uint16_t i = 0; i < TASK_ID_LIST_END; i++)
+  {
+    if (info->si_value.sival_ptr == &hb_reg[i].timerid)
+    {
+      LOG_ERROR("Timer for %d expired aborting", i);
+#ifdef BBB
+      set_brightness(USR3_LED, ON_BRIGHTNESS);
+#endif // BBB
+      SIGNAL_ABORT();
+    }
+  }
+}
+
+/*!
+* @brief Handle sigint and sigterm signals to shutdown gracefully
+* @param sig signal that invoke handler
+*/
+void sigint_handler(int sig)
+{
+  FUNC_ENTRY;
+
+  // Set the abort signalf
+  SIGNAL_ABORT();
+
+  // Flush queue
+  flush_queue();
 }
 
 /***********************************************************
@@ -274,6 +303,7 @@ status_t init_main_task(int argc, char *argv[])
     LOG_HIGH("Log output file is %s", file_name);
   }
 
+  // Second argument is number of worker threads
   if (argc > 2)
   {
     num_workers = atoi(argv[2]);
@@ -287,7 +317,7 @@ status_t init_main_task(int argc, char *argv[])
   // Initialize the rest
   do
   {
-    // Register signal handler
+    // Register signal handler for sigint
     res = sigaction(SIGINT, &int_handler, 0);
     if (res < 0)
     {
@@ -296,6 +326,7 @@ status_t init_main_task(int argc, char *argv[])
       break;
     }
 
+    // Register signal handler for sigterm
     res = sigaction(SIGTERM, &int_handler, 0);
     if (res < 0)
     {
@@ -304,6 +335,7 @@ status_t init_main_task(int argc, char *argv[])
       break;
     }
 
+    // Register heartbeat signal handler
     timer_handler.sa_sigaction = hb_timeout_handler;
     timer_handler.sa_flags     = SA_SIGINFO;
     res = sigaction(SIGUSR1, &timer_handler, 0);
@@ -329,6 +361,7 @@ status_t init_main_task(int argc, char *argv[])
       break;
     }
 
+    // Register callbacks for various messages
     if (register_cb(LIGHT_RSP, MAIN_TASK, light_rsp_handler) != SUCCESS)
     {
       LOG_ERROR("Could not register light response handler");
@@ -456,7 +489,6 @@ status_t dest_main_task()
     set_brightness(USR3_LED, ON_BRIGHTNESS);
   }
 #endif // BBB
-
   log_destroy();
   return status;
 }

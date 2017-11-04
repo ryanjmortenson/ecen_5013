@@ -34,22 +34,11 @@ static mqd_t msg_q;
 static pthread_t light_task;
 static float stale_reading;
 
-status_t send_light_req(staleness_t staleness, task_id_t from)
-{
-  FUNC_ENTRY;
-  light_req_t light_req;
-  status_t status = SUCCESS;
-  message_t msg = MSG_INIT(LIGHT_REQ, LIGHT_TASK, from);
-
-  light_req.staleness = staleness;
-  if (send_msg(msg_q, &msg, &light_req, sizeof(light_req)) != SUCCESS)
-  {
-    LOG_ERROR("Could not send light request");
-    status = FAILURE;
-  }
-  return status;
-}
-
+/*!
+* @brief Handle a light request
+* @param param msg holding light request
+* @return NULL
+*/
 void * light_req(void * param)
 {
   FUNC_ENTRY;
@@ -79,6 +68,11 @@ void * light_req(void * param)
   return NULL;
 }
 
+/*!
+* @brief Main light task
+* @param param NULL
+* @return NULL
+*/
 void * light_thread(void * param)
 {
   FUNC_ENTRY;
@@ -93,6 +87,22 @@ void * light_thread(void * param)
     usleep(PERIOD_US);
   }
   return NULL;
+}
+
+status_t send_light_req(staleness_t staleness, task_id_t from)
+{
+  FUNC_ENTRY;
+  light_req_t light_req;
+  status_t status = SUCCESS;
+  message_t msg = MSG_INIT(LIGHT_REQ, LIGHT_TASK, from);
+
+  light_req.staleness = staleness;
+  if (send_msg(msg_q, &msg, &light_req, sizeof(light_req)) != SUCCESS)
+  {
+    LOG_ERROR("Could not send light request");
+    status = FAILURE;
+  }
+  return status;
 }
 
 status_t init_light()

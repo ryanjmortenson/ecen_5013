@@ -42,23 +42,11 @@ static mqd_t msg_q;
 static pthread_t temp_task;
 static float stale_reading;
 
-status_t send_temp_req(temp_units_t temp_units, staleness_t staleness, task_id_t from)
-{
-  FUNC_ENTRY;
-  temp_req_t temp_req;
-  status_t status = SUCCESS;
-  message_t msg = MSG_INIT(TEMP_REQ, TEMP_TASK, from);
-
-  temp_req.temp_units = temp_units;
-  temp_req.staleness = staleness;
-  if (send_msg(msg_q, &msg, &temp_req, sizeof(temp_req)) != SUCCESS)
-  {
-    LOG_ERROR("Could not send temp reading");
-    status = FAILURE;
-  }
-  return status;
-}
-
+/*!
+* @brief Handle a temp request
+* @param param msg holding temp request
+* @return NULL
+*/
 void * temp_req(void * param)
 {
   FUNC_ENTRY;
@@ -96,6 +84,11 @@ void * temp_req(void * param)
   return NULL;
 }
 
+/*!
+* @brief Main temp task
+* @param param NULL
+* @return NULL
+*/
 void * temp_thread(void * param)
 {
   FUNC_ENTRY;
@@ -110,6 +103,23 @@ void * temp_thread(void * param)
     usleep(PERIOD_US);
   }
   return NULL;
+}
+
+status_t send_temp_req(temp_units_t temp_units, staleness_t staleness, task_id_t from)
+{
+  FUNC_ENTRY;
+  temp_req_t temp_req;
+  status_t status = SUCCESS;
+  message_t msg = MSG_INIT(TEMP_REQ, TEMP_TASK, from);
+
+  temp_req.temp_units = temp_units;
+  temp_req.staleness = staleness;
+  if (send_msg(msg_q, &msg, &temp_req, sizeof(temp_req)) != SUCCESS)
+  {
+    LOG_ERROR("Could not send temp reading");
+    status = FAILURE;
+  }
+  return status;
 }
 
 status_t init_temp()
