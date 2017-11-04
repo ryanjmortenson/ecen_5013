@@ -99,7 +99,8 @@ ifeq ($(PLATFORM),bbb)
 else ifneq ($(findstring armv7,$(shell uname -a)),)
 	CC=gcc
 endif
-	CFLAGS+=-DBBB
+	CFLAGS+=-DBBB \
+					-I$(BBB_PROP_INC_DIR)
 	OBJS=$(BBB_PROP_OBJS) \
        $(BBB_OBJS)
 	OUT_DIR=$(BBB_APP_OUT)

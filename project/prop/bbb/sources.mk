@@ -4,7 +4,9 @@ BBB_PROP_SRC_DIR=prop/bbb/src
 BBB_PROP_OUT=prop/bbb/out
 
 # Build a list of source
-BBB_PROP_SRCS+=$(BBB_PROP_SRC_DIR)/i2c.c
+BBB_PROP_SRCS+= \
+	$(BBB_PROP_SRC_DIR)/i2c.c \
+	$(BBB_PROP_SRC_DIR)/led.c
 
 # Build a list of objects and dependencies
 BBB_PROP_OBJS=$(subst src,out,$(patsubst %.S,%.o,$(patsubst %.c,%.o,$(BBB_PROP_SRCS))))

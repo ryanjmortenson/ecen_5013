@@ -26,6 +26,11 @@
 #include "temp.h"
 #include "workers.h"
 
+#ifdef BBB
+#include "led.h"
+#define USR3_LED (3)
+#endif // BBB
+
 typedef struct hb_reg {
   timer_t timerid;
   uint32_t period_seconds;
@@ -98,6 +103,9 @@ void hb_timeout_handler(int sig, siginfo_t * info, void * data)
     if (info->si_value.sival_ptr == &hb_reg[i].timerid)
     {
       LOG_ERROR("Timer for %d expired aborting", i);
+#ifdef BBB
+      set_brightness(USR3_LED, ON_BRIGHTNESS);
+#endif // BBB
       SIGNAL_ABORT();
     }
   }
@@ -311,8 +319,24 @@ status_t init_main_task(int argc, char *argv[])
       status = FAILURE;
       break;
     }
+
+#ifdef BBB
+    if (init_led(USR3_LED) != SUCCESS)
+    {
+      LOG_ERROR("Could not initialize led");
+      status = FAILURE;
+      break;
+    }
+#endif // BBB
     SEND_INIT_COMPLETE();
   } while(0);
+
+#ifdef BBB
+  if (status == FAILURE)
+  {
+    set_brightness(USR3_LED, ON_BRIGHTNESS);
+  }
+#endif // BBB
   return status;
 }
 
