@@ -81,7 +81,7 @@ void * hb_handler(void * param)
     if (res < 0)
     {
       LOG_ERROR("Couldn't set timer, %s aborting", strerror(errno));
-      abort_signal = 1;
+      SIGNAL_ABORT();
     }
   }
   return NULL;
@@ -95,7 +95,7 @@ void hb_timeout_handler(int sig, siginfo_t * info, void * data)
     if (info->si_value.sival_ptr == &hb_reg[i].timerid)
     {
       LOG_ERROR("Timer for %d expired aborting", i);
-      abort_signal = 1;
+      SIGNAL_ABORT();
     }
   }
 }
@@ -104,8 +104,8 @@ void sigint_handler(int sig)
 {
   FUNC_ENTRY;
 
-  // Set the abort signal
-  abort_signal = 1;
+  // Set the abort signalf
+  SIGNAL_ABORT();
 
   // Flush queue
   flush_queue();
@@ -164,7 +164,7 @@ void * hb_setup(void * param)
 
   if (status == FAILURE)
   {
-    abort_signal = 1;
+    SIGNAL_ABORT();
   }
   else
   {
