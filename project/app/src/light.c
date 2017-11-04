@@ -76,13 +76,25 @@ void * light_req(void * param)
 void * light_thread(void * param)
 {
   FUNC_ENTRY;
+  float cur_reading;
+
   while(!abort_signal)
   {
     send_hb(LIGHT_TASK);
-    if (apds9301_r_lux(&stale_reading) != SUCCESS)
+    if (apds9301_r_lux(&cur_reading) != SUCCESS)
     {
       LOG_ERROR("Could not read lux for stashed reading");
     }
+
+    if (stale_reading - cur_reading > 1.0f)
+    {
+      SEND_LOG_HIGH("The light lux level decreased 1 lux in 1 reading");
+    }
+    else if (stale_reading - cur_reading < -1.0f)
+    {
+      SEND_LOG_HIGH("The light lux level increased 1 lux in 1 reading");
+    }
+    stale_reading = cur_reading;
     usleep(PERIOD_US);
   }
   return NULL;
