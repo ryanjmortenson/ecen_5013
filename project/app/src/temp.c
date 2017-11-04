@@ -207,6 +207,12 @@ status_t dest_temp()
     status = FAILURE;
   }
 
+  res = tmp102_dest();
+  if (res == FAILURE)
+  {
+    LOG_ERROR("Destroy tmp102 sensor");
+    status = FAILURE;
+  }
   mq_close(msg_q);
   return status;
 }

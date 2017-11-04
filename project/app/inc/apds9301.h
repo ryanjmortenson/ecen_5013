@@ -39,14 +39,59 @@ typedef union command_reg {
   uint8_t reg;
 } command_reg_t;
 
+/*!
+* @brief Initialize apds9301 sensor
+* @param[in] BBB I2C bus sensor is on
+* @return status of setting up apds9301
+*/
 status_t apds9301_init(int32_t i2c_bus);
+
+/*!
+* @brief Destroy apds9301 sensor
+* @return status of destroying apds9301
+*/
 status_t apds9301_dest();
+
+/*!
+* @brief Generic read byte
+* @param[in] cmd which register to read
+* @param[out] byte read from register
+* @return status of reading byte
+*/
 status_t apds9301_r_byte(command_reg_t cmd, uint8_t * byte);
+
+/*!
+* @brief Generic read word
+* @param[in] cmd which register to read
+* @param[out] bytes read from register
+* @return status of reading word
+*/
 status_t apds9301_r_word(command_reg_t cmd, uint8_t * bytes);
+
+/*!
+* @brief Generic write byte
+* @param[in] cmd which register to write
+* @param[in] byte to write into register
+* @return status of writing byte
+*/
 status_t apds9301_w_byte(command_reg_t cmd, uint8_t byte);
+
+/*!
+* @brief Generic write bytes
+* @param[in] cmd which register to write
+* @param[in] bytes to write into register
+* @return status of writing bytes
+*/
 status_t apds9301_w_word(command_reg_t cmd, uint8_t * bytes);
+
+/*!
+* @brief Read lux
+* @param[out] lux reading
+* @return status reading lux
+*/
 status_t apds9301_r_lux(float * lux);
 
+// Static initializer for command structure
 #define COMMAND_INIT(_addr, _word) {.command.addr  = _addr,   \
                                     .command.word  = _word,   \
                                     .command.clear = 0,       \

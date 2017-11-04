@@ -29,6 +29,7 @@ status_t i2c_init(int32_t i2c_bus, i2c_descriptor_t ** i2cd, uint8_t addr);
 * @return status of initialization
 */
 status_t i2c_dest(i2c_descriptor_t * i2cd);
+
 /*!
 * @brief Writes a single byte
 * @param addr address of i2c device

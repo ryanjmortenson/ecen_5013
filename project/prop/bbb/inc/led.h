@@ -14,7 +14,19 @@
 #define ON_BRIGHTNESS (255)
 #define OFF_BRIGHTNESS (0)
 
+/*!
+* @brief Initialize BBB user led
+* @param[in] led_name usr led number
+* @return status of setting up led
+*/
 status_t init_led(uint8_t led_num);
+
+/*!
+* @brief Set the brightness of BBB led
+* @param[in] led_name usr led number
+* @param[in] brightness of led
+* @return status of setting led brightness
+*/
 status_t set_brightness(uint8_t led_num, uint8_t brightness);
 
 #endif /* _LED_H */

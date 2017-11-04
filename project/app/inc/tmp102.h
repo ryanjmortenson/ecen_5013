@@ -37,13 +37,61 @@ typedef enum pointer_reg {
   POINTER_THIGH
 } pointer_reg_t;
 
+/*!
+* @brief Initialize tmp102 sensor
+* @param[in] BBB I2C bus sensor is on
+* @return status of setting up tmp102
+*/
 status_t tmp102_init(int32_t i2c_bus);
+
+/*!
+* @brief Destroy tmp102 sensor
+* @return status of destroying tmp102
+*/
+status_t tmp102_dest();
+
+/*!
+* @brief Generic read register bytes
+* @param[in] reg which register to read
+* @param[out] bytes read from register
+* @return status of reading register
+*/
 status_t tmp102_r_reg(pointer_reg_t reg, uint8_t * bytes);
+
+/*!
+* @brief Generic write register bytes
+* @param[in] reg which register to read
+* @param[in] bytes to write from register
+* @return status of writing register
+*/
 status_t tmp102_w_reg(pointer_reg_t reg, uint8_t * bytes);
 
-status_t tmp102_w_cfg(config_reg_t * config);
+/*!
+* @brief Read config register
+* @param[out] config read
+* @return status of reading config
+*/
 status_t tmp102_r_cfg(config_reg_t * config);
+
+/*!
+* @brief Write config register
+* @param[in] config to write
+* @return status of writing config
+*/
+status_t tmp102_w_cfg(config_reg_t * config);
+
+/*!
+* @brief Write pointer register
+* @param[in] reg pointer to write
+* @return status of writing pointer
+*/
 status_t tmp102_w_ptr(pointer_reg_t reg);
+
+/*!
+* @brief Read temp
+* @param[out] tempc temperature
+* @return status of reading temp
+*/
 status_t tmp102_r_tmp(float * tempc);
 
 #endif /* _TMP102_H */
