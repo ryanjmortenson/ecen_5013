@@ -28,6 +28,7 @@ typedef enum apds_addr {
   ADDR_DATA1HIGH
 } apds_addr_t;
 
+// Register bit fields
 typedef union command_reg {
   struct {
     uint8_t addr      :4;
@@ -38,6 +39,52 @@ typedef union command_reg {
   } command;
   uint8_t reg;
 } command_reg_t;
+
+typedef union control_reg {
+  struct {
+    uint8_t power     :2;
+    uint8_t reserved  :6;
+  } control;
+  uint8_t reg;
+} control_reg_t;
+
+typedef union timing_reg {
+  struct {
+    uint8_t integration :2;
+    uint8_t reserved    :1;
+    uint8_t manual      :1;
+    uint8_t gain        :1;
+    uint8_t reserverd2  :3;
+  } timing;
+  uint8_t reg;
+} timing_reg_t;
+
+typedef union interrupt_thresh_reg {
+  struct {
+    uint32_t threshlowlow   :8;
+    uint32_t threshlowhigh  :8;
+    uint32_t threshhighlow  :8;
+    uint32_t threshhighhigh :8;
+  } interrupt_thresh;
+  uint32_t regs;
+} interrupt_thresh_reg_t;
+
+typedef union interrupt_ctrl_reg {
+  struct {
+    uint8_t persist    :4;
+    uint8_t intr       :2;
+    uint8_t reserved   :2;
+  } interrupt_ctrl;
+  uint8_t reg;
+} interrupt_ctrl_reg_t;
+
+typedef union id_reg {
+  struct {
+    uint8_t revno      :4;
+    uint8_t partnum    :4;
+  } id;
+  uint8_t reg;
+} id_reg_t;
 
 /*!
 * @brief Initialize apds9301 sensor
@@ -85,11 +132,53 @@ status_t apds9301_w_byte(command_reg_t cmd, uint8_t byte);
 status_t apds9301_w_word(command_reg_t cmd, uint8_t * bytes);
 
 /*!
+* @brief Write command register
+* @param[in] command register
+* @return status writing command register
+*/
+status_t apds9301_w_cmd(command_reg_t cmd);
+
+/*!
 * @brief Read lux
 * @param[out] lux reading
 * @return status reading lux
 */
 status_t apds9301_r_lux(float * lux);
+
+/*!
+* @brief Read control register
+* @param[out] control register
+* @return status reading control
+*/
+status_t apds9301_r_ctrl(control_reg_t * control);
+
+/*!
+* @brief Write control register
+* @param[in] control register
+* @return status writing control
+*/
+status_t apds9301_w_ctrl(control_reg_t control);
+
+/*!
+* @brief Write timing register
+* @param[in] timing register
+* @return status writing timing
+*/
+status_t apds9301_w_timing(timing_reg_t timing);
+
+/*!
+* @brief Write interrupt control register
+* @param[in] interrupt control register
+* @return status writing interrupt control
+*/
+status_t apds9301_w_inter_ctrl(interrupt_ctrl_reg_t intr);
+
+/*!
+* @brief Read id register
+* @param[out] id register
+* @return status reading id
+*/
+status_t apds9301_r_id(id_reg_t * id);
 
 // Static initializer for command structure
 #define COMMAND_INIT(_addr, _word) {.command.addr  = _addr,   \
