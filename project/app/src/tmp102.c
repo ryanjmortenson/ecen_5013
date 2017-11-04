@@ -24,7 +24,10 @@ static i2c_descriptor_t * i2cd;
 status_t tmp102_init(int32_t i2c_bus)
 {
   FUNC_ENTRY;
-  return i2c_init(i2c_bus, &i2cd, TMP102_R_ADD);
+  uint16_t byte = 0xffff;
+  i2c_init(i2c_bus, &i2cd, TMP102_R_ADD);
+  tmp102_w_reg(POINTER_TLOW, (uint8_t *)&byte);
+  return SUCCESS;
 }
 
 status_t tmp102_dest()
@@ -134,15 +137,63 @@ status_t tmp102_r_cfg(config_reg_t * config)
   return status;
 }
 
-status_t tmp102_w_cfg(config_reg_t * config)
+status_t tmp102_w_cfg(config_reg_t config)
 {
   FUNC_ENTRY;
   status_t status;
 
-  status = tmp102_w_reg(POINTER_CONFIG, (uint8_t *)&config->reg);
+  status = tmp102_w_reg(POINTER_CONFIG, (uint8_t *)&config.reg);
   if (status == FAILURE)
   {
     LOG_ERROR("Could not write config");
   }
+  return status;
+}
+
+status_t tmp102_sd_mode(uint8_t sd)
+{
+  FUNC_ENTRY;
+  config_reg_t cfg = {0};
+  status_t status = SUCCESS;
+
+  do
+  {
+    if (tmp102_r_cfg(&cfg) != SUCCESS)
+    {
+      status = FAILURE;
+      break;
+    }
+
+    cfg.config.shutdown_mode = sd ? 1 : 0;
+    if (tmp102_w_cfg(cfg) != SUCCESS)
+    {
+      status = FAILURE;
+      break;
+    }
+  } while (0);
+  return status;
+}
+
+status_t tmp102_set_cr(uint8_t cr)
+{
+  FUNC_ENTRY;
+  config_reg_t cfg = {0};
+  status_t status = SUCCESS;
+
+  do
+  {
+    if (tmp102_r_cfg(&cfg) != SUCCESS)
+    {
+      status = FAILURE;
+      break;
+    }
+
+    cfg.config.conv_resolution = cr;
+    if (tmp102_w_cfg(cfg) != SUCCESS)
+    {
+      status = FAILURE;
+      break;
+    }
+  } while (0);
   return status;
 }

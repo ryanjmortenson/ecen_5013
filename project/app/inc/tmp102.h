@@ -78,7 +78,7 @@ status_t tmp102_r_cfg(config_reg_t * config);
 * @param[in] config to write
 * @return status of writing config
 */
-status_t tmp102_w_cfg(config_reg_t * config);
+status_t tmp102_w_cfg(config_reg_t config);
 
 /*!
 * @brief Write pointer register
@@ -93,5 +93,19 @@ status_t tmp102_w_ptr(pointer_reg_t reg);
 * @return status of reading temp
 */
 status_t tmp102_r_tmp(float * tempc);
+
+/*!
+* @brief Set shutown mode
+* @param[in] sd shutdown mode on or off
+* @return status of setting shutdown mode
+*/
+status_t tmp102_sd_mode(uint8_t sd);
+
+/*!
+* @brief Set conversion resolution
+* @param[in] cr conversion resolution to set
+* @return status of setting conversion resolution
+*/
+status_t tmp102_set_cr(uint8_t sd);
 
 #endif /* _TMP102_H */
