@@ -311,7 +311,7 @@ status_t init_main_task(int argc, char *argv[])
       status = FAILURE;
       break;
     }
-
+    SEND_INIT_COMPLETE();
   } while(0);
   return status;
 }
