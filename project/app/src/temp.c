@@ -79,7 +79,14 @@ void * temp_req(void * param)
     temp_rsp.temp = stale_reading;
   }
 
-  SEND_LOG_HIGH("Temperature %f", temp_rsp.temp);
+  if (temp_req->temp_units == TEMP_UNITS_K)
+  {
+    temp_rsp.temp += 273.15f;
+  }
+  else if (temp_req->temp_units == TEMP_UNITS_F)
+  {
+    temp_rsp.temp = temp_rsp.temp * 1.8f + 32;
+  }
 
   if (send_msg(msg_q, &out, &temp_rsp, sizeof(temp_rsp)) != SUCCESS)
   {
