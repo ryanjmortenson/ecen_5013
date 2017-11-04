@@ -241,14 +241,36 @@ void main_task()
 
   while(!abort_signal)
   {
-    get_temp_f(count % 2, MAIN_TASK);
-    get_temp_c(count % 2, MAIN_TASK);
-    get_temp_k(count % 2, MAIN_TASK);
-    send_light_req(count % 2, MAIN_TASK);
-    is_dark(&dark);
-    if (dark)
+    if (get_temp_f(count % 2, MAIN_TASK) != SUCCESS)
     {
-      SEND_LOG_FATAL("Seems to be dark");
+      SEND_LOG_ERROR("Couldn't get temp f");
+    }
+
+    if (get_temp_c(count % 2, MAIN_TASK) != SUCCESS)
+    {
+      SEND_LOG_ERROR("Couldn't get temp c");
+    }
+
+    if (get_temp_k(count % 2, MAIN_TASK) != SUCCESS)
+    {
+      SEND_LOG_ERROR("Couldn't get temp k");
+    }
+
+    if(send_light_req(count % 2, MAIN_TASK) != SUCCESS)
+    {
+      SEND_LOG_ERROR("Couldn't send light req");
+    }
+
+    if (is_dark(&dark) == SUCCESS)
+    {
+      if (dark)
+      {
+        SEND_LOG_FATAL("Seems to be dark");
+      }
+    }
+    else
+    {
+      SEND_LOG_ERROR("Couldn't determine if dark");
     }
     count++;
     usleep(5000000);

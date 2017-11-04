@@ -57,7 +57,7 @@ status_t send_temp_req
 );
 
 // Macros for getting temp with different units
-#define get_temp_f(staleness, from) send_temp_req(TEMP_UNITS_F, staleness, from);
-#define get_temp_c(staleness, from) send_temp_req(TEMP_UNITS_C, staleness, from);
-#define get_temp_k(staleness, from) send_temp_req(TEMP_UNITS_K, staleness, from);
+#define get_temp_f(staleness, from) send_temp_req(TEMP_UNITS_F, staleness, from)
+#define get_temp_c(staleness, from) send_temp_req(TEMP_UNITS_C, staleness, from)
+#define get_temp_k(staleness, from) send_temp_req(TEMP_UNITS_K, staleness, from)
 #endif /* _TEMP_H */
