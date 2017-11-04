@@ -11,8 +11,23 @@
 #include <stdint.h>
 #include <setjmp.h>
 #include <cmocka.h>
+
 #include "unit_circbuf.h"
 #include "unit_linkedlist.h"
+#include "unit_main_task.h"
+
+// Execute unit tests for main_task.c
+uint32_t unit_test_main_task()
+{
+  const struct CMUnitTest tests[] = {
+    cmocka_unit_test(test_main_init),
+    cmocka_unit_test(test_main_send_hb),
+    cmocka_unit_test(test_main_send_hb_setup),
+    cmocka_unit_test(test_main_dest)
+  };
+
+  return cmocka_run_group_tests(tests, NULL, NULL);
+}
 
 // Execute unit tests for linkedlist.c
 uint32_t unit_test_linkedlist()
@@ -51,8 +66,9 @@ uint32_t unit_test_circbuf()
 // Main for unit tests
 int main()
 {
-  unit_test_circbuf();
-  unit_test_linkedlist();
+  //unit_test_circbuf();
+  //unit_test_linkedlist();
+  unit_test_main_task();
 
   return 0;
 }

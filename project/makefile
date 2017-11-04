@@ -21,7 +21,7 @@ export $(MK_DIR)
 export $(CFLAGS)
 
 # Unit test output filename
-UNIT_TEST_OUT=test.out
+UNIT_TEST_OUT=unit_tests.out
 
 # CMOCKA unit test variables
 CMOCKA_BUILD_DIR=cmocka-out
@@ -142,8 +142,8 @@ test:
 
 # Build the unit test binary
 $(UNIT_TEST_OUT): CFLAGS+=-I$(CMOCKA_INC_OUT_DIR) -D UNITTEST
-$(UNIT_TEST_OUT): $(CMOCKA_LIB) $(TEST_OBJS)
-	$(CC) $(CFLAGS) -o "$@" $(TEST_OBJS) $(CMOCKA_LIB)
+$(UNIT_TEST_OUT): $(CMOCKA_LIB) $(TEST_OBJS) $(OBJS)
+	$(CC) $(CFLAGS) $(TEST_OBJS) $(CMOCKA_LIB) $(OBJS) -lrt -lm -pthread -o "$@"
 
 # Build the cmocka library
 $(CMOCKA_LIB):

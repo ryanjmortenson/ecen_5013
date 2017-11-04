@@ -33,7 +33,8 @@ char * task_str[] = {
   [MAIN_TASK] = "MAIN_TASK",
   [LIGHT_TASK] = "LIGHT_TASK",
   [TEMP_TASK] = "TEMP_TASK",
-  [LOG_TASK] = "LOG_TASK"
+  [LOG_TASK] = "LOG_TASK",
+  [TEST_TASK] = "TEST_TASK"
 };
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
