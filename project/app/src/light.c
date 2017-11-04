@@ -88,11 +88,11 @@ void * light_thread(void * param)
 
     if (stale_reading - cur_reading > 1.0f)
     {
-      SEND_LOG_HIGH("The light lux level decreased 1 lux in 1 reading");
+      SEND_LOG_HIGH("The light lux level decreased atleast 1 lux in 1 reading");
     }
     else if (stale_reading - cur_reading < -1.0f)
     {
-      SEND_LOG_HIGH("The light lux level increased 1 lux in 1 reading");
+      SEND_LOG_HIGH("The light lux level increased atleast 1 lux in 1 reading");
     }
     stale_reading = cur_reading;
     usleep(PERIOD_US);
