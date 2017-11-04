@@ -104,7 +104,7 @@ static void * print_log(void * param)
   log_msg_t * log = (log_msg_t *)msg->msg;
   char ts[TIMESTAMP_LEN];
   create_timestamp(&log->tv, ts);
-  if (log->level < LOG_LEVEL)
+  if (log->level < LOG_LEVEL || log->level > LOG_LEVEL_FUNC)
   {
     log_level(log->level,
               ts,

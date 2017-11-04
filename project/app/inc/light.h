@@ -36,9 +36,10 @@ status_t dest_light();
 
 /*!
 * @brief Determine if it is dark
+* @param dark darkness indicator
 * @return status of making call
 */
-status_t is_dark();
+status_t is_dark(uint8_t * dark);
 
 /*!
 * @brief Sends a request for light

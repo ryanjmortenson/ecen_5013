@@ -76,7 +76,6 @@ void * light_req(void * param)
 void * light_thread(void * param)
 {
   FUNC_ENTRY;
-
   while(!abort_signal)
   {
     send_hb(LIGHT_TASK);
@@ -87,6 +86,27 @@ void * light_thread(void * param)
     usleep(PERIOD_US);
   }
   return NULL;
+}
+
+status_t is_dark(uint8_t * dark)
+{
+  FUNC_ENTRY;
+  float lux;
+  status_t status = SUCCESS;
+  *dark = 0;
+
+  if (apds9301_r_lux(&lux) != SUCCESS)
+  {
+    LOG_ERROR("Could not read lux for is dark");
+    status = FAILURE;
+  }
+
+  // Emperically derived "darkness"
+  if (lux < .1f)
+  {
+    *dark = 1;
+  }
+  return status;
 }
 
 status_t send_light_req(staleness_t staleness, task_id_t from)

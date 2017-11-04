@@ -40,6 +40,9 @@ typedef struct hb_reg {
 // For converting temp units enum to string
 extern char * temp_units_str[];
 
+// For converting task id enum to a string
+extern char * task_str[];
+
 // Array of heartbeat registrations
 hb_reg_t hb_reg[TASK_ID_LIST_END];
 
@@ -181,8 +184,8 @@ void * hb_setup(void * param)
   }
   else
   {
-    LOG_MED("Register task %d for heartbeat period %d s timerid %p",
-            msg->from,
+    LOG_MED("Register task %s for heartbeat period %d s timerid %p",
+            task_str[msg->from],
             hb_setup->period_seconds,
             &reg->timerid);
   }
@@ -234,6 +237,7 @@ void main_task()
 {
   FUNC_ENTRY;
   int count = 0;
+  uint8_t dark;
 
   while(!abort_signal)
   {
@@ -241,6 +245,11 @@ void main_task()
     get_temp_c(count % 2, MAIN_TASK);
     get_temp_k(count % 2, MAIN_TASK);
     send_light_req(count % 2, MAIN_TASK);
+    is_dark(&dark);
+    if (dark)
+    {
+      SEND_LOG_FATAL("Seems to be dark");
+    }
     count++;
     usleep(5000000);
   }
