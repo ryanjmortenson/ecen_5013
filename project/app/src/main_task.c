@@ -37,15 +37,24 @@ typedef struct hb_reg {
   uint8_t in_use;
 } hb_reg_t;
 
+// For converting temp units enum to string
 extern char * temp_units_str[];
 
+// Array of heartbeat registrations
 hb_reg_t hb_reg[TASK_ID_LIST_END];
 
+// Set task id for SEND_LOG* messages
 static const task_id_t TASK_ID = MAIN_TASK;
 
 // Abort signal for all threads
 int abort_signal = 0;
+
+// Writeable message queue
 mqd_t msg_q;
+
+/***********************************************************
+                      Internal funtions
+ ***********************************************************/
 
 void * light_rsp_handler(void * param)
 {
@@ -63,7 +72,6 @@ void * temp_rsp_handler(void * param)
   CHECK_NULL2(param);
   message_t * msg = (message_t *)param;
   temp_rsp_t * rsp = (temp_rsp_t *)msg->msg;
-
   SEND_LOG_HIGH("Temp rsp units: %s, temp: %f",
                 temp_units_str[rsp->temp_units],
                 rsp->temp);
@@ -189,6 +197,56 @@ void * hb_setup(void * param)
   return NULL;
 }
 
+/***********************************************************
+                      External funtions
+ ***********************************************************/
+
+void main_task()
+{
+  FUNC_ENTRY;
+  int count = 0;
+
+  while(!abort_signal)
+  {
+    get_temp_f(count % 2, MAIN_TASK);
+    get_temp_c(count % 2, MAIN_TASK);
+    get_temp_k(count % 2, MAIN_TASK);
+    send_light_req(count % 2, MAIN_TASK);
+    count++;
+    usleep(5000000);
+  }
+}
+
+status_t send_hb_setup(uint32_t period_seconds, task_id_t from)
+{
+  FUNC_ENTRY;
+  status_t status = SUCCESS;
+  message_t msg = MSG_INIT(HEARTBEAT_SETUP, TASK_ID, from);
+  hb_setup_t setup = {.period_seconds = period_seconds};
+
+  if (send_msg(msg_q, &msg, &setup, sizeof(setup)) != SUCCESS)
+  {
+    LOG_ERROR("Could not send heartbeat setup request");
+    status = FAILURE;
+  }
+  return status;
+}
+
+status_t send_hb(task_id_t from)
+{
+  FUNC_ENTRY;
+  status_t status = SUCCESS;
+  message_t msg = MSG_INIT(HEARTBEAT, TASK_ID, from);
+  uint8_t byte;
+
+  if (send_msg(msg_q, &msg, &byte, 1) != SUCCESS)
+  {
+    LOG_ERROR("Could not send heartbeat");
+    status = FAILURE;
+  }
+  return status;
+}
+
 status_t init_main_task(int argc, char *argv[])
 {
   FUNC_ENTRY;
@@ -248,7 +306,6 @@ status_t init_main_task(int argc, char *argv[])
 
     timer_handler.sa_sigaction = hb_timeout_handler;
     timer_handler.sa_flags     = SA_SIGINFO;
-
     res = sigaction(SIGUSR1, &timer_handler, 0);
     if (res < 0)
     {
@@ -256,6 +313,7 @@ status_t init_main_task(int argc, char *argv[])
       status = FAILURE;
       break;
     }
+
     if (init_workers(num_workers) != SUCCESS)
     {
       LOG_ERROR("Could not initialize workers");
@@ -308,14 +366,14 @@ status_t init_main_task(int argc, char *argv[])
 
     if (init_temp() != SUCCESS)
     {
-      LOG_ERROR("Could not initialize logging");
+      LOG_ERROR("Could not initialize temp");
       status = FAILURE;
       break;
     }
 
     if (init_light() != SUCCESS)
     {
-      LOG_ERROR("Could not initialize logging");
+      LOG_ERROR("Could not initialize light");
       status = FAILURE;
       break;
     }
@@ -391,50 +449,14 @@ status_t dest_main_task()
     LOG_ERROR("Could not destory log task");
     status = FAILURE;
   }
+
+#ifdef BBB
+  if (status == FAILURE)
+  {
+    set_brightness(USR3_LED, ON_BRIGHTNESS);
+  }
+#endif // BBB
+
   log_destroy();
-  return status;
-}
-
-void main_task()
-{
-  FUNC_ENTRY;
-  int count = 0;
-
-  while(!abort_signal)
-  {
-    get_temp_f(count % 2, MAIN_TASK);
-    send_light_req(count % 2, MAIN_TASK);
-    count++;
-    usleep(5000000);
-  }
-}
-
-status_t send_hb_setup(uint32_t period_seconds, task_id_t from)
-{
-  FUNC_ENTRY;
-  status_t status = SUCCESS;
-  message_t msg = MSG_INIT(HEARTBEAT_SETUP, TASK_ID, from);
-  hb_setup_t setup = {.period_seconds = period_seconds};
-
-  if (send_msg(msg_q, &msg, &setup, sizeof(setup)) != SUCCESS)
-  {
-    LOG_ERROR("Could not send heartbeat setup request");
-    status = FAILURE;
-  }
-  return status;
-}
-
-status_t send_hb(task_id_t from)
-{
-  FUNC_ENTRY;
-  status_t status = SUCCESS;
-  message_t msg = MSG_INIT(HEARTBEAT, TASK_ID, from);
-  uint8_t byte;
-
-  if (send_msg(msg_q, &msg, &byte, 1) != SUCCESS)
-  {
-    LOG_ERROR("Could not send heartbeat");
-    status = FAILURE;
-  }
   return status;
 }
