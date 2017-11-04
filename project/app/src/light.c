@@ -53,6 +53,7 @@ status_t send_light_req(staleness_t staleness, task_id_t from)
 void * light_req(void * param)
 {
   FUNC_ENTRY;
+  CHECK_NULL2(param);
   message_t * in = (message_t *)param;
   light_req_t * light_req = (light_req_t *)in->msg;
   light_rsp_t light_rsp;

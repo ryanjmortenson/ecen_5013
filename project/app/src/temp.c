@@ -62,6 +62,7 @@ status_t send_temp_req(temp_units_t temp_units, staleness_t staleness, task_id_t
 void * temp_req(void * param)
 {
   FUNC_ENTRY;
+  CHECK_NULL2(param);
   message_t * in = (message_t *)param;
   temp_req_t * temp_req = (temp_req_t *)in->msg;
   temp_rsp_t temp_rsp;

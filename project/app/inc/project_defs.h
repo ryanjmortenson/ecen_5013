@@ -33,6 +33,7 @@ typedef enum status {
 
 // Null pointer check
 #define CHECK_NULL(x) if (x == NULL) { return FAILURE; }
+#define CHECK_NULL2(x) if (x == NULL) { LOG_ERROR("NULL pointer"); return NULL; }
 
 // Check value not equal, print errno, and exit
 #define NOT_EQ_EXIT_E(res, func, val)                           \

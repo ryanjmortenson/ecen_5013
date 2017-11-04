@@ -45,6 +45,7 @@ mqd_t msg_q;
 void * light_rsp_handler(void * param)
 {
   FUNC_ENTRY;
+  CHECK_NULL2(param);
   message_t * msg = (message_t *)param;
   light_rsp_t * rsp = (light_rsp_t *)msg->msg;
   SEND_LOG_HIGH("Light rsp lux: %f", rsp->lux);
@@ -54,6 +55,7 @@ void * light_rsp_handler(void * param)
 void * temp_rsp_handler(void * param)
 {
   FUNC_ENTRY;
+  CHECK_NULL2(param);
   message_t * msg = (message_t *)param;
   temp_rsp_t * rsp = (temp_rsp_t *)msg->msg;
 
@@ -66,6 +68,7 @@ void * temp_rsp_handler(void * param)
 void * hb_handler(void * param)
 {
   FUNC_ENTRY;
+  CHECK_NULL2(param);
   message_t * msg = (message_t *)param;
   int32_t res;
   hb_reg_t * reg = &hb_reg[msg->from];
@@ -114,6 +117,7 @@ void sigint_handler(int sig)
 void * hb_setup(void * param)
 {
   FUNC_ENTRY;
+  CHECK_NULL2(param);
   message_t * msg = (message_t *)param;
   hb_setup_t * hb_setup = (hb_setup_t *)msg->msg;
   hb_reg_t * reg = &hb_reg[msg->from];
