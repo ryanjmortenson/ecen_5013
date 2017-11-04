@@ -180,8 +180,8 @@ status_t init_light()
     res = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     if (res < 0)
     {
-      LOG_ERROR("Could not set cancellability of light task, %s"),
-                strerror(res);
+      LOG_ERROR("Could not set cancellability of light task, %s",
+                strerror(res));
       status = FAILURE;
       break;
     }
