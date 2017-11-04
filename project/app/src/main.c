@@ -6,18 +6,12 @@
 *
 */
 
-#include <mqueue.h>
-#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
-#include <pthread.h>
-#include <unistd.h>
 
 #include "main_task.h"
 #include "project_defs.h"
-
 
 int main(int argc, char *argv[])
 {
