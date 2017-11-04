@@ -137,7 +137,6 @@ status_t tmp102_r_cfg(config_reg_t * config)
 status_t tmp102_w_cfg(config_reg_t * config)
 {
   FUNC_ENTRY;
-  // uint8_t bytes[2];
   status_t status;
 
   status = tmp102_w_reg(POINTER_CONFIG, (uint8_t *)&config->reg);
