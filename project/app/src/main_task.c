@@ -32,6 +32,8 @@ typedef struct hb_reg {
   uint8_t in_use;
 } hb_reg_t;
 
+extern char * temp_units_str[];
+
 hb_reg_t hb_reg[TASK_ID_LIST_END];
 
 static const task_id_t TASK_ID = MAIN_TASK;
@@ -39,6 +41,27 @@ static const task_id_t TASK_ID = MAIN_TASK;
 // Abort signal for all threads
 int abort_signal = 0;
 mqd_t msg_q;
+
+void * light_rsp_handler(void * param)
+{
+  FUNC_ENTRY;
+  message_t * msg = (message_t *)param;
+  light_rsp_t * rsp = (light_rsp_t *)msg->msg;
+  SEND_LOG_HIGH("Light rsp lux: %f", rsp->lux);
+  return NULL;
+}
+
+void * temp_rsp_handler(void * param)
+{
+  FUNC_ENTRY;
+  message_t * msg = (message_t *)param;
+  temp_rsp_t * rsp = (temp_rsp_t *)msg->msg;
+
+  SEND_LOG_HIGH("Temp rsp units: %s, temp: %f",
+                temp_units_str[rsp->temp_units],
+                rsp->temp);
+  return NULL;
+}
 
 void * hb_handler(void * param)
 {
@@ -236,6 +259,20 @@ status_t init_main_task(int argc, char *argv[])
       break;
     }
 
+    if (register_cb(LIGHT_RSP, MAIN_TASK, light_rsp_handler) != SUCCESS)
+    {
+      LOG_ERROR("Could not register light response handler");
+      status = FAILURE;
+      break;
+    }
+
+    if (register_cb(TEMP_RSP, MAIN_TASK, temp_rsp_handler) != SUCCESS)
+    {
+      LOG_ERROR("Could not register temp response handler");
+      status = FAILURE;
+      break;
+    }
+
     if (register_cb(HEARTBEAT_SETUP, MAIN_TASK, hb_setup) != SUCCESS)
     {
       LOG_ERROR("Could not register heartbeat setup handler");
@@ -297,9 +334,27 @@ status_t dest_main_task()
     status = FAILURE;
   }
 
+  if (unregister_cb(LIGHT_RSP, MAIN_TASK, light_rsp_handler) != SUCCESS)
+  {
+    LOG_ERROR("Could not unregister heartbeat handler");
+    status = FAILURE;
+  }
+
+  if (unregister_cb(TEMP_RSP, MAIN_TASK, temp_rsp_handler) != SUCCESS)
+  {
+    LOG_ERROR("Could not unregister heartbeat handler");
+    status = FAILURE;
+  }
+
+  if (unregister_cb(HEARTBEAT, MAIN_TASK, hb_handler) != SUCCESS)
+  {
+    LOG_ERROR("Could not unregister heartbeat handler");
+    status = FAILURE;
+  }
+
   if (unregister_cb(HEARTBEAT_SETUP, MAIN_TASK, hb_setup) != SUCCESS)
   {
-    LOG_ERROR("Could not register heartbeat setup handler");
+    LOG_ERROR("Could not unregister heartbeat setup handler");
     status = FAILURE;
   }
 
