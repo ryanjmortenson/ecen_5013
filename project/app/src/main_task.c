@@ -514,6 +514,14 @@ status_t dest_main_task()
     status = FAILURE;
   }
 
+  for (uint16_t i = 0; i < TASK_ID_LIST_END; i++)
+  {
+    if (hb_reg[i].in_use == 1)
+    {
+      timer_delete(hb_reg[i].timerid);
+    }
+  }
+
 #ifdef BBB
   if (status == FAILURE)
   {
