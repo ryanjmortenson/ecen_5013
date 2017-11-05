@@ -18,8 +18,22 @@
 #define TMP102_TEMP_REG (0x12)
 #define TMP102_READ_CMD_LEN (3)
 #define TMP102_READ_DATA_LEN (2)
+#define MAX_POS (0x7ff)
+#define TEMP_SCALE_FACTOR (0.0625f)
 
 static i2c_descriptor_t * i2cd;
+
+float convert_temp(uint16_t data)
+{
+  if (data <= 0x7ff)
+  {
+    return (float)data * TEMP_SCALE_FACTOR;
+  }
+  else
+  {
+    return (float) (-1 * ((~(data - 1) & 0xfff) * TEMP_SCALE_FACTOR));
+  }
+}
 
 status_t tmp102_init(int32_t i2c_bus)
 {
@@ -111,7 +125,7 @@ status_t tmp102_r_tmp(float * tempc)
   if (status == SUCCESS)
   {
     data = (bytes[0] << 4) | (bytes[1] >> 4);
-    *tempc = (float)(data) * 0.0625f;
+    *tempc = convert_temp(data);
     LOG_LOW("Calculated temp %fC", *tempc);
   }
   else

@@ -29,6 +29,7 @@ endif
 TEST_SRC+= \
 	$(NON_MAIN_SRC) \
 	$(APP_SRC_DIR)/unit_circbuf.c \
+	$(APP_SRC_DIR)/unit_conv.c \
 	$(APP_SRC_DIR)/unit_main_task.c \
 	$(APP_SRC_DIR)/unit_light.c \
 	$(APP_SRC_DIR)/unit_log_msg.c \

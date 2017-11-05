@@ -13,11 +13,22 @@
 #include <cmocka.h>
 
 #include "unit_circbuf.h"
+#include "unit_conv.h"
 #include "unit_light.h"
 #include "unit_temp.h"
 #include "unit_log_msg.h"
 #include "unit_linkedlist.h"
 #include "unit_main_task.h"
+
+// Execute unit tests for conversion
+uint32_t unit_test_conv()
+{
+  const struct CMUnitTest tests[] = {
+    cmocka_unit_test(test_temp_conv)
+  };
+
+  return cmocka_run_group_tests(tests, NULL, NULL);
+}
 
 // Execute unit tests for log_msg.c
 uint32_t unit_test_log_msg()
@@ -110,6 +121,7 @@ int main()
   unit_test_light();
   unit_test_temp();
   unit_test_log_msg();
+  unit_test_conv();
 
   return 0;
 }

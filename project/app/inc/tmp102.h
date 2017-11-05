@@ -38,6 +38,13 @@ typedef enum pointer_reg {
 } pointer_reg_t;
 
 /*!
+* @brief Convert a temp reading
+* @param[in] data data from I2C sensor
+* @return converted temp
+*/
+float convert_temp(uint16_t data);
+
+/*!
 * @brief Initialize tmp102 sensor
 * @param[in] BBB I2C bus sensor is on
 * @return status of setting up tmp102
