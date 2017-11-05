@@ -13,9 +13,9 @@
 #include <cmocka.h>
 
 #include "unit_circbuf.h"
-#include "unit_conv.h"
 #include "unit_light.h"
 #include "unit_temp.h"
+#include "unit_tmp102.h"
 #include "unit_log_msg.h"
 #include "unit_linkedlist.h"
 #include "unit_main_task.h"
@@ -24,7 +24,14 @@
 uint32_t unit_test_conv()
 {
   const struct CMUnitTest tests[] = {
-    cmocka_unit_test(test_temp_conv)
+    cmocka_unit_test(test_tmp102_conv),
+    cmocka_unit_test(test_tmp102_init),
+    cmocka_unit_test(test_tmp102_w_ptr),
+    cmocka_unit_test(test_tmp102_rw_reg),
+    cmocka_unit_test(test_tmp102_r_tmp),
+    cmocka_unit_test(test_tmp102_rw_cfg),
+    cmocka_unit_test(test_tmp102_sd_mode),
+    cmocka_unit_test(test_tmp102_set_cr)
   };
 
   return cmocka_run_group_tests(tests, NULL, NULL);

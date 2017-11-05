@@ -38,10 +38,7 @@ float convert_temp(uint16_t data)
 status_t tmp102_init(int32_t i2c_bus)
 {
   FUNC_ENTRY;
-  uint16_t byte = 0xffff;
-  i2c_init(i2c_bus, &i2cd, TMP102_R_ADD);
-  tmp102_w_reg(POINTER_TLOW, (uint8_t *)&byte);
-  return SUCCESS;
+  return i2c_init(i2c_bus, &i2cd, TMP102_R_ADD);
 }
 
 status_t tmp102_dest()
@@ -66,6 +63,7 @@ status_t tmp102_w_ptr(pointer_reg_t reg)
 status_t tmp102_w_reg(pointer_reg_t reg, uint8_t * bytes)
 {
   FUNC_ENTRY;
+  CHECK_NULL(bytes);
   uint8_t new_bytes[3];
   int32_t res;
   status_t status = SUCCESS;
@@ -167,7 +165,7 @@ status_t tmp102_w_cfg(config_reg_t config)
 status_t tmp102_sd_mode(uint8_t sd)
 {
   FUNC_ENTRY;
-  config_reg_t cfg = {0};
+  config_reg_t cfg;
   status_t status = SUCCESS;
 
   do
@@ -191,7 +189,7 @@ status_t tmp102_sd_mode(uint8_t sd)
 status_t tmp102_set_cr(uint8_t cr)
 {
   FUNC_ENTRY;
-  config_reg_t cfg = {0};
+  config_reg_t cfg;
   status_t status = SUCCESS;
 
   do
