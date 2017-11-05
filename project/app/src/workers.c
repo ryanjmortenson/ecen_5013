@@ -31,6 +31,8 @@ extern int abort_signal;
 static uint32_t num_workers;
 pthread_t * workers;
 
+static uint8_t initialized = 0;
+
 // Registration
 typedef struct registration {
   CALLBACK cb;
@@ -174,6 +176,12 @@ status_t register_cb(type_t type, task_id_t to, CALLBACK cb)
   registartion_t * reg;
   status_t res = FAILURE;
 
+  if (initialized == 0)
+  {
+    LOG_ERROR("Not initialized");
+    return FAILURE;
+  }
+
   reg = malloc(sizeof(*reg));
 
   if (reg != NULL)
@@ -201,6 +209,12 @@ status_t unregister_cb(type_t type, task_id_t to, CALLBACK cb)
   registartion_t * preg = &reg;
   status_t res = FAILURE;
   int32_t index = 0;
+
+  if (initialized == 0)
+  {
+    LOG_ERROR("Not initialized");
+    return FAILURE;
+  }
 
   // Set registration struct
   reg.type = type;
@@ -272,6 +286,11 @@ status_t init_workers(uint32_t num)
       }
     }
   }
+
+  if (status != FAILURE)
+  {
+    initialized = 1;
+  }
   return status;
 }
 
@@ -303,6 +322,7 @@ status_t dest_workers()
 
   // Clean up old queue in case there is junk left in it
   mq_unlink(WORKER_QUEUE);
+  initialized = 0;
   return status;
 }
 
