@@ -147,7 +147,7 @@ static void * write_log(void * param)
 
   if (fd > 0)
   {
-    int res = write(fd, log_buf, len + 1);
+    int res = write(fd, log_buf, len);
     if (res < 0)
     {
       LOG_ERROR("Failed to write log");
