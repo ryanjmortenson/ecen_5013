@@ -9,8 +9,19 @@
 #ifndef _UNIT_LIGHT_H
 #define _UNIT_LIGHT_H
 
+/*!
+* @brief Test init
+*/
 void test_light_init(void **state);
+
+/*!
+* @brief Test destroy
+*/
 void test_light_dest(void **state);
+
+/*!
+* @brief Test is dark
+*/
 void test_is_dark(void **state);
 
 #endif /* _UNIT_LIGHT*/

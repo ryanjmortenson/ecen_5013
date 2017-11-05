@@ -27,7 +27,6 @@ void test_apds9301_dest(void **state)
   assert_int_equal(apds9301_dest(), SUCCESS);
 }
 
-
 void test_apds9301_w_cmd(void **state)
 {
   command_reg_t cmd;

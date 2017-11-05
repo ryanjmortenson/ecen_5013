@@ -9,9 +9,24 @@
 #ifndef _UNIT_MAIN_TASK_H
 #define _UNIT_MAIN_TASK_H
 
+/*!
+* @brief Test init
+*/
 void test_main_init(void **state);
+
+/*!
+* @brief Test destroy
+*/
 void test_main_dest(void **state);
+
+/*!
+* @brief Test send heartbeat
+*/
 void test_main_send_hb(void **state);
+
+/*!
+* @brief Test send heartbeat setup
+*/
 void test_main_send_hb_setup(void **state);
 
 #endif /* _UNIT_MAIN_TASK_H */

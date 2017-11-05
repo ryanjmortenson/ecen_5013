@@ -9,8 +9,14 @@
 #ifndef _UNIT_TEMP_H
 #define _UNIT_TEMP_H
 
+/*!
+* @brief Test init
+*/
 void test_temp_init(void **state);
+
+/*!
+* @brief Test destroy
+*/
 void test_temp_dest(void **state);
-void test_is_dark(void **state);
 
 #endif /* _UNIT_TEMP*/
