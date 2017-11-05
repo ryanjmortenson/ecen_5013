@@ -158,7 +158,7 @@ status_t init_temp()
     res = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
     if (res < 0)
     {
-      LOG_ERROR("Could not set cancellability of temp task, %s"
+      LOG_ERROR("Could not set cancellability of temp task, %s",
                 strerror(res));
       status = FAILURE;
       break;
