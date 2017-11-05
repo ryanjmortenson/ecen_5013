@@ -14,8 +14,20 @@
 
 #include "unit_circbuf.h"
 #include "unit_light.h"
+#include "unit_temp.h"
 #include "unit_linkedlist.h"
 #include "unit_main_task.h"
+
+// Execute unit tests for temp.c
+uint32_t unit_test_temp()
+{
+  const struct CMUnitTest tests[] = {
+    cmocka_unit_test(test_temp_init),
+    cmocka_unit_test(test_temp_dest)
+  };
+
+  return cmocka_run_group_tests(tests, NULL, NULL);
+}
 
 // Execute unit tests for light.c
 uint32_t unit_test_light()
@@ -83,6 +95,7 @@ int main()
   unit_test_linkedlist();
   unit_test_main_task();
   unit_test_light();
+  unit_test_temp();
 
   return 0;
 }
