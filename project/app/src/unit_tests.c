@@ -12,6 +12,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 
+#include "unit_apds9301.h"
 #include "unit_circbuf.h"
 #include "unit_light.h"
 #include "unit_temp.h"
@@ -20,8 +21,27 @@
 #include "unit_linkedlist.h"
 #include "unit_main_task.h"
 
-// Execute unit tests for conversion
-uint32_t unit_test_conv()
+// Execute unit tests for apds9301
+uint32_t unit_test_apds9301()
+{
+  const struct CMUnitTest tests[] = {
+    cmocka_unit_test(test_apds9301_init),
+    cmocka_unit_test(test_apds9301_w_cmd),
+    cmocka_unit_test(test_apds9301_rw_byte),
+    cmocka_unit_test(test_apds9301_rw_word),
+    cmocka_unit_test(test_apds9301_r_lux),
+    cmocka_unit_test(test_apds9301_rw_ctrl),
+    cmocka_unit_test(test_apds9301_w_timing),
+    cmocka_unit_test(test_apds9301_w_inter_ctrl),
+    cmocka_unit_test(test_apds9301_r_id),
+    cmocka_unit_test(test_apds9301_dest)
+  };
+
+  return cmocka_run_group_tests(tests, NULL, NULL);
+}
+
+// Execute unit tests for tmp102
+uint32_t unit_test_tmp102()
 {
   const struct CMUnitTest tests[] = {
     cmocka_unit_test(test_tmp102_conv),
@@ -31,7 +51,8 @@ uint32_t unit_test_conv()
     cmocka_unit_test(test_tmp102_r_tmp),
     cmocka_unit_test(test_tmp102_rw_cfg),
     cmocka_unit_test(test_tmp102_sd_mode),
-    cmocka_unit_test(test_tmp102_set_cr)
+    cmocka_unit_test(test_tmp102_set_cr),
+    cmocka_unit_test(test_tmp102_dest)
   };
 
   return cmocka_run_group_tests(tests, NULL, NULL);
@@ -128,7 +149,7 @@ int main()
   unit_test_light();
   unit_test_temp();
   unit_test_log_msg();
-  unit_test_conv();
-
+  unit_test_tmp102();
+  unit_test_apds9301();
   return 0;
 }

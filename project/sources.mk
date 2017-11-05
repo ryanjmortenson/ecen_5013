@@ -28,6 +28,7 @@ endif
 
 TEST_SRC+= \
 	$(NON_MAIN_SRC) \
+	$(APP_SRC_DIR)/unit_apds9301.c \
 	$(APP_SRC_DIR)/unit_circbuf.c \
 	$(APP_SRC_DIR)/unit_main_task.c \
 	$(APP_SRC_DIR)/unit_light.c \

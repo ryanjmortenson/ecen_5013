@@ -98,6 +98,7 @@ inline static status_t apds9301_r_bytes(command_reg_t cmd, uint8_t * bytes, uint
 inline static status_t apds9301_w_bytes(command_reg_t cmd, uint8_t * bytes, uint8_t len)
 {
   FUNC_ENTRY;
+  CHECK_NULL(bytes);
   uint8_t new_bytes[3];
   int32_t res;
   status_t status = SUCCESS;

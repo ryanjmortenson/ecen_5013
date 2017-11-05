@@ -1,6 +1,6 @@
 /** @file unit_tmp102.h
 *
-* @brief Unit tests conversion
+* @brief Unit tests tmp102
 * @author Ryan Mortenson
 * @tools GCC 5.4.0, vim 7.4, make 4.1, Ubuntu 16.04
 *
