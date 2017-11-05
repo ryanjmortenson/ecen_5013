@@ -75,6 +75,28 @@ void * light_rsp_handler(void * param)
 }
 
 /*!
+* @brief Handle light response from light request
+* @param param msg holding light response
+* @return NULL
+*/
+void * is_dark_rsp_handler(void * param)
+{
+  FUNC_ENTRY;
+  CHECK_NULL2(param);
+  message_t * msg = (message_t *)param;
+  is_dark_rsp_t * rsp = (is_dark_rsp_t *)msg->msg;
+  if (rsp->dark > 0)
+  {
+    SEND_LOG_FATAL("Is dark response indicates dark");
+  }
+  else
+  {
+    SEND_LOG_FATAL("Is dark response indicates light");
+  }
+  return NULL;
+}
+
+/*!
 * @brief Handle temp response from temp request
 * @param param msg holding temp response
 * @return NULL
@@ -261,6 +283,11 @@ void main_task()
       SEND_LOG_ERROR("Couldn't send light req");
     }
 
+    if(send_is_dark_req(MAIN_TASK) != SUCCESS)
+    {
+      SEND_LOG_ERROR("Couldn't send light req");
+    }
+
     if (is_dark(&dark) == SUCCESS)
     {
       if (dark)
@@ -400,6 +427,13 @@ status_t init_main_task(int argc, char *argv[])
       break;
     }
 
+    if (register_cb(IS_DARK_RSP, MAIN_TASK, is_dark_rsp_handler) != SUCCESS)
+    {
+      LOG_ERROR("Could not register is dark response handler");
+      status = FAILURE;
+      break;
+    }
+
     if (register_cb(TEMP_RSP, MAIN_TASK, temp_rsp_handler) != SUCCESS)
     {
       LOG_ERROR("Could not register temp response handler");
@@ -486,13 +520,19 @@ status_t dest_main_task()
 
   if (unregister_cb(LIGHT_RSP, MAIN_TASK, light_rsp_handler) != SUCCESS)
   {
-    LOG_ERROR("Could not unregister heartbeat handler");
+    LOG_ERROR("Could not unregister light response handler");
+    status = FAILURE;
+  }
+
+  if (unregister_cb(IS_DARK_RSP, MAIN_TASK, is_dark_rsp_handler) != SUCCESS)
+  {
+    LOG_ERROR("Could not unregister is dark response handler");
     status = FAILURE;
   }
 
   if (unregister_cb(TEMP_RSP, MAIN_TASK, temp_rsp_handler) != SUCCESS)
   {
-    LOG_ERROR("Could not unregister heartbeat handler");
+    LOG_ERROR("Could not unregister temp response handler");
     status = FAILURE;
   }
 

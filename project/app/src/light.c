@@ -72,6 +72,36 @@ void * light_req(void * param)
 }
 
 /*!
+* @brief Handle is dark requests
+* @param param msg holding is dark request
+* @return NULL
+*/
+void * is_dark_req(void * param)
+{
+  FUNC_ENTRY;
+  CHECK_NULL2(param);
+  message_t * in = (message_t *)param;
+  is_dark_rsp_t dark_rsp;
+  message_t out = MSG_INIT(IS_DARK_RSP, in->from, LIGHT_TASK);
+
+  do
+  {
+    if (is_dark(&dark_rsp.dark) != SUCCESS)
+    {
+      LOG_ERROR("Could not get darkness");
+      break;
+    }
+
+    if (send_msg(msg_q, &out, &dark_rsp, sizeof(dark_rsp)) != SUCCESS)
+    {
+      LOG_ERROR("Could not send light response");
+      break;
+    }
+  } while(0);
+  return NULL;
+}
+
+/*!
 * @brief Main light task
 * @param param NULL
 * @return NULL
@@ -145,6 +175,21 @@ status_t send_light_req(staleness_t staleness, task_id_t from)
   return status;
 }
 
+status_t send_is_dark_req(task_id_t from)
+{
+  FUNC_ENTRY;
+  status_t status = SUCCESS;
+  message_t msg = MSG_INIT(IS_DARK_REQ, LIGHT_TASK, from);
+
+  // Fill out light request and send
+  if (send_msg(msg_q, &msg, NULL, 0) != SUCCESS)
+  {
+    LOG_ERROR("Could not send is dark request");
+    status = FAILURE;
+  }
+  return status;
+}
+
 status_t init_light()
 {
   FUNC_ENTRY;
@@ -163,6 +208,14 @@ status_t init_light()
 
     // Register light request handler
     res = register_cb(LIGHT_REQ, LIGHT_TASK, light_req);
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not register callback, %s", strerror(errno));
+      status = FAILURE;
+      break;
+    }
+
+    res = register_cb(IS_DARK_REQ, LIGHT_TASK, is_dark_req);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not register callback, %s", strerror(errno));
@@ -232,8 +285,15 @@ status_t dest_light()
     LOG_HIGH("Light task joined");
   }
 
-  // Unregister light request handler
+  // Unregister light request handlers
   res = unregister_cb(LIGHT_REQ, LIGHT_TASK, light_req);
+  if (res == FAILURE)
+  {
+    LOG_ERROR("Could not unregister callback");
+    status = FAILURE;
+  }
+
+  res = unregister_cb(IS_DARK_REQ, LIGHT_TASK, is_dark_req);
   if (res == FAILURE)
   {
     LOG_ERROR("Could not unregister callback");

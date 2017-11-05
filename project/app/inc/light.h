@@ -22,6 +22,11 @@ typedef struct light_rsp
   float lux;
 } light_rsp_t;
 
+typedef struct is_dark_rsp
+{
+  uint8_t dark;
+} is_dark_rsp_t;
+
 /*!
 * @brief Initialize light task
 * @return status of initializing light
@@ -43,10 +48,17 @@ status_t is_dark(uint8_t * dark);
 
 /*!
 * @brief Sends a request for light
-* @param light_units units for the light to returned in
 * @param staleness of reading (read new or keep old)
-* @return status of destroying light
+* @param from from whom
+* @return status of send light request
 */
 status_t send_light_req(staleness_t staleness, task_id_t from);
+
+/*!
+* @brief Sends a request is dark
+* @param from from whom
+* @return status of sending is dark request
+*/
+status_t send_is_dark_req(task_id_t from);
 
 #endif /* _LIGHT_H */

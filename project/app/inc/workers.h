@@ -25,6 +25,8 @@ typedef enum type {
   TEMP_RSP,
   LIGHT_REQ,
   LIGHT_RSP,
+  IS_DARK_REQ,
+  IS_DARK_RSP,
   HEARTBEAT_SETUP,
   HEARTBEAT,
 } type_t;
