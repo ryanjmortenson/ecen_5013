@@ -17,8 +17,15 @@
 
 #define APDS9301_R_ADD (0x39)
 #define BYTES_TO_ADC(bytes) (bytes[1] << 8 | bytes[0])
+#define GAIN (16)
 
 static i2c_descriptor_t * i2cd;
+
+float scale_factor[INT_END] = {
+  [INT_13_7_MS] = 0.034f,
+  [INT_101_MS]  = 0.252f,
+  [INT_402_MS]  = 1.0f
+};
 
 /*!
 * @brief Convert ADC values to lux
@@ -26,23 +33,32 @@ static i2c_descriptor_t * i2cd;
 * @param[in] adc1 reading
 * @return conversion
 */
-inline static float calculate_lux(uint16_t adc0, uint16_t adc1)
+inline static float calculate_lux(uint16_t adc0, uint16_t adc1, timing_reg_t * timing)
 {
   float conversion;
   float ratio = (float)adc1/(float)adc0;
-  if (ratio > 0.0f && ratio <= .50f)
+  float fadc0 = (float)adc0 * (float)1/scale_factor[timing->timing.integration];
+  float fadc1 = (float)adc1 * (float)1/scale_factor[timing->timing.integration];
+
+  if (timing->timing.gain)
+  {
+    fadc0 /= GAIN;
+    fadc1 /= GAIN;
+  }
+
+  if (ratio <= .50f)
   {
     conversion = (0.0304f * adc0) - (.062f * adc0 * (pow(ratio, 1.4)));
   }
-  else if (ratio > 0.50f && ratio <= .61f)
+  else if (ratio <= .61f)
   {
     conversion = (0.0224f * adc0) - (0.031f * adc1);
   }
-  else if (ratio > 0.61f && ratio <= .80f)
+  else if (ratio <= .80f)
   {
     conversion = (0.0128f * adc0) - (0.0153f * adc1);
   }
-  else if (ratio > 0.81f && ratio <= 1.30f)
+  else if (ratio <= 1.30f)
   {
     conversion = (0.00146f * adc0) - (0.00112f * adc1);
   }
@@ -191,6 +207,7 @@ status_t apds9301_r_lux(float * lux)
   uint8_t adc0_bytes[2];
   uint8_t adc1_bytes[2];
   command_reg_t cmd = COMMAND_INIT(ADDR_DATA0LOW, 1);
+  timing_reg_t timing;
   status_t status = SUCCESS;
 
   do
@@ -209,11 +226,19 @@ status_t apds9301_r_lux(float * lux)
       status = FAILURE;
       break;
     }
+
+    cmd.command.addr = ADDR_TIMING;
+    if (apds9301_r_byte(cmd, &timing.reg) != SUCCESS)
+    {
+      LOG_ERROR("Could not read timing value");
+      status = FAILURE;
+      break;
+    }
   } while (0);
 
   if (status == SUCCESS)
   {
-    *lux =  calculate_lux(BYTES_TO_ADC(adc0_bytes), BYTES_TO_ADC(adc1_bytes));
+    *lux =  calculate_lux(BYTES_TO_ADC(adc0_bytes), BYTES_TO_ADC(adc1_bytes), &timing);
   }
   return status;
 }

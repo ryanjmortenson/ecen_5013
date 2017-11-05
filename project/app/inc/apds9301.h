@@ -28,6 +28,13 @@ typedef enum apds_addr {
   ADDR_DATA1HIGH
 } apds_addr_t;
 
+typedef enum integration_time {
+  INT_13_7_MS,
+  INT_101_MS,
+  INT_402_MS,
+  INT_END
+} integration_time_t;
+
 // Register bit fields
 typedef union command_reg {
   struct {
