@@ -107,6 +107,7 @@ static void * print_log(void * param)
   create_timestamp(&log->tv, ts);
   if (log->level < LOG_LEVEL || log->level > LOG_LEVEL_FUNC)
   {
+#ifndef UNITTEST
     log_level(log->level,
               ts,
               log->file_name,
@@ -115,6 +116,7 @@ static void * print_log(void * param)
               "(%10.10s) %s",
               task_str[msg->from],
               log->message);
+#endif // UNITTEST
   }
   return NULL;
 }
