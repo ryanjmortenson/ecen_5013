@@ -151,8 +151,13 @@ mqd_t get_writeable_queue()
 status_t send_msg(mqd_t msg_q, message_t * msg, void * data, uint32_t len)
 {
   FUNC_ENTRY;
-  CHECK_NULL(data);
   status_t status = SUCCESS;
+
+  if (data == NULL && len != 0)
+  {
+    LOG_ERROR("NULL pointer with len > 0");
+    return FAILURE;
+  }
 
   if (msg_q > 0)
   {
