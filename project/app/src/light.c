@@ -103,6 +103,7 @@ void * light_thread(void * param)
 status_t is_dark(uint8_t * dark)
 {
   FUNC_ENTRY;
+  CHECK_NULL(dark);
   float lux;
   status_t status = SUCCESS;
   *dark = 0;
