@@ -156,6 +156,7 @@ status_t send_msg(mqd_t msg_q, message_t * msg, void * data, uint32_t len)
 
   if (msg_q > 0)
   {
+    // Create message and send
     memcpy(msg->msg, data, len);
     if (mq_send(msg_q, (char *)msg, sizeof(*msg), 0) < 0)
     {

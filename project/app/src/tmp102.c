@@ -25,6 +25,7 @@ static i2c_descriptor_t * i2cd;
 
 float convert_temp(uint16_t data)
 {
+  // Do conversion from data sheet
   if (data <= 0x7ff)
   {
     return (float)data * TEMP_SCALE_FACTOR;
@@ -176,6 +177,7 @@ status_t tmp102_sd_mode(uint8_t sd)
       break;
     }
 
+    // Set shutdown mode based on sd being 0 or 1+
     cfg.config.shutdown_mode = sd ? 1 : 0;
     if (tmp102_w_cfg(cfg) != SUCCESS)
     {
@@ -200,6 +202,7 @@ status_t tmp102_set_cr(uint8_t cr)
       break;
     }
 
+    // Set converstion resolution based on cr
     cfg.config.conv_resolution = cr;
     if (tmp102_w_cfg(cfg) != SUCCESS)
     {

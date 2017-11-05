@@ -22,6 +22,8 @@
 #include "workers.h"
 
 #define PERIOD_US (1000000)
+#define DARK (50.0f)
+#define I2C_BUS (2)
 
 // Map staleness enum to staleness string
 extern char * staleness_str[];
@@ -48,6 +50,7 @@ void * light_req(void * param)
   light_rsp_t light_rsp;
   message_t out = MSG_INIT(LIGHT_RSP, in->from, LIGHT_TASK);
 
+  // Determine what stalness was requested and send the response
   if (light_req->staleness == STALENESS_NEW)
   {
     SEND_LOG_MED("Reading new lux");
@@ -80,20 +83,24 @@ void * light_thread(void * param)
 
   while(!abort_signal)
   {
+    // Periodically send heartbeat, read lux, and determine if it an sudden
+    // change occured
     send_hb(LIGHT_TASK);
     if (apds9301_r_lux(&cur_reading) != SUCCESS)
     {
       LOG_ERROR("Could not read lux for stashed reading");
     }
 
-    if (stale_reading > 50.0f &&  cur_reading < 50.0f)
+    // Light and dark reading were retrieved from wikipedia
+    if (stale_reading >= DARK && cur_reading < DARK)
     {
       SEND_LOG_FATAL("Seems to have changed from light to dark");
     }
-    else if (stale_reading < 50.f && cur_reading > 50.f)
+    else if (stale_reading <= DARK && cur_reading > DARK)
     {
       SEND_LOG_FATAL("Seems to have changed from dark to light");
     }
+    // Set the stale reading
     stale_reading = cur_reading;
     usleep(PERIOD_US);
   }
@@ -114,7 +121,7 @@ status_t is_dark(uint8_t * dark)
     status = FAILURE;
   }
 
-  if (lux < 20.0f)
+  if (lux < DARK)
   {
     *dark = 1;
   }
@@ -128,6 +135,7 @@ status_t send_light_req(staleness_t staleness, task_id_t from)
   status_t status = SUCCESS;
   message_t msg = MSG_INIT(LIGHT_REQ, LIGHT_TASK, from);
 
+  // Fill out light request and send
   light_req.staleness = staleness;
   if (send_msg(msg_q, &msg, &light_req, sizeof(light_req)) != SUCCESS)
   {
@@ -145,7 +153,7 @@ status_t init_light()
 
   do
   {
-    res = apds9301_init(2);
+    res = apds9301_init(I2C_BUS);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not init apds9301");

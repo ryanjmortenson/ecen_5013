@@ -21,6 +21,7 @@
 
 static i2c_descriptor_t * i2cd;
 
+// Scale factor for conversion base on integration time
 float scale_factor[INT_END] = {
   [INT_13_7_MS] = 0.034f,
   [INT_101_MS]  = 0.252f,
@@ -37,15 +38,19 @@ inline static float calculate_lux(uint16_t adc0, uint16_t adc1, timing_reg_t * t
 {
   float conversion;
   float ratio = (float)adc1/(float)adc0;
+
+  // Scale for integration
   float fadc0 = (float)adc0 * (float)1/scale_factor[timing->timing.integration];
   float fadc1 = (float)adc1 * (float)1/scale_factor[timing->timing.integration];
 
+  // Adjust for gain
   if (!timing->timing.gain)
   {
     fadc0 *= GAIN;
     fadc1 *= GAIN;
   }
 
+  // Convert based on ratio
   if (ratio <= .50f)
   {
     conversion = (0.0304f * fadc0) - (.062f * fadc0 * (pow(ratio, 1.4)));
@@ -119,6 +124,7 @@ inline static status_t apds9301_w_bytes(command_reg_t cmd, uint8_t * bytes, uint
   int32_t res;
   status_t status = SUCCESS;
 
+  // Create write command
   new_bytes[0] = cmd.reg;
   memcpy(&new_bytes[1], bytes, len);
 
@@ -210,6 +216,7 @@ status_t apds9301_r_lux(float * lux)
   timing_reg_t timing;
   status_t status = SUCCESS;
 
+  // Read both adcs and timing register
   do
   {
     if (apds9301_r_bytes(cmd, adc0_bytes, 2) != SUCCESS)
@@ -236,6 +243,7 @@ status_t apds9301_r_lux(float * lux)
     }
   } while (0);
 
+  // Calculate base on success
   if (status == SUCCESS)
   {
     *lux =  calculate_lux(BYTES_TO_ADC(adc0_bytes), BYTES_TO_ADC(adc1_bytes), &timing);

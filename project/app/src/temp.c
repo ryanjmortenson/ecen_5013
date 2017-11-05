@@ -23,6 +23,10 @@
 #include "workers.h"
 
 #define PERIOD_US (1000000)
+#define I2C_BUS (2)
+#define KELVIN_OFFSET (273.15F)
+#define F_OFFSET (32)
+#define F_SCALE_FACTOR (1.8)
 
 // Map staleness enum to staleness string
 extern char * staleness_str[];
@@ -70,11 +74,11 @@ void * temp_req(void * param)
 
   if (temp_req->temp_units == TEMP_UNITS_K)
   {
-    temp_rsp.temp += 273.15f;
+    temp_rsp.temp += KELVIN_OFFSET;
   }
   else if (temp_req->temp_units == TEMP_UNITS_F)
   {
-    temp_rsp.temp = temp_rsp.temp * 1.8f + 32;
+    temp_rsp.temp = temp_rsp.temp * F_SCALE_FACTOR + F_OFFSET;
   }
 
   if (send_msg(msg_q, &out, &temp_rsp, sizeof(temp_rsp)) != SUCCESS)
@@ -112,6 +116,7 @@ status_t send_temp_req(temp_units_t temp_units, staleness_t staleness, task_id_t
   status_t status = SUCCESS;
   message_t msg = MSG_INIT(TEMP_REQ, TEMP_TASK, from);
 
+  // Fill out temp request and send
   temp_req.temp_units = temp_units;
   temp_req.staleness = staleness;
   if (send_msg(msg_q, &msg, &temp_req, sizeof(temp_req)) != SUCCESS)
@@ -130,7 +135,7 @@ status_t init_temp()
 
   do
   {
-    res = tmp102_init(2);
+    res = tmp102_init(I2C_BUS);
     if (res == FAILURE)
     {
       LOG_ERROR("Could not initialize tmp102");

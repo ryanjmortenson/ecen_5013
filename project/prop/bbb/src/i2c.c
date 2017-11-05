@@ -1,6 +1,6 @@
-/** @file mock_i2c.c
+/** @file i2c.c
 *
-* @brief Mock I2C for workstation development
+* @brief BBB i2c implementation
 * @author Ryan Mortenson
 * @tools GCC 5.4.0, vim 7.4, make 4.1, Ubuntu 16.04
 *
@@ -57,9 +57,13 @@ status_t i2c_init(int32_t i2c_bus, i2c_descriptor_t ** i2cd, uint8_t addr)
       break;
     }
 
+    // Get a pointer to the bus mutex for the bus being initialized
     bus_lock = &bus_mutexes[i2c_bus];
+
+    // Create name of file for i2c bus
     snprintf(i2c_path, I2C_PATH_MAX_LEN, "%s%d", I2C_PATH, i2c_bus);
 
+    // Create a i2c descriptor
     *i2cd = malloc(sizeof(**i2cd));
     if (*i2cd == NULL)
     {
@@ -86,6 +90,7 @@ status_t i2c_init(int32_t i2c_bus, i2c_descriptor_t ** i2cd, uint8_t addr)
       break;
     }
 
+    // Check if reference count is > 0 and initialize if not
     if (bus_lock->refcount == 0)
     {
       res = pthread_mutex_init(&bus_lock->lock, NULL);
@@ -96,9 +101,12 @@ status_t i2c_init(int32_t i2c_bus, i2c_descriptor_t ** i2cd, uint8_t addr)
         break;
       }
     }
+
+    // Increment reference count for bus mutex
     bus_lock->refcount++;
   } while(0);
 
+  // Fill out descriptor
   if (status == SUCCESS)
   {
     (*i2cd)->fd = fd;
@@ -114,7 +122,10 @@ status_t i2c_dest(i2c_descriptor_t * i2cd)
   CHECK_NULL(i2cd);
   bus_mutex_t * bus_lock = &bus_mutexes[i2cd->bus];
 
+  // Decrement reference count
   bus_lock->refcount--;
+
+  // Cleanup mutex if reference count is 0
   if (bus_lock->refcount == 0)
   {
     res = pthread_mutex_destroy(&bus_lock->lock);
@@ -137,6 +148,7 @@ status_t i2c_write_bytes(i2c_descriptor_t * i2cd, uint8_t * bytes, uint8_t len)
   status_t status = SUCCESS;
   bus_mutex_t * bus_lock = &bus_mutexes[i2cd->bus];
 
+  // Lock bus mutex and write
   pthread_mutex_lock(&bus_lock->lock);
   res = write(i2cd->fd, bytes, len);
   if (res != len)
@@ -166,6 +178,7 @@ status_t i2c_read_bytes(i2c_descriptor_t * i2cd, uint8_t * bytes, uint8_t len)
   status_t status = SUCCESS;
   bus_mutex_t * bus_lock = &bus_mutexes[i2cd->bus];
 
+  // Lock bus mutex and read
   pthread_mutex_lock(&bus_lock->lock);
   res = read(i2cd->fd, bytes, len);
   if (res != len)

@@ -21,6 +21,7 @@ i2c_descriptor_t desc;
 status_t i2c_init(int32_t i2c_bus, i2c_descriptor_t ** i2cd, uint8_t addr)
 {
   FUNC_ENTRY;
+  // Give fake descriptor back
   *i2cd = &desc;
   return SUCCESS;
 }
@@ -34,6 +35,7 @@ status_t i2c_write_byte(i2c_descriptor_t * i2cd, uint8_t byte)
 status_t i2c_write_bytes(i2c_descriptor_t * i2cd, uint8_t * bytes, uint8_t len)
 {
   FUNC_ENTRY;
+  // Check for a null pointer for unit tests
   CHECK_NULL(bytes);
   return SUCCESS;
 }
@@ -41,6 +43,7 @@ status_t i2c_write_bytes(i2c_descriptor_t * i2cd, uint8_t * bytes, uint8_t len)
 status_t i2c_read_byte(i2c_descriptor_t * i2cd, uint8_t * byte)
 {
   FUNC_ENTRY;
+  // Check for a null pointer for unit tests
   CHECK_NULL(byte);
   *byte = 12;
   return SUCCESS;
@@ -49,6 +52,7 @@ status_t i2c_read_byte(i2c_descriptor_t * i2cd, uint8_t * byte)
 status_t i2c_read_bytes(i2c_descriptor_t * i2cd, uint8_t * bytes, uint8_t len)
 {
   FUNC_ENTRY;
+  // Check for a null pointer for unit tests
   CHECK_NULL(bytes);
   for (uint8_t i = 0; i < len; i++)
   {
