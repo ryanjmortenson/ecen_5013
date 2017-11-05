@@ -86,13 +86,13 @@ void * light_thread(void * param)
       LOG_ERROR("Could not read lux for stashed reading");
     }
 
-    if (stale_reading - cur_reading > 1.0f)
+    if (stale_reading > 50.0f &&  cur_reading < 50.0f)
     {
-      SEND_LOG_HIGH("The light lux level decreased atleast 1 lux in 1 reading");
+      SEND_LOG_FATAL("Seems to have changed from light to dark");
     }
-    else if (stale_reading - cur_reading < -1.0f)
+    else if (stale_reading < 50.f && cur_reading > 50.f)
     {
-      SEND_LOG_HIGH("The light lux level increased atleast 1 lux in 1 reading");
+      SEND_LOG_FATAL("Seems to have changed from dark to light");
     }
     stale_reading = cur_reading;
     usleep(PERIOD_US);
@@ -114,8 +114,7 @@ status_t is_dark(uint8_t * dark)
     status = FAILURE;
   }
 
-  // Emperically derived "darkness"
-  if (lux < .1f)
+  if (lux < 20.0f)
   {
     *dark = 1;
   }

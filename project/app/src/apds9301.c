@@ -40,27 +40,27 @@ inline static float calculate_lux(uint16_t adc0, uint16_t adc1, timing_reg_t * t
   float fadc0 = (float)adc0 * (float)1/scale_factor[timing->timing.integration];
   float fadc1 = (float)adc1 * (float)1/scale_factor[timing->timing.integration];
 
-  if (timing->timing.gain)
+  if (!timing->timing.gain)
   {
-    fadc0 /= GAIN;
-    fadc1 /= GAIN;
+    fadc0 *= GAIN;
+    fadc1 *= GAIN;
   }
 
   if (ratio <= .50f)
   {
-    conversion = (0.0304f * adc0) - (.062f * adc0 * (pow(ratio, 1.4)));
+    conversion = (0.0304f * fadc0) - (.062f * fadc0 * (pow(ratio, 1.4)));
   }
   else if (ratio <= .61f)
   {
-    conversion = (0.0224f * adc0) - (0.031f * adc1);
+    conversion = (0.0224f * fadc0) - (0.031f * fadc1);
   }
   else if (ratio <= .80f)
   {
-    conversion = (0.0128f * adc0) - (0.0153f * adc1);
+    conversion = (0.0128f * fadc0) - (0.0153f * fadc1);
   }
   else if (ratio <= 1.30f)
   {
-    conversion = (0.00146f * adc0) - (0.00112f * adc1);
+    conversion = (0.00146f * fadc0) - (0.00112f * fadc1);
   }
   else
   {
