@@ -128,7 +128,7 @@ void * hb_handler(void * param)
   struct itimerspec new_value;
 
   memset(&new_value, 0, sizeof(new_value));
-  new_value.it_interval.tv_sec = reg->period_seconds;
+  new_value.it_value.tv_sec = reg->period_seconds;
 
   SEND_LOG_LOW("Received heartbeat from %d", msg->from);
   if (reg->timerid != 0)
@@ -183,6 +183,7 @@ void * hb_setup(void * param)
     memset(&new_value, 0, sizeof(new_value));
     new_value.it_value.tv_sec = hb_setup->period_seconds * 2;
     new_value.it_interval.tv_sec = hb_setup->period_seconds;
+    reg->period_seconds = hb_setup->period_seconds;
     res = timer_settime(reg->timerid, 0, &new_value, NULL);
     if (res < 0)
     {
