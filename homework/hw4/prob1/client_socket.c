@@ -91,7 +91,10 @@ static int32_t run_cmd(int fd, cmd_t * cmd)
   int32_t len = sizeof(*cmd);
   char buffer[BUF_SIZE];
 
+  // Show the command being send
   print_cmd(cmd);
+
+  // Write command length
   res = write(fd, (char *)&len, 4);
   printf("Wrote bytes %d\n", res);
   if (res < 0)
@@ -100,6 +103,7 @@ static int32_t run_cmd(int fd, cmd_t * cmd)
     return -1;
   }
 
+  // Write command
   res = write(fd, (char *)cmd, len);
   printf("Wrote bytes %d\n", res);
   if (res < 0)
@@ -108,6 +112,7 @@ static int32_t run_cmd(int fd, cmd_t * cmd)
     return -1;
   }
 
+  // Receive length of response
   res = client_recv(fd, (char *)&len, sizeof(len));
   if (res < 0)
   {
@@ -115,6 +120,7 @@ static int32_t run_cmd(int fd, cmd_t * cmd)
     return -1;
   }
 
+  // Clear and receive the response
   memset(buffer, 0, BUF_SIZE);
   res = client_recv(fd, buffer, len);
   if (res < 0)
@@ -125,7 +131,9 @@ static int32_t run_cmd(int fd, cmd_t * cmd)
   print_rsp(buffer);
 }
 
-
+/*!
+* @brief Create a socket and send a bunch of commands to the server
+*/
 int main()
 {
   struct hostent * server;
@@ -228,6 +236,5 @@ int main()
   {
     return -1;
   }
-
   return 0;
 } // main()

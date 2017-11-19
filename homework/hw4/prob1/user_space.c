@@ -28,10 +28,6 @@ static cmd_t cmd0 = {
   .blink = 0
 };
 
-/*!
-* @brief print a filled out command structure
-* @param command pointer to command structure to print
-*/
 void print_cmd(cmd_t * command)
 {
   printf("Writing a command with the following information\n");
@@ -41,49 +37,10 @@ void print_cmd(cmd_t * command)
   printf("Blink %d\n\n", command->blink);
 }
 
-/*!
-* @brief Print a response from the kernel module
-* @param buffer holding response
-*/
 void print_rsp(char * buffer)
 {
   printf("Response from module\n");
   printf("%s\n", buffer);
-}
-
-/*!
-* @brief Copy a command structure into a buffer
-* @param command to copy
-* @param buffer to copy command into
-* @return status of copy
-*/
-static inline int copy_cmd(cmd_t * command, char * buf)
-{
-  if (buf == NULL)
-  {
-    printf("Buffer is null");
-    return -1;
-  }
-
-  memcpy(buf, &command->period_ms, sizeof(command->period_ms));
-  buf += sizeof(command->period_ms);
-  memcpy(buf, &command->duty_cycle, sizeof(command->duty_cycle));
-  buf += sizeof(command->duty_cycle);
-  memcpy(buf, &command->read_command, sizeof(command->read_command));
-  buf += sizeof(command->read_command);
-  memcpy(buf, &command->blink, sizeof(command->blink));
-  return 0;
-}
-
-/*!
-* @brief Run a command and get current status of led module
-* @param command to run
-* @return status of running command
-*/
-static inline int32_t run_cmd(int32_t fd, cmd_t * cmd)
-{
-  char buffer[BUF_SIZE] = {0};
-  return run_cmd_ext(fd, cmd, buffer, BUF_SIZE);
 }
 
 int32_t run_cmd_ext(int32_t fd, cmd_t * cmd, char * buffer, int32_t len)
@@ -113,6 +70,42 @@ int32_t run_cmd_ext(int32_t fd, cmd_t * cmd, char * buffer, int32_t len)
     return -1;
   }
   print_rsp(buffer);
+}
+
+/*!
+* @brief Copy a command structure into a buffer
+* @param command to copy
+* @param buffer to copy command into
+* @return status of copy
+*/
+static inline int copy_cmd(cmd_t * command, char * buf)
+{
+  if (buf == NULL)
+  {
+    printf("Buffer is null");
+    return -1;
+  }
+
+  // Copy structure into linear buffer
+  memcpy(buf, &command->period_ms, sizeof(command->period_ms));
+  buf += sizeof(command->period_ms);
+  memcpy(buf, &command->duty_cycle, sizeof(command->duty_cycle));
+  buf += sizeof(command->duty_cycle);
+  memcpy(buf, &command->read_command, sizeof(command->read_command));
+  buf += sizeof(command->read_command);
+  memcpy(buf, &command->blink, sizeof(command->blink));
+  return 0;
+}
+
+/*!
+* @brief Run a command and get current status of led module
+* @param command to run
+* @return status of running command
+*/
+static inline int32_t run_cmd(int32_t fd, cmd_t * cmd)
+{
+  char buffer[BUF_SIZE] = {0};
+  return run_cmd_ext(fd, cmd, buffer, BUF_SIZE);
 }
 
 /*!

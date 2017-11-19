@@ -20,8 +20,23 @@ typedef struct cmd {
   uint8_t blink;
 } cmd_t;
 
+/*!
+* @brief print a filled out command structure
+* @param command pointer to command structure to print
+*/
 void print_cmd(cmd_t * command);
+
+/*!
+* @brief Print a response from the kernel module
+* @param buffer holding response
+*/
 void print_rsp(char * buffer);
+
+/*!
+* @brief Run a command and get current status of led module
+* @param command to run
+* @return status of running command
+*/
 int32_t run_cmd_ext(int32_t fd, cmd_t * cmd, char * buffer, int32_t len);
 #endif // __USER_SPACE_H__
 

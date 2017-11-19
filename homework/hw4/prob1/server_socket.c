@@ -73,7 +73,10 @@ uint32_t server_recv(int32_t sockfd, void * data, uint32_t count)
   return bytes;
 } // server_recv()
 
-
+/*!
+* @brief Open file and socket looping over commands sent by client and
+* responding
+*/
 int main()
 {
   struct sockaddr_in serv_addr;
@@ -107,6 +110,7 @@ int main()
     return -1;
   }
 
+  // Set the socket options to you can immediately reuse port
   int enable = 1;
   res = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
   if (res == -1)
@@ -115,6 +119,7 @@ int main()
     return -1;
   }
 
+  // Take control of port
   res = bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
   if (res == -1)
   {
@@ -122,6 +127,7 @@ int main()
     return -1;
   }
 
+  // Set the listen parameters
   res = listen(sockfd, SOCKET_BACKLOG_LEN);
   if (res == -1)
   {
@@ -129,6 +135,7 @@ int main()
     return -1;
   }
 
+  // Accept incoming connection
   clilen = sizeof(cli_addr);
   newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
   if (newsockfd == -1)
@@ -137,10 +144,12 @@ int main()
     return -1;
   }
 
+  // Notify user of connection
   printf("Accepted connection from %d on port %d\n",
          cli_addr.sin_addr.s_addr,
          cli_addr.sin_port);
 
+  // Open the led driver
   fd = open(DEVICE, O_RDWR);
   if (fd < 0)
   {
@@ -148,9 +157,12 @@ int main()
     return -1;
   }
 
+  // Loop over commands from client executing and responding
   while(!abort_flag)
   {
     cmd_t cmd;
+
+    // Receive the length of the next command
     res = server_recv(newsockfd, buffer, 4);
     if (res == -1)
     {
@@ -158,6 +170,7 @@ int main()
       break;
     }
 
+    // Receive the command
     len = *(uint32_t *)buffer;
     res = server_recv(newsockfd, buffer, len);
     if (res == -1)
@@ -166,6 +179,7 @@ int main()
       break;
     }
 
+    // Execute command
     cmd = *(cmd_t *)buffer;
     res = run_cmd_ext(fd, &cmd, buffer, BUF_SIZE);
     if (res == -1)
@@ -174,6 +188,7 @@ int main()
       break;
     }
 
+    // Send the length of the response
     len = strlen(buffer);
     res = write(newsockfd, (char *)&len, sizeof(len));
     if (res == -1)
@@ -182,6 +197,7 @@ int main()
       break;
     }
 
+    // Send the response
     res = write(newsockfd, buffer, len);
     if (res == -1)
     {
@@ -190,6 +206,7 @@ int main()
     }
   }
 
+  // Shutdown initial socket
   res = shutdown(sockfd, SHUT_RDWR);
   if (res == -1)
   {
@@ -197,12 +214,12 @@ int main()
     return -1;
   }
 
+  // Shutdown created socket
   res = shutdown(newsockfd, SHUT_RDWR);
   if (res == -1)
   {
     printf("Could not shut down socket correctly %s\n", strerror(errno));
     return -1;
   }
-
   return 0;
 }
