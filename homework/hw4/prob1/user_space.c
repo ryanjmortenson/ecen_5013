@@ -16,6 +16,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "led_module.h"
+
 #define DEVICE ("/dev/led_module0")
 #define CMD_SIZE (7)
 #define BUF_SIZE (256)
@@ -27,15 +29,6 @@ typedef struct cmd {
   uint8_t read_command;
   uint8_t blink;
 } cmd_t;
-
-// Different types of reads
-typedef enum read_cmd {
-  READ_ALL,
-  READ_PERIOD,
-  READ_DUTY_CYCLE,
-  READ_LED_STATE,
-  READ_BLINK_STATE
-} read_cmd_t;
 
 // An initial command that will be changed throughout testing
 cmd_t cmd0 = {

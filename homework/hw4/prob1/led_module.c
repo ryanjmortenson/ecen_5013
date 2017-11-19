@@ -17,6 +17,8 @@
 #include <linux/uaccess.h>
 #include <linux/string.h>
 
+#include "led_module.h"
+
 #define NUM_CHAR_DRIVERS (1)
 #define BUF_SIZE (256)
 #define USR3_LED (56)
@@ -36,13 +38,6 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
 static loff_t led_llseek(struct file * fp, loff_t offset, int input);
 static void led_timer_cb(unsigned long data);
 
-typedef enum read_cmd {
-  READ_ALL,
-  READ_PERIOD,
-  READ_DUTY_CYCLE,
-  READ_LED_STATE,
-  READ_BLINK_STATE
-} read_cmd_t;
 
 // File operations
 struct file_operations led_fops = {
