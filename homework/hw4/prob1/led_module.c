@@ -23,7 +23,7 @@ static s32 led_open(struct inode * node, struct file * fp);
 static s32 led_release(struct inode * node, struct file * fp);
 static ssize_t led_read(struct file * fp, char __user * buffer, size_t len, loff_t * offset);
 static ssize_t led_write(struct file * fp, const char __user * buffer, size_t len, loff_t * offset);
-static long led_ioctl(struct file * fp, unsigned int i, unsigned long l);
+static loff_t led_llseek(struct file * fp, loff_t offset, int input);
 static void led_timer_cb(unsigned long data);
 
 struct file_operations led_fops = {
@@ -32,7 +32,7 @@ struct file_operations led_fops = {
   .read         = led_read,
   .write        = led_write,
   .release      = led_release,
-  .compat_ioctl = led_ioctl
+  .llseek       = led_llseek
 };
 
 struct private_data {
@@ -130,9 +130,12 @@ static ssize_t led_read(struct file * fp, char __user * buffer, size_t len, loff
   char * buf = NULL;
   struct private_data * pd = (struct private_data *)fp->private_data;
 
+  printk(KERN_DEBUG "read()");
+  printk(KERN_DEBUG "read_params %d", pd->read_params);
+
   if (pd->read_state == false)
   {
-    buf = kmalloc(256, GFP_KERNEL);
+    buf = kzalloc(256, GFP_KERNEL);
     if (buf == NULL)
     {
       printk(KERN_ERR "Could not malloc memory for kernel to user space copy");
@@ -158,10 +161,10 @@ static ssize_t led_read(struct file * fp, char __user * buffer, size_t len, loff
     else
     {
       count = snprintf(buf, 256, "Period: %d, Duty Cycle: %d, Current Led State: %d, Current Blink State: %d\n",
-                     pd->period_ms,
-                     pd->duty_cycle,
-                     pd->led_state,
-                     pd->blink_state);
+                       pd->period_ms,
+                       pd->duty_cycle,
+                       pd->led_state,
+                       pd->blink_state);
     }
 
     if (count <= 0)
@@ -245,7 +248,12 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
   {
     if (pd->timer_set)
     {
-      del_timer(&time);
+      res = mod_timer(&time, jiffies + msecs_to_jiffies(0xffffffff));
+      if (res < 0)
+      {
+        printk("Error in modifying timer");
+        return -EFAULT;
+      }
       pd->timer_set = false;
     }
     printk(KERN_INFO "Not setting up timer, blink_state is off");
@@ -253,10 +261,10 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
   return len;
 }
 
-static long led_ioctl(struct file * fp, unsigned int i, unsigned long l)
+static loff_t led_llseek(struct file * fp, loff_t offset, int input)
 {
-  printk("i: %d", i);
-  printk("l: %lu", l);
+  struct private_data * pd = (struct private_data *)fp->private_data;
+  pd->read_state = 0;
   return 0;
 }
 
