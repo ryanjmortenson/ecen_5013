@@ -211,7 +211,7 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
   }
 
   pd->period_ms = *(u32 *)buf;
-  pd->duty_cycle = (u32)*(buf + sizeof(u32));
+  pd->duty_cycle = (u8)*(buf + sizeof(u32));
   pd->on_period_ms = pd->period_ms * pd->duty_cycle / 100;
   pd->off_period_ms = pd->period_ms * (100 - pd->duty_cycle) / 100;
   pd->read_params = (u8)*(buf + sizeof(u32) + 1);
@@ -221,6 +221,12 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
   printk(KERN_DEBUG "off_period %u", pd->off_period_ms);
   printk(KERN_DEBUG "duty_cycle %u", (u32)pd->duty_cycle);
   kfree(buf);
+
+  if (pd->duty_cycle > 100)
+  {
+    printk(KERN_ERR "Duty Cycle must be between 0 and 100");
+    return -EINVAL;
+  }
 
   if (pd->blink_state)
   {
