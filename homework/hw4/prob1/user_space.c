@@ -20,6 +20,8 @@
 
 #define CMD_SIZE (7)
 
+static inline int copy_cmd(cmd_t * command, char * buf);
+
 // An initial command that will be changed throughout testing
 static cmd_t cmd0 = {
   .period_ms = 500,
