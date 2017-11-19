@@ -23,50 +23,60 @@ static s32 led_open(struct inode * node, struct file * fp);
 static s32 led_release(struct inode * node, struct file * fp);
 static ssize_t led_read(struct file * fp, char __user * buffer, size_t len, loff_t * offset);
 static ssize_t led_write(struct file * fp, const char __user * buffer, size_t len, loff_t * offset);
+static long led_ioctl(struct file * fp, unsigned int i, unsigned long l);
 static void led_timer_cb(unsigned long data);
+
+struct file_operations led_fops = {
+  .owner        = THIS_MODULE,
+  .open         = led_open,
+  .read         = led_read,
+  .write        = led_write,
+  .release      = led_release,
+  .compat_ioctl = led_ioctl
+};
 
 struct private_data {
   u32 period_ms;
   u32 on_period_ms;
   u32 off_period_ms;
   u8 duty_cycle;
+  u8 read_params;
   bool blink_state;
   bool led_state;
   bool read_state;
   bool timer_set;
 };
 
-struct file_operations led_fops = {
-  .owner    = THIS_MODULE,
-  .open     = led_open,
-  .read     = led_read,
-  .write    = led_write,
-  .release  = led_release
-};
-
 static dev_t led_device;
 static struct cdev led_cdev;
 static struct timer_list time;
-static struct private_data p_data;
+static struct private_data * p_data;
 
 static s32 __init led_module_init(void)
 {
   s32 res;
   printk(KERN_INFO "Initializing LED module");
-  printk(KERN_DEBUG "Attempting to get char region");
 
+  p_data = NULL;
   res = gpio_is_valid(USR3_LED);
   if (!res)
   {
     printk(KERN_ERR "GPIO number is invalid %d", res);
-    return -EPERM;
+    return -ENODEV;
   }
 
   res = gpio_direction_output(USR3_LED, false);
   if (res != 0)
   {
     printk(KERN_ERR "Could not set GPIO output");
-    return -EPERM;
+    return -ENODEV;
+  }
+
+  p_data = kmalloc(sizeof(*p_data), GFP_KERNEL);
+  if (p_data == NULL)
+  {
+    printk(KERN_ERR "Could not allocate private data");
+    return -ENOMEM;
   }
 
   res = alloc_chrdev_region(&led_device, 0, NUM_CHAR_DRIVERS, "led_module");
@@ -84,21 +94,23 @@ static s32 __init led_module_init(void)
     printk(KERN_ERR "Could not add character device, %d", res);
     return -EPERM;
   }
-  memset(&p_data, 0, sizeof(p_data));
+  setup_timer(&time, led_timer_cb, 0);
+  memset(p_data, 0, sizeof(p_data));
+  printk(KERN_DEBUG "Initialization successful");
   return 0;
 }
 
 static void __exit led_module_exit(void)
 {
   printk(KERN_INFO "Destroying LED module");
-  if (p_data.timer_set)
-  {
-    del_timer(&time);
-  }
-  gpio_unexport(USR3_LED);
-  gpio_free(USR3_LED);
+  printk(KERN_INFO "Killing timer");
+  del_timer(&time);
+  printk(KERN_INFO "Deleting cdev device");
   cdev_del(&led_cdev);
+  printk(KERN_INFO "Unregistering led device");
   unregister_chrdev_region(led_device, NUM_CHAR_DRIVERS);
+  printk(KERN_INFO "Freeing p_data");
+  kfree(p_data);
 }
 
 module_init(led_module_init);
@@ -107,6 +119,7 @@ module_exit(led_module_exit);
 static s32 led_open(struct inode * node, struct file * fp)
 {
   printk(KERN_DEBUG "open()");
+  fp->private_data = p_data;
   return 0;
 }
 
@@ -115,8 +128,9 @@ static ssize_t led_read(struct file * fp, char __user * buffer, size_t len, loff
   s32 res = 0;
   s32 count = 0;
   char * buf = NULL;
+  struct private_data * pd = (struct private_data *)fp->private_data;
 
-  if (p_data.read_state == false)
+  if (pd->read_state == false)
   {
     buf = kmalloc(256, GFP_KERNEL);
     if (buf == NULL)
@@ -125,12 +139,30 @@ static ssize_t led_read(struct file * fp, char __user * buffer, size_t len, loff
       return -ENOMEM;
     }
 
-    printk(KERN_INFO "period_ms %d", p_data.period_ms);
-    count = snprintf(buf, 256, "Period: %d, Duty Cycle: %d, Current Led State: %d, Current Blink State: %d\n",
-                   p_data.period_ms,
-                   p_data.duty_cycle,
-                   p_data.led_state,
-                   p_data.blink_state);
+    if (pd->read_params == 1)
+    {
+      count = snprintf(buf, 256, "Period: %d\n", pd->period_ms);
+    }
+    else if (pd->read_params == 2)
+    {
+      count = snprintf(buf, 256, "Duty Cycle: %d\n", pd->duty_cycle);
+    }
+    else if (pd->read_params == 3)
+    {
+      count = snprintf(buf, 256, "Current Led State: %d\n", pd->led_state);
+    }
+    else if (pd->read_params == 4)
+    {
+      count = snprintf(buf, 256, "Current Blink State: %d\n", pd->blink_state);
+    }
+    else
+    {
+      count = snprintf(buf, 256, "Period: %d, Duty Cycle: %d, Current Led State: %d, Current Blink State: %d\n",
+                     pd->period_ms,
+                     pd->duty_cycle,
+                     pd->led_state,
+                     pd->blink_state);
+    }
 
     if (count <= 0)
     {
@@ -146,7 +178,7 @@ static ssize_t led_read(struct file * fp, char __user * buffer, size_t len, loff
     }
     kfree(buf);
   }
-  p_data.read_state = true;
+  pd->read_state = true;
   return count;
 }
 
@@ -154,9 +186,9 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
 {
   char * buf;
   s32 res;
+  struct private_data * pd = (struct private_data *)fp->private_data;
 
   printk(KERN_DEBUG "write()");
-  printk(KERN_DEBUG "len %d", len);
 
   buf = kmalloc(len, GFP_KERNEL);
   if (buf == NULL)
@@ -172,54 +204,61 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
     return -EFAULT;
   }
 
-  if (len != 6)
+  if (len != 7)
   {
     printk(KERN_ERR "Not enough bytes were sent");
     return -EINVAL;
   }
 
-  p_data.period_ms = *(u32 *)buf;
-  p_data.duty_cycle = (u32)*(buf + sizeof(u32));
-  p_data.on_period_ms = p_data.period_ms * p_data.duty_cycle / 100;
-  p_data.off_period_ms = p_data.period_ms * (100 - p_data.duty_cycle) / 100;
-  p_data.blink_state = (bool)*(buf + sizeof(u32) + 1);
-  printk(KERN_DEBUG "period_ms %u", p_data.period_ms);
-  printk(KERN_DEBUG "on_period %u", p_data.on_period_ms);
-  printk(KERN_DEBUG "off_period %u", p_data.off_period_ms);
-  printk(KERN_DEBUG "duty_cycle %u", (u32)p_data.duty_cycle);
+  pd->period_ms = *(u32 *)buf;
+  pd->duty_cycle = (u32)*(buf + sizeof(u32));
+  pd->on_period_ms = pd->period_ms * pd->duty_cycle / 100;
+  pd->off_period_ms = pd->period_ms * (100 - pd->duty_cycle) / 100;
+  pd->read_params = (u8)*(buf + sizeof(u32) + 1);
+  pd->blink_state = (bool)*(buf + sizeof(u32) + 2);
+  printk(KERN_DEBUG "period_ms %u", pd->period_ms);
+  printk(KERN_DEBUG "on_period %u", pd->on_period_ms);
+  printk(KERN_DEBUG "off_period %u", pd->off_period_ms);
+  printk(KERN_DEBUG "duty_cycle %u", (u32)pd->duty_cycle);
   kfree(buf);
 
-  if (p_data.blink_state)
+  if (pd->blink_state)
   {
     printk("Setting up timer for LED blink");
-    setup_timer(&time, led_timer_cb, 0);
-    res = mod_timer(&time, jiffies + msecs_to_jiffies(p_data.period_ms));
-    if (res != 0)
+    res = mod_timer(&time, jiffies + msecs_to_jiffies(pd->period_ms));
+    if (res < 0)
     {
       printk("Error in modifying timer");
       return -EFAULT;
     }
-    p_data.led_state = true;
-    gpio_set_value(USR3_LED, p_data.led_state);
-    p_data.timer_set = true;
+    pd->led_state = true;
+    gpio_set_value(USR3_LED, pd->led_state);
+    pd->timer_set = true;
   }
   else
   {
-    if (p_data.timer_set)
+    if (pd->timer_set)
     {
       del_timer(&time);
-      p_data.timer_set = false;
+      pd->timer_set = false;
     }
     printk(KERN_INFO "Not setting up timer, blink_state is off");
   }
   return len;
 }
 
+static long led_ioctl(struct file * fp, unsigned int i, unsigned long l)
+{
+  printk("i: %d", i);
+  printk("l: %lu", l);
+  return 0;
+}
+
 static s32 led_release(struct inode * node, struct file * fp)
 {
+  struct private_data * pd = (struct private_data *)fp->private_data;
   printk(KERN_DEBUG "release()");
-  p_data.read_state = false;
-  kfree(fp->private_data);
+  pd->read_state = false;
   return 0;
 }
 
@@ -228,11 +267,11 @@ static void led_timer_cb(unsigned long data)
   s32 ret = 0;
   printk(KERN_INFO "Entered %s", __FUNCTION__);
 
-  p_data.led_state = !p_data.led_state;
-  ret = mod_timer(&time, jiffies + msecs_to_jiffies(p_data.led_state ? p_data.on_period_ms : p_data.off_period_ms));
+  p_data->led_state = !p_data->led_state;
+  ret = mod_timer(&time, jiffies + msecs_to_jiffies(p_data->led_state ? p_data->on_period_ms : p_data->off_period_ms));
   if (!(ret >= 0))
   {
     printk(KERN_INFO "Error in modifying timer");
   }
-  gpio_set_value(USR3_LED, p_data.led_state);
+  gpio_set_value(USR3_LED, p_data->led_state);
 }
