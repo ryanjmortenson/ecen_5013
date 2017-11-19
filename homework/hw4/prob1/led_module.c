@@ -10,15 +10,17 @@
 #include <linux/string.h>
 
 #define NUM_CHAR_DRIVERS (1)
+#define BUF_SIZE (256)
 #define USR3_LED (56)
 #define TIMER_MS (500)
 
-
+// Module info
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Ryan Mortenson");
 MODULE_DESCRIPTION("LED Control module");
 MODULE_VERSION("0");
 
+// Function declarations
 static s32 led_open(struct inode * node, struct file * fp);
 static s32 led_release(struct inode * node, struct file * fp);
 static ssize_t led_read(struct file * fp, char __user * buffer, size_t len, loff_t * offset);
@@ -26,6 +28,15 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
 static loff_t led_llseek(struct file * fp, loff_t offset, int input);
 static void led_timer_cb(unsigned long data);
 
+typedef enum read_cmd {
+  READ_ALL,
+  READ_PERIOD,
+  READ_DUTY_CYCLE,
+  READ_LED_STATE,
+  READ_BLINK_STATE
+} read_cmd_t;
+
+// File operations
 struct file_operations led_fops = {
   .owner        = THIS_MODULE,
   .open         = led_open,
@@ -35,6 +46,7 @@ struct file_operations led_fops = {
   .llseek       = led_llseek
 };
 
+// Set of private data to be used in file pointer struct
 struct private_data {
   u32 period_ms;
   u32 on_period_ms;
@@ -47,11 +59,16 @@ struct private_data {
   bool timer_set;
 };
 
+// Global variables
 static dev_t led_device;
 static struct cdev led_cdev;
 static struct timer_list time;
 static struct private_data * p_data;
 
+/*!
+* @brief Initialize module
+* @return status of initializing module
+*/
 static s32 __init led_module_init(void)
 {
   s32 res;
@@ -100,6 +117,9 @@ static s32 __init led_module_init(void)
   return 0;
 }
 
+/*!
+* @brief Destroy module
+*/
 static void __exit led_module_exit(void)
 {
   printk(KERN_INFO "Destroying LED module");
@@ -113,9 +133,16 @@ static void __exit led_module_exit(void)
   kfree(p_data);
 }
 
+// Register module init and exit
 module_init(led_module_init);
 module_exit(led_module_exit);
 
+/*!
+* @brief Prep anything needed for driving led
+* @param inode inode for device file
+* @param fp file pointer to device
+* @return NULL
+*/
 static s32 led_open(struct inode * node, struct file * fp)
 {
   printk(KERN_DEBUG "open()");
@@ -123,6 +150,14 @@ static s32 led_open(struct inode * node, struct file * fp)
   return 0;
 }
 
+/*!
+* @brief Read information about led state
+* @param fp file pointer to device
+* @param buffer user space buffer
+* @param len length to read
+* @param offset offset to start reading at
+* @return how may bytes in buffer
+*/
 static ssize_t led_read(struct file * fp, char __user * buffer, size_t len, loff_t * offset)
 {
   s32 res = 0;
@@ -133,46 +168,51 @@ static ssize_t led_read(struct file * fp, char __user * buffer, size_t len, loff
   printk(KERN_DEBUG "read()");
   printk(KERN_DEBUG "read_params %d", pd->read_params);
 
+  // Only allow 1 read (don't continue copying data to buffer) can be reset with llseek
   if (pd->read_state == false)
   {
-    buf = kzalloc(256, GFP_KERNEL);
+    // Alloc a buffer to create string
+    buf = kzalloc(BUF_SIZE, GFP_KERNEL);
     if (buf == NULL)
     {
       printk(KERN_ERR "Could not malloc memory for kernel to user space copy");
       return -ENOMEM;
     }
 
-    if (pd->read_params == 1)
+    // Populate buffer based on last read command's read byte
+    if (pd->read_params == READ_PERIOD)
     {
-      count = snprintf(buf, 256, "Period: %d\n", pd->period_ms);
+      count = snprintf(buf, BUF_SIZE, "Period: %d\n", pd->period_ms);
     }
-    else if (pd->read_params == 2)
+    else if (pd->read_params == READ_DUTY_CYCLE)
     {
-      count = snprintf(buf, 256, "Duty Cycle: %d\n", pd->duty_cycle);
+      count = snprintf(buf, BUF_SIZE, "Duty Cycle: %d\n", pd->duty_cycle);
     }
-    else if (pd->read_params == 3)
+    else if (pd->read_params == READ_LED_STATE)
     {
-      count = snprintf(buf, 256, "Current Led State: %d\n", pd->led_state);
+      count = snprintf(buf, BUF_SIZE, "Current Led State: %d\n", pd->led_state);
     }
-    else if (pd->read_params == 4)
+    else if (pd->read_params == READ_BLINK_STATE)
     {
-      count = snprintf(buf, 256, "Current Blink State: %d\n", pd->blink_state);
+      count = snprintf(buf, BUF_SIZE, "Current Blink State: %d\n", pd->blink_state);
     }
     else
     {
-      count = snprintf(buf, 256, "Period: %d, Duty Cycle: %d, Current Led State: %d, Current Blink State: %d\n",
+      count = snprintf(buf, BUF_SIZE, "Period: %d, Duty Cycle: %d, Current Led State: %d, Current Blink State: %d\n",
                        pd->period_ms,
                        pd->duty_cycle,
                        pd->led_state,
                        pd->blink_state);
     }
 
+    // Check count isn't correct
     if (count <= 0)
     {
       printk(KERN_ERR "Could not format message");
       return -EFAULT;
     }
 
+    // Copy to user space
     res = copy_to_user(buffer, buf, count);
     if (res != 0)
     {
@@ -181,10 +221,19 @@ static ssize_t led_read(struct file * fp, char __user * buffer, size_t len, loff
     }
     kfree(buf);
   }
+  // Set read state to read, can be reset with llseek
   pd->read_state = true;
   return count;
 }
 
+/*!
+* @brief Write commands
+* @param fp file pointer to device
+* @param buffer user space buffer
+* @param len length to written
+* @param offset offset to start writing
+* @return bytes written
+*/
 static ssize_t led_write(struct file * fp, const char __user * buffer, size_t len, loff_t * offset)
 {
   char * buf;
@@ -193,6 +242,14 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
 
   printk(KERN_DEBUG "write()");
 
+  // Validate the length, should be 7 bytes to have all commands
+  if (len != 7)
+  {
+    printk(KERN_ERR "Not enough bytes were sent");
+    return -EINVAL;
+  }
+
+  // Alloc a buffer to copy userspace information into
   buf = kmalloc(len, GFP_KERNEL);
   if (buf == NULL)
   {
@@ -200,6 +257,7 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
     return -ENOMEM;
   }
 
+  // Copy from user space
   res = copy_from_user(buf, buffer, len);
   if (res != 0)
   {
@@ -207,12 +265,7 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
     return -EFAULT;
   }
 
-  if (len != 7)
-  {
-    printk(KERN_ERR "Not enough bytes were sent");
-    return -EINVAL;
-  }
-
+  // Parse information sent from user space
   pd->period_ms = *(u32 *)buf;
   pd->duty_cycle = (u8)*(buf + sizeof(u32));
   pd->on_period_ms = pd->period_ms * pd->duty_cycle / 100;
@@ -225,12 +278,14 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
   printk(KERN_DEBUG "duty_cycle %u", (u32)pd->duty_cycle);
   kfree(buf);
 
+  // Validate the duy cycle between 0 and 100
   if (pd->duty_cycle > 100)
   {
     printk(KERN_ERR "Duty Cycle must be between 0 and 100");
     return -EINVAL;
   }
 
+  // Set up to blink if that was requested
   if (pd->blink_state)
   {
     printk("Setting up timer for LED blink");
@@ -261,6 +316,13 @@ static ssize_t led_write(struct file * fp, const char __user * buffer, size_t le
   return len;
 }
 
+/*!
+* @brief Reset read state so multiple reads can be down with 1 open/close cycle
+* @param fp file pointer to device
+* @param len length to written
+* @param input not used
+* @return 0
+*/
 static loff_t led_llseek(struct file * fp, loff_t offset, int input)
 {
   struct private_data * pd = (struct private_data *)fp->private_data;
@@ -268,6 +330,12 @@ static loff_t led_llseek(struct file * fp, loff_t offset, int input)
   return 0;
 }
 
+/*!
+* @brief Release the file
+* @param fp file pointer to device
+* @param fp file pointer to device
+* @return status
+*/
 static s32 led_release(struct inode * node, struct file * fp)
 {
   struct private_data * pd = (struct private_data *)fp->private_data;
@@ -276,16 +344,25 @@ static s32 led_release(struct inode * node, struct file * fp)
   return 0;
 }
 
+/*!
+* @brief Timer callback
+* @param data not used
+*/
 static void led_timer_cb(unsigned long data)
 {
   s32 ret = 0;
   printk(KERN_INFO "Entered %s", __FUNCTION__);
 
+  // Flip the status of the led state
   p_data->led_state = !p_data->led_state;
+
+  // Set the time to either on or off period
   ret = mod_timer(&time, jiffies + msecs_to_jiffies(p_data->led_state ? p_data->on_period_ms : p_data->off_period_ms));
   if (!(ret >= 0))
   {
     printk(KERN_INFO "Error in modifying timer");
   }
+
+  // Set gpio to on or off
   gpio_set_value(USR3_LED, p_data->led_state);
 }
