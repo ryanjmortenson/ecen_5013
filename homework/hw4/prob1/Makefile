@@ -1,8 +1,10 @@
 obj-m+=led_module.o
-#led_module-objs:=src/led_fops.o
 
-BUILD_DIR=/home/mortzula/Workspace/bbblinux/lib/modules/4.13.9-bone-rt-r2/build
-EXTRA_CFLAGS:=-I$(src)/inc
+ifeq ($(BUILD_DIR),)
+	BUILD_DIR=/lib/modules/$(shell uname -r)/build
+endif
+
+EXTRA_CFLAGS:=-I$(src)
 
 all:
 	make -C $(BUILD_DIR) M=$(PWD) modules
@@ -13,4 +15,4 @@ clean:
 
 CC=$(CROSS_COMPILE)gcc
 user_space.out: user_space.c
-	 $(CC) -g -Og user_space.c -o user_space.out
+	 $(CC) -g -Og -I./ user_space.c -o user_space.out
