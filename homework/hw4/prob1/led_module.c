@@ -115,7 +115,7 @@ static s32 __init led_module_init(void)
     return -EPERM;
   }
   setup_timer(&time, led_timer_cb, 0);
-  memset(p_data, 0, sizeof(p_data));
+  memset(p_data, 0, sizeof(*p_data));
   printk(KERN_DEBUG "Initialization successful");
   return 0;
 }

@@ -1,0 +1,18 @@
+syn keyword CTagsGlobalVariable led_device led_module_exit __this_module led_module_init
+
+" Matches for file led_module.c:
+if (has_key(b:TagHighlightPrivate, "NormalisedPath") && b:TagHighlightPrivate["NormalisedPath"] == "led_module.c") || TagHighlight#Option#GetOption("IgnoreFileScope")
+	syn keyword CTagsFunction led_module_init led_module_exit
+	syn keyword CTagsDefinedName NUM_CHAR_DRIVERS
+	
+endif
+" Matches for file led_module.mod.c:
+if (has_key(b:TagHighlightPrivate, "NormalisedPath") && b:TagHighlightPrivate["NormalisedPath"] == "led_module.mod.c") || TagHighlight#Option#GetOption("IgnoreFileScope")
+	syn keyword CTagsGlobalVariable __used
+	
+endif
+" Matches for file module.c:
+if (has_key(b:TagHighlightPrivate, "NormalisedPath") && b:TagHighlightPrivate["NormalisedPath"] == "module.c") || TagHighlight#Option#GetOption("IgnoreFileScope")
+	syn keyword CTagsFunction led_module_init led_module_exit
+	
+endif

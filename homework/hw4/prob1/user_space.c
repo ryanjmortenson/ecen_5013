@@ -6,7 +6,6 @@
 *
 */
 
-#include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdio.h>
@@ -17,21 +16,12 @@
 #include <stdint.h>
 
 #include "led_module.h"
+#include "user_space.h"
 
-#define DEVICE ("/dev/led_module0")
 #define CMD_SIZE (7)
-#define BUF_SIZE (256)
-
-// Command structure used to send data to module
-typedef struct cmd {
-  uint32_t period_ms;
-  uint8_t duty_cycle;
-  uint8_t read_command;
-  uint8_t blink;
-} cmd_t;
 
 // An initial command that will be changed throughout testing
-cmd_t cmd0 = {
+static cmd_t cmd0 = {
   .period_ms = 500,
   .duty_cycle = 25,
   .read_command = READ_ALL,
@@ -42,7 +32,7 @@ cmd_t cmd0 = {
 * @brief print a filled out command structure
 * @param command pointer to command structure to print
 */
-static inline void print_cmd(cmd_t * command)
+void print_cmd(cmd_t * command)
 {
   printf("Writing a command with the following information\n");
   printf("Period %d\n", command->period_ms);
@@ -55,7 +45,7 @@ static inline void print_cmd(cmd_t * command)
 * @brief Print a response from the kernel module
 * @param buffer holding response
 */
-static inline void print_rsp(char * buffer)
+void print_rsp(char * buffer)
 {
   printf("Response from module\n");
   printf("%s\n", buffer);
@@ -90,9 +80,14 @@ static inline int copy_cmd(cmd_t * command, char * buf)
 * @param command to run
 * @return status of running command
 */
-static inline int32_t run_cmd(int fd, cmd_t * cmd)
+static inline int32_t run_cmd(int32_t fd, cmd_t * cmd)
 {
   char buffer[BUF_SIZE] = {0};
+  return run_cmd_ext(fd, cmd, buffer, BUF_SIZE);
+}
+
+int32_t run_cmd_ext(int32_t fd, cmd_t * cmd, char * buffer, int32_t len)
+{
   int res;
 
   print_cmd(cmd);
@@ -124,6 +119,7 @@ static inline int32_t run_cmd(int fd, cmd_t * cmd)
 * @brief Run a bunch of commands to exercise led module
 * @return status of executing commands
 */
+#ifndef NO_MAIN
 int main()
 {
   int fd = 0;
@@ -203,3 +199,4 @@ int main()
   close(fd);
   return 0;
 }
+#endif // NO_MAIN
