@@ -5,7 +5,7 @@ TIVA_PROP_OUT=prop/tiva/out
 
 # Build a list of source
 TIVA_PROP_SRCS+= \
-	$(TIVA_PROP_SRC_DIR)/tm4c1294nczad_startup_ccs.c
+	$(TIVA_PROP_SRC_DIR)/startup_gcc.c
 
 # Build a list of objects and dependencies
 TIVA_PROP_OBJS=$(subst src,out,$(patsubst %.S,%.o,$(patsubst %.c,%.o,$(TIVA_PROP_SRCS))))

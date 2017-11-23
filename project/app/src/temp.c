@@ -6,6 +6,8 @@
 *
 */
 
+#ifndef TIVA
+
 #include <errno.h>
 #include <stdint.h>
 #include <mqueue.h>
@@ -231,3 +233,5 @@ status_t dest_temp()
   mq_close(msg_q);
   return status;
 }
+
+#endif // TIVA

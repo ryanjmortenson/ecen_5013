@@ -6,6 +6,8 @@
 *
 */
 
+#ifndef TIVA
+
 #include <errno.h>
 #include <mqueue.h>
 #include <signal.h>
@@ -571,3 +573,5 @@ status_t dest_main_task()
   log_destroy();
   return status;
 }
+
+#endif // TIVA

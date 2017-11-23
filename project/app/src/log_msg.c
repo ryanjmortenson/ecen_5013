@@ -6,6 +6,8 @@
 *
 */
 
+#ifndef TIVA
+
 #include <errno.h>
 #include <fcntl.h>
 #include <mqueue.h>
@@ -251,3 +253,5 @@ status_t log_msg_dest()
   } while(0);
   return status;
 }
+
+#endif // TIVA

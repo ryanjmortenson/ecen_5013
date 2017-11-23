@@ -6,6 +6,8 @@
 *
 */
 
+#ifndef TIVA
+
 #if defined(SYS_LOG) && defined(COLOR_LOGS)
   #error "Color logs not allowed in system log"
 #endif
@@ -188,3 +190,5 @@ void log_level
 #endif // SYSLOG
 
 } // log_level()
+
+#endif // TIVA

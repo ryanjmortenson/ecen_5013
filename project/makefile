@@ -12,11 +12,13 @@ CMAKE_CMD=cmake
 # Directory names used for building targets
 OUT=out
 BBB=bbb
+TIVA=tiva
 X86=linux-x86
 
 # Export variables to use in submake
 export $(X86)
 export $(BBB)
+export $(TIVA)
 export $(MK_DIR)
 export $(CFLAGS)
 
@@ -33,14 +35,17 @@ CMOCKA_LIB=$(CMOCKA_LIB_OUT_DIR)/libcmocka.a
 # Target out directories when building
 X86_OUT_DIR=$(OUT)/$(X86)
 BBB_OUT_DIR=$(OUT)/$(BBB)
+TIVA_OUT_DIR=$(OUT)/$(TIVA)
 
 # Target names for 2 built types
 BBB_OUT=$(BBB_OUT_DIR)/$(OUT_FILE)
+TIVA_OUT=$(TIVA_OUT_DIR)/$(OUT_FILE)
 X86_OUT=$(X86_OUT_DIR)/$(OUT_FILE)
 
 # List of map files used for cleaning
 MAPS=$(X86_OUT_DIR)/$(MAP_FILE) \
-     $(BBB_OUT_DIR)/$(MAP_FILE)
+     $(BBB_OUT_DIR)/$(MAP_FILE) \
+     $(TIVA_OUT_DIR)/$(MAP_FILE)
 
 # Project output file names
 EXERCISE_OUT_FILE=exercise3problem5.out
@@ -84,12 +89,14 @@ endif
 # Call sub make files to build dependencies for each target
 -include sources.mk
 -include prop/bbb/subdir.mk
+-include prop/tiva/subdir.mk
 
 # Set a map flag to be added CFLAGS for certain targets
 MAP_FLAG=-Wl,-Map,"$@.map"
 
 # Set of 2 compilers use
 BBB_CC=arm-linux-gnueabihf-gcc
+TIVA_CC=arm-none-eabi-gcc
 X86_CC=gcc
 
 # Set compiler, flags, and objects based on platform type
@@ -103,15 +110,26 @@ endif
 					-I$(BBB_PROP_INC_DIR)
 	OBJS=$(BBB_PROP_OBJS) \
        $(BBB_OBJS)
+	OBJS+=$(OUT_DIR)/$(patsubst %.out,%.o,$(MAKECMDGOALS))
 	OUT_DIR=$(BBB_APP_OUT)
+else ifeq ($(PLATFORM),tiva)
+	CC=$(TIVA_CC)
+	CFLAGS+=$(TIVA_CFLAGS) \
+				  -DTIVA \
+				  -Dgcc \
+					-I./freertos/FreeRTOS/Source/include \
+					-I./freertos/FreeRTOS/ \
+					-I./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F
+	OBJS=$(TIVA_PROP_OBJS) \
+       $(TIVA_OBJS)
+	OUT_DIR=$(TIVA_APP_OUT)
 else
 	CC=gcc
 	OBJS=$(X86_OBJS)
+	OBJS+=$(OUT_DIR)/$(patsubst %.out,%.o,$(MAKECMDGOALS))
 	TEST_OBJS=$(X86_TEST_OBJS)
 	OUT_DIR=$(X86_APP_OUT)
 endif
-
-OBJS+=$(OUT_DIR)/$(patsubst %.out,%.o,$(MAKECMDGOALS))
 
 # Create names for size, ar, and objdump binaries
 SIZE=$(subst gcc,size,$(CC))
@@ -134,7 +152,7 @@ BUILD_WITH=@echo "Building with $<"
 
 # Build will build project
 build: $(OBJS)
-	$(MAKE) main.out COLOR_LOGS=true -j8
+	$(MAKE) tiva.axf
 
 # PHONY target so you don't have to type .out
 test:
@@ -166,13 +184,22 @@ build-lib: $(OBJS)
 debug:
 	@echo "Debug output"
 	@echo $(PLATFORM)
+	@echo $(OBJS)
+	@echo $(TIVA_PROP_OBJS)
+
+%.axf: CFLAGS+=$(MAP_FLAG)
+%.axf:
+%.axf: $(OBJS)
+	$(BUILD_TARGET)
+	arm-none-eabi-ld -g -T prop/tiva/linker/linker_script.ld --entry ResetISR --gc-sections -o "$@" $(OBJS) /usr/lib/gcc/arm-none-eabi/5.4.1/../../../arm-none-eabi/lib/armv7e-m/fpu/libc.a
+	$(SIZE) $@
 
 # Compiles the project into project binary which can be executed with ./project*.out
 %.out: CFLAGS+=$(MAP_FLAG)
 %.out:
 %.out: $(OBJS)
 	$(BUILD_TARGET)
-	$(CC) $(CFLAGS) -o "$@" $(OBJS) -lrt -lpthread -lm
+	$(CC) $(CFLAGS) -o "$@" $(OBJS) -lm
 	$(SIZE) $@
 
 # Build the library file for static linking
@@ -204,6 +231,12 @@ allasm :
 alli :
 	@echo "Building all i files"
 	$(MAKE) $(patsubst %.c,%.i,$(SRC_LIST))
+
+# Builds .o file when a .c file is specified by command line
+app/out/tiva/%.o: $(APP_SRC_DIR)/%.c
+	$(BUILD_TARGET)
+	$(BUILD_WITH)
+	$(CC) $(CFLAGS) -c -o "$@" "$<"
 
 # Builds .o file when a .c file is specified by command line
 %.o: $(APP_SRC_DIR)/%.c

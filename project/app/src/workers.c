@@ -6,6 +6,8 @@
 *
 */
 
+#ifndef TIVA
+
 #include <errno.h>
 #include <fcntl.h>
 #include <mqueue.h>
@@ -350,3 +352,5 @@ status_t flush_queue()
   }
   return SUCCESS;
 }
+
+#endif // TIVA

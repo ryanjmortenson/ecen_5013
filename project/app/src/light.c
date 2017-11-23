@@ -6,6 +6,8 @@
 *
 */
 
+#ifndef TIVA
+
 #include <errno.h>
 #include <mqueue.h>
 #include <pthread.h>
@@ -310,3 +312,5 @@ status_t dest_light()
   mq_close(msg_q);
   return status;
 }
+
+#endif // TIVA
