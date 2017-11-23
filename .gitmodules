@@ -2,3 +2,9 @@
 	path = project/cmocka
 	url = https://git.cryptomilk.org/projects/cmocka.git/
 	branch = master
+[submodule "project/--force"]
+	path = project/--force
+	url = https://github.com/cjlano/freertos.git
+[submodule "project/freertos"]
+	path = project/freertos
+	url = https://github.com/cjlano/freertos.git
