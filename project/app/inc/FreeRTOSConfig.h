@@ -72,7 +72,7 @@
 #define configCPU_CLOCK_HZ                  ( ( unsigned long ) 50000000 )
 #define configTICK_RATE_HZ                  ( ( portTickType ) 1000 )
 #define configMINIMAL_STACK_SIZE            ( ( unsigned short ) 200 )
-#define configTOTAL_HEAP_SIZE               ( ( size_t ) ( 30000 ) )
+#define configTOTAL_HEAP_SIZE               ( ( size_t ) ( 100000 ) )
 #define configMAX_TASK_NAME_LEN             ( 12 )
 #define configUSE_TRACE_FACILITY            1
 #define configUSE_16_BIT_TICKS              0
@@ -96,6 +96,7 @@ to exclude the API function. */
 #define INCLUDE_vTaskSuspend                1
 #define INCLUDE_vTaskDelayUntil             1
 #define INCLUDE_vTaskDelay                  1
+#define INCLUDE_vTaskSuspend                1
 #define INCLUDE_uxTaskGetStackHighWaterMark 1
 
 /* Be ENORMOUSLY careful if you want to modify these two values and make sure
