@@ -5,6 +5,7 @@ TIVA_PROP_OUT=prop/tiva/out
 
 # Build a list of source
 TIVA_PROP_SRCS+= \
+	$(TIVA_PROP_SRC_DIR)/mqueue_wrapper.c \
 	$(TIVA_PROP_SRC_DIR)/startup_gcc.c
 
 # Build a list of objects and dependencies
