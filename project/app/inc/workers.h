@@ -9,7 +9,11 @@
 #ifndef _WORKERS_H
 #define _WORKERS_H
 
+#ifndef TIVA
 #include <mqueue.h>
+#else
+#include "mqueue_wrapper.h"
+#endif // TIVA
 
 #include "project_defs.h"
 
