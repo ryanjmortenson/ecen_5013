@@ -6,18 +6,24 @@
 *
 */
 
-#ifndef TIVA
-
 #include <errno.h>
 #include <fcntl.h>
-#include <mqueue.h>
-#include <pthread.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
+
+#ifndef TIVA
+#include <mqueue.h>
+#include <pthread.h>
+#else
+#include "FreeRTOS.h"
+#include "task.h"
+#include "pthread_wrapper.h"
+#include "mqueue_wrapper.h"
+#endif // TIVA
 
 #include "linkedlist.h"
 #include "log.h"
@@ -45,7 +51,7 @@ typedef struct registration {
 
 // Registration linked list and protection mutex
 static node_t * reg_head;
-pthread_rwlock_t ll_rwlock = PTHREAD_RWLOCK_INITIALIZER;
+pthread_rwlock_t ll_rwlock;
 
 /*
  * \brief get_readable_queue: Create a readable queue
@@ -65,7 +71,7 @@ static mqd_t get_readable_queue()
  * \return: NULL
  *
  */
-void * worker_thread(void * param)
+PTHREAD_RETURN_TYPE worker_thread(void * param)
 {
   mqd_t msg_q;
   struct mq_attr attr;
@@ -106,7 +112,7 @@ void * worker_thread(void * param)
       }
 
       // Read lock the linked list
-      pthread_rwlock_rdlock(&ll_rwlock);
+      // pthread_rwlock_rdlock(&ll_rwlock);
       res = ll_iter(reg_head, &iter);
       while (res == LL_ENUM_NO_ERROR)
       {
@@ -118,13 +124,13 @@ void * worker_thread(void * param)
           reg->cb((void *)&msg);
         }
       }
-      pthread_rwlock_unlock(&ll_rwlock);
+      // pthread_rwlock_unlock(&ll_rwlock);
     }
   }
 
   // Shutdown everything
   mq_close(msg_q);
-  pthread_exit((void *)&status);
+  PTHREAD_RETURN(NULL);
 }
 
 /*!
@@ -253,6 +259,8 @@ status_t init_workers(uint32_t num)
 
   // Clean up old queue in case there is junk left in it
   mq_unlink(WORKER_QUEUE);
+  ll_rwlock = PTHREAD_RWLOCK_INITIALIZER;
+  xSemaphoreGive(ll_rwlock);
 
   do
   {
@@ -306,19 +314,34 @@ status_t dest_workers()
 {
   FUNC_ENTRY;
   status_t status = SUCCESS;
+  int32_t res;
 
   // Create worker threads
   for (uint32_t i = 0; i < num_workers; i++)
   {
-    pthread_cancel(workers[i]);
-    LOG_LOW("Worker thread %d cancelled", i);
+    res = pthread_cancel(workers[i]);
+    if (res == 0)
+    {
+      LOG_LOW("Worker thread %d cancelled", i);
+    }
+    else
+    {
+      LOG_ERROR("Worker thread %d failed to cancel", i);
+    }
   }
 
   // Create worker threads
   for (uint32_t i = 0; i < num_workers; i++)
   {
-    pthread_join(workers[i], NULL);
-    LOG_LOW("Worker thread joined");
+    res = pthread_join(workers[i], NULL);
+    if (res == 0)
+    {
+      LOG_LOW("Worker thread joined");
+    }
+    else
+    {
+      LOG_ERROR("Worker thread failed to join");
+    }
   }
 
   // Create a linked list for registrations
@@ -352,5 +375,3 @@ status_t flush_queue()
   }
   return SUCCESS;
 }
-
-#endif // TIVA
