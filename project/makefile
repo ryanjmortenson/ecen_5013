@@ -124,6 +124,7 @@ else ifeq ($(PLATFORM),tiva)
           -I./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F
 	LD_FLAGS=-g \
            -L/usr/lib/arm-none-eabi/newlib/armv7e-m/fpu \
+           -L/usr/lib/gcc/arm-none-eabi/5.4.1/fpu \
            -Tprop/tiva/linker/linker_script.ld  \
 					 --entry ResetISR  \
 					 --gc-sections
@@ -197,7 +198,7 @@ debug:
 
 %.axf: $(OBJS)
 	$(BUILD_TARGET)
-	$(LD) $(LD_FLAGS) -Map="$@".map -o "$@" $(OBJS) -lc
+	$(LD) $(LD_FLAGS) -Map="$@".map -o "$@" $(OBJS) -lm -lgcc -lc -lgcc
 	$(SIZE) $@
 
 # Compiles the project into project binary which can be executed with ./project*.out
