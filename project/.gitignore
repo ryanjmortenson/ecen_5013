@@ -1,6 +1,7 @@
 # Binary files
 *.o
 *.a
+*.axf
 test
 
 # Generic files
