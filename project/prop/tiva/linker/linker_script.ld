@@ -39,7 +39,15 @@ SECTIONS
         _etext = .;
     } > FLASH
 
-    .data : AT(ADDR(.text) + SIZEOF(.text))
+    .ARM.exidx :
+    {
+        *(.ARM.exidx*)
+        *(.gnu.linkonce.armexidx.*)
+    } > FLASH
+
+    _begin_data = .;
+
+    .data : AT(_begin_data)
     {
         _data = .;
         _ldata = LOADADDR (.data);
@@ -55,9 +63,7 @@ SECTIONS
         *(COMMON)
         _ebss = .;
     } > SRAM
-
-    . = 0x20020000;
     heap_low = .;
-    . = . + 0x20000;
+    . = . + 0x10000;
     heap_top = .;
 }
