@@ -53,6 +53,8 @@ LIB_OUT_FILE=libexercise3problem5.a
 
 # Set CFLAGS used by every build type
 CFLAGS=-I$(APP_INC_DIR) \
+			 -L/usr/lib/arm-none-eabi/lib/fpu \
+			 -nostdlib \
        -Wall \
        -Werror \
        -std=c99 \
@@ -98,6 +100,7 @@ MAP_FLAG=-Wl,-Map,"$@.map"
 BBB_CC=arm-linux-gnueabihf-gcc
 TIVA_CC=arm-none-eabi-gcc
 X86_CC=gcc
+TIVA_LD=arm-none-eabi-ld
 
 # Set compiler, flags, and objects based on platform type
 ifneq ($(or $(findstring bbb,$(PLATFORM)),$(findstring armv7,$(shell uname -a))),)
@@ -114,12 +117,18 @@ endif
 	OUT_DIR=$(BBB_APP_OUT)
 else ifeq ($(PLATFORM),tiva)
 	CC=$(TIVA_CC)
+	LD=$(TIVA_LD)
 	CFLAGS+=$(TIVA_CFLAGS) \
 				  -DTIVA \
 				  -Dgcc \
 					-I./freertos/FreeRTOS/Source/include \
 					-I./freertos/FreeRTOS/ \
 					-I./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F
+	LD_FLAGS=-g \
+           -L/usr/lib/arm-none-eabi/lib/fpu \
+           -Tprop/tiva/linker/linker_script.ld  \
+					 --entry ResetISR  \
+					 --gc-sections
 	OBJS=$(TIVA_PROP_OBJS) \
        $(TIVA_OBJS)
 	OUT_DIR=$(TIVA_APP_OUT)
@@ -191,7 +200,7 @@ debug:
 %.axf:
 %.axf: $(OBJS)
 	$(BUILD_TARGET)
-	arm-none-eabi-ld -g -T prop/tiva/linker/linker_script.ld --entry ResetISR --gc-sections -o "$@" $(OBJS) /usr/lib/gcc/arm-none-eabi/5.4.1/../../../arm-none-eabi/lib/armv7e-m/fpu/libc.a
+	$(LD) $(LD_FLAGS) -o "$@" $(OBJS) -lc
 	$(SIZE) $@
 
 # Compiles the project into project binary which can be executed with ./project*.out
@@ -280,6 +289,7 @@ CLEAN+=$(OUT) \
        *.map \
        *.objdump \
 			 main.out \
+			 *.axf \
        $(UNIT_TEST_OUT) \
        $(LIB_OUT_FILE) \
        $(CMOCKA_LIB)
