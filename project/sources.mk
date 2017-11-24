@@ -11,7 +11,6 @@ TIVA_APP_OUT=$(APP_OUT)/$(TIVA)
 
 APP_SRC_C += \
 	$(APP_SRC_DIR)/circbuf.c \
-	$(APP_SRC_DIR)/tiva_test.c \
 	$(APP_SRC_DIR)/light.c \
 	$(APP_SRC_DIR)/linkedlist.c \
 	$(APP_SRC_DIR)/log.c \
@@ -19,7 +18,7 @@ APP_SRC_C += \
 	$(APP_SRC_DIR)/main_task.c \
 	$(APP_SRC_DIR)/workers.c \
 	$(APP_SRC_DIR)/temp.c \
-	#$(APP_SRC_DIR)/apds9301.c \
+	$(APP_SRC_DIR)/apds9301.c \
 	$(APP_SRC_DIR)/tmp102.c
 
 # Add mock i2c if platform isn't
@@ -31,6 +30,7 @@ endif
 # Add mock i2c if platform isn't
 ifeq ($(PLATFORM),tiva)
 APP_SRC_C += \
+	$(APP_SRC_DIR)/tiva_test.c \
   ./freertos/FreeRTOS/Source/queue.c \
   ./freertos/FreeRTOS/Source/tasks.c \
   ./freertos/FreeRTOS/Source/list.c \

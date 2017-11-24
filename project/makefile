@@ -53,8 +53,6 @@ LIB_OUT_FILE=libexercise3problem5.a
 
 # Set CFLAGS used by every build type
 CFLAGS=-I$(APP_INC_DIR) \
-			 -L/usr/lib/arm-none-eabi/lib/fpu \
-			 -nostdlib \
        -Wall \
        -Werror \
        -std=c99 \
@@ -160,8 +158,9 @@ BUILD_WITH=@echo "Building with $<"
 .PHONY: build build-lib compile-all debug allasm alli allobjdump clean test
 
 # Build will build project
-build: $(OBJS)
-	$(MAKE) tiva.axf
+build:
+	$(MAKE) tiva.axf PLATFORM=tiva LOG_LEVEL=0
+	$(MAKE) main.out
 
 # PHONY target so you don't have to type .out
 test:
@@ -196,8 +195,6 @@ debug:
 	@echo $(OBJS)
 	@echo $(TIVA_PROP_OBJS)
 
-%.axf: CFLAGS+=$(MAP_FLAG)
-%.axf:
 %.axf: $(OBJS)
 	$(BUILD_TARGET)
 	$(LD) $(LD_FLAGS) -o "$@" $(OBJS) -lc
@@ -205,10 +202,9 @@ debug:
 
 # Compiles the project into project binary which can be executed with ./project*.out
 %.out: CFLAGS+=$(MAP_FLAG)
-%.out:
 %.out: $(OBJS)
 	$(BUILD_TARGET)
-	$(CC) $(CFLAGS) -o "$@" $(OBJS) -lm
+	$(CC) $(CFLAGS) -o "$@" $(OBJS) -lm -lrt -pthread
 	$(SIZE) $@
 
 # Build the library file for static linking
@@ -240,12 +236,6 @@ allasm :
 alli :
 	@echo "Building all i files"
 	$(MAKE) $(patsubst %.c,%.i,$(SRC_LIST))
-
-# Builds .o file when a .c file is specified by command line
-app/out/tiva/%.o: $(APP_SRC_DIR)/%.c
-	$(BUILD_TARGET)
-	$(BUILD_WITH)
-	$(CC) $(CFLAGS) -c -o "$@" "$<"
 
 # Builds .o file when a .c file is specified by command line
 %.o: $(APP_SRC_DIR)/%.c
