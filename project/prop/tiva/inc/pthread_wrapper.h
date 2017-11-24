@@ -17,5 +17,6 @@
 #define pthread_rwlock_wrlock(lock) xSemaphoreTake(*lock, portMAX_DELAY)
 #define pthread_rwlock_unlock(lock) xSemaphoreGive(*lock)
 #define PTHREAD_RWLOCK_INITIALIZER xSemaphoreCreateBinary()
+#define usleep(us) vTaskDelay((us / portTICK_PERIOD_MS))
 
 #endif // _PTHREAD_WRAPPER_H
