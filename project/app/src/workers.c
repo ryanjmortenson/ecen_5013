@@ -112,7 +112,7 @@ PTHREAD_RETURN_TYPE worker_thread(void * param)
       }
 
       // Read lock the linked list
-      // pthread_rwlock_rdlock(&ll_rwlock);
+      pthread_rwlock_rdlock(&ll_rwlock);
       res = ll_iter(reg_head, &iter);
       while (res == LL_ENUM_NO_ERROR)
       {
@@ -124,7 +124,7 @@ PTHREAD_RETURN_TYPE worker_thread(void * param)
           reg->cb((void *)&msg);
         }
       }
-      // pthread_rwlock_unlock(&ll_rwlock);
+      pthread_rwlock_unlock(&ll_rwlock);
     }
   }
 
