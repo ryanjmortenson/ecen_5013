@@ -117,13 +117,13 @@ else ifeq ($(PLATFORM),tiva)
 	CC=$(TIVA_CC)
 	LD=$(TIVA_LD)
 	CFLAGS+=$(TIVA_CFLAGS) \
-				  -DTIVA \
-				  -Dgcc \
-					-I./freertos/FreeRTOS/Source/include \
-					-I./freertos/FreeRTOS/ \
-					-I./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F
+          -DTIVA \
+          -Dgcc \
+          -I./freertos/FreeRTOS/Source/include \
+          -I./freertos/FreeRTOS/ \
+          -I./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F
 	LD_FLAGS=-g \
-           -L/usr/lib/arm-none-eabi/lib/fpu \
+           -L/usr/lib/arm-none-eabi/newlib/armv7e-m/fpu \
            -Tprop/tiva/linker/linker_script.ld  \
 					 --entry ResetISR  \
 					 --gc-sections
@@ -160,7 +160,7 @@ BUILD_WITH=@echo "Building with $<"
 # Build will build project
 build:
 	$(MAKE) tiva.axf PLATFORM=tiva LOG_LEVEL=0
-	$(MAKE) main.out
+	#$(MAKE) main.out
 
 # PHONY target so you don't have to type .out
 test:
@@ -197,7 +197,7 @@ debug:
 
 %.axf: $(OBJS)
 	$(BUILD_TARGET)
-	$(LD) $(LD_FLAGS) -o "$@" $(OBJS) -lc
+	$(LD) $(LD_FLAGS) -Map="$@".map -o "$@" $(OBJS) -lc
 	$(SIZE) $@
 
 # Compiles the project into project binary which can be executed with ./project*.out
