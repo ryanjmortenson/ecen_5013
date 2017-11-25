@@ -30,7 +30,7 @@ endif
 # Add mock i2c if platform isn't
 ifeq ($(PLATFORM),tiva)
 APP_SRC_C += \
-	$(APP_SRC_DIR)/tiva_test.c \
+	$(APP_SRC_DIR)/tiva_main.c \
 	$(APP_SRC_DIR)/mock_i2c.c \
   ./freertos/FreeRTOS/Source/queue.c \
   ./freertos/FreeRTOS/Source/tasks.c \
