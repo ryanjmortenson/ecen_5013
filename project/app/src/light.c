@@ -6,14 +6,20 @@
 *
 */
 
-#ifndef TIVA
-
 #include <errno.h>
-#include <mqueue.h>
-#include <pthread.h>
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+
+#ifndef TIVA
+#include <mqueue.h>
+#include <pthread.h>
+#else
+#include "FreeRTOS.h"
+#include "task.h"
+#include "pthread_wrapper.h"
+#include "mqueue_wrapper.h"
+#endif // TIVA
 
 #include "apds9301.h"
 #include "light.h"
@@ -23,7 +29,7 @@
 #include "project_defs.h"
 #include "workers.h"
 
-#define PERIOD_US (1000000)
+#define PERIOD_US (100)
 #define DARK (50.0f)
 #define I2C_BUS (2)
 
@@ -64,7 +70,7 @@ void * light_req(void * param)
     light_rsp.lux = stale_reading;
   }
 
-  SEND_LOG_HIGH("Lux %f", stale_reading);
+  // SEND_LOG_HIGH("Lux %f", stale_reading);
 
   if (send_msg(msg_q, &out, &light_rsp, sizeof(light_rsp)) != SUCCESS)
   {
@@ -108,7 +114,7 @@ void * is_dark_req(void * param)
 * @param param NULL
 * @return NULL
 */
-void * light_thread(void * param)
+PTHREAD_RETURN_TYPE light_thread(void * param)
 {
   FUNC_ENTRY;
   float cur_reading;
@@ -136,7 +142,7 @@ void * light_thread(void * param)
     stale_reading = cur_reading;
     usleep(PERIOD_US);
   }
-  return NULL;
+  PTHREAD_RETURN(NULL);
 }
 
 status_t is_dark(uint8_t * dark)
@@ -312,5 +318,3 @@ status_t dest_light()
   mq_close(msg_q);
   return status;
 }
-
-#endif // TIVA
