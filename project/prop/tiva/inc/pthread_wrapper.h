@@ -2,6 +2,9 @@
 #define _PTHREAD_WRAPPER_H
 
 #include "semphr.h"
+#include "project_defs.h"
+
+status_t mutex_init(SemaphoreHandle_t * sem);
 
 #define pthread_t TaskHandle_t
 #define pthread_create(thread, attrs, func, params) xTaskCreate(func, "THREAD", 1024, NULL, 3, thread);
@@ -16,7 +19,7 @@
 #define pthread_rwlock_rdlock(lock) xSemaphoreTake(*lock, portMAX_DELAY)
 #define pthread_rwlock_wrlock(lock) xSemaphoreTake(*lock, portMAX_DELAY)
 #define pthread_rwlock_unlock(lock) xSemaphoreGive(*lock)
-#define PTHREAD_RWLOCK_INITIALIZER xSemaphoreCreateBinary()
+#define pthread_rwlock_init(lock, attr) mutex_init(lock)
 #define usleep(us) vTaskDelay((us / portTICK_PERIOD_MS))
 
 #endif // _PTHREAD_WRAPPER_H
