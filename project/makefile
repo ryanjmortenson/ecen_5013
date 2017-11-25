@@ -74,6 +74,11 @@ ifneq ($(PROBLEM),)
 	CFLAGS+=-D PROBLEM=$(PROBLEM)
 endif
 
+# Set the tiva ware location to my local location
+ifeq ($(TIVA_WARE_LOCATION),)
+	TIVA_WARE_LOCATION=/home/mortzula/ti/tivaware/
+endif
+
 # System log turned on
 ifneq ($(SYS_LOG),)
 	CFLAGS+=-D SYS_LOG
@@ -122,8 +127,10 @@ else ifeq ($(PLATFORM),tiva)
           -Dgcc \
           -I./freertos/FreeRTOS/Source/include \
           -I./freertos/FreeRTOS/ \
-          -I./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F
+          -I./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F \
+					-I$(TIVA_WARE_LOCATION)
 	LD_FLAGS=-g \
+					 -L$(TIVA_WARE_LOCATION)/driverlib/gcc \
            -L/usr/lib/arm-none-eabi/newlib/armv7e-m/fpu \
            -L/usr/lib/gcc/arm-none-eabi/$(VERSION)/fpu \
            -Tprop/tiva/linker/linker_script.ld  \
@@ -199,7 +206,7 @@ debug:
 
 %.axf: $(OBJS)
 	$(BUILD_TARGET)
-	$(LD) $(LD_FLAGS) -Map="$@".map -o "$@" $(OBJS) -lm -lgcc -lc -lgcc
+	$(LD) $(LD_FLAGS) -Map="$@".map -o "$@" $(OBJS) -ldriver -lm -lgcc -lc -lgcc
 	$(SIZE) $@
 
 # Compiles the project into project binary which can be executed with ./project*.out
