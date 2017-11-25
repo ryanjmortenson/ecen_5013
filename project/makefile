@@ -162,7 +162,7 @@ BUILD_WITH=@echo "Building with $<"
 # Build will build project
 build:
 	$(MAKE) tiva.axf PLATFORM=tiva LOG_LEVEL=0
-	#$(MAKE) main.out
+	$(MAKE) main.out COLOR_LOGS=t LOG_LEVEL=2
 
 # PHONY target so you don't have to type .out
 test:
