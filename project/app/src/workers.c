@@ -259,16 +259,23 @@ status_t init_workers(uint32_t num)
 
   // Clean up old queue in case there is junk left in it
   mq_unlink(WORKER_QUEUE);
-  ll_rwlock = PTHREAD_RWLOCK_INITIALIZER;
-  xSemaphoreGive(ll_rwlock);
 
   do
   {
+    res = pthread_rwlock_init(&ll_rwlock, NULL);
+    if (res != 0)
+    {
+      LOG_ERROR("Could not get read write lock");
+      status = FAILURE;
+      break;
+    }
+
     // Create a linked list for registrations
     if (ll_init(&reg_head) != LL_ENUM_NO_ERROR)
     {
       LOG_ERROR("Could not create registration linked list");
       status = FAILURE;
+      break;
     }
 
     workers = malloc(num_workers*sizeof(*workers));
@@ -276,6 +283,7 @@ status_t init_workers(uint32_t num)
     {
       LOG_ERROR("Could not malloc workers");
       status = FAILURE;
+      break;
     }
   } while(0);
 
