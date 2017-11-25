@@ -43,8 +43,16 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static int fd = 0;
 static mqd_t msg_q;
 
+// uint32_t is defined differently between tiva and BBB, use different
+// tokens for logging from each
+#ifdef TIVA
+#define UINT32_TOKEN "lu"
+#else
+#define UINT32_TOKEN "u"
+#endif
+
 // Log format Timestamp, level, file, function, line no, pthread id, message
-#define LOG_FMT "%s %-6s %-10.10s [%10.10s] %4u: (%10.10s) %s\n"
+#define LOG_FMT "%s %-6s %-10.10s [%10.10s] %4"UINT32_TOKEN": (%10.10s) %s\n"
 #define LOG_BUFFER_MAX (256)
 #define FILE_NAME_BUF_MAX (32)
 #define FUNCTION_MAX (20)
