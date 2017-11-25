@@ -6,10 +6,7 @@
 *
 */
 
-#ifndef TIVA
-
 #include <errno.h>
-#include <mqueue.h>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -17,7 +14,6 @@
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
-#include <pthread.h>
 #include <unistd.h>
 
 #include "light.h"
@@ -27,6 +23,16 @@
 #include "project_defs.h"
 #include "temp.h"
 #include "workers.h"
+
+#ifndef TIVA
+#include <mqueue.h>
+#include <pthread.h>
+#else
+#include "FreeRTOS.h"
+#include "task.h"
+#include "pthread_wrapper.h"
+#include "mqueue_wrapper.h"
+#endif // TIVA
 
 #ifdef BBB
 #include "led.h"
@@ -115,6 +121,7 @@ void * temp_rsp_handler(void * param)
   return NULL;
 }
 
+#ifndef TIVA
 /*!
 * @brief Handle heartbeats
 * @param param msg holding heartbeat
@@ -215,7 +222,9 @@ void * hb_setup(void * param)
   }
   return NULL;
 }
+#endif
 
+#ifndef TIVA
 /*!
 * @brief Handle heartbeat timeout
 * @param sig signal that invoke handler
@@ -237,6 +246,7 @@ void hb_timeout_handler(int sig, siginfo_t * info, void * data)
     }
   }
 }
+#endif
 
 /*!
 * @brief Handle sigint and sigterm signals to shutdown gracefully
@@ -336,6 +346,13 @@ status_t send_hb(task_id_t from)
   return status;
 }
 
+status_t initialize_q()
+{
+  msg_q = get_writeable_queue();
+  return SUCCESS;
+}
+
+#ifndef TIVA
 status_t init_main_task(int argc, char *argv[])
 {
   FUNC_ENTRY;

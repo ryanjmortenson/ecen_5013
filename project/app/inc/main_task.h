@@ -51,4 +51,6 @@ status_t send_hb(task_id_t from);
 * @brief Main task
 */
 void main_task();
+
+status_t initialize_q();
 #endif /* _MAIN_TASK_H */
