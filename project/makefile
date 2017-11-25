@@ -122,13 +122,7 @@ else ifeq ($(PLATFORM),tiva)
 	CC=$(TIVA_CC)
 	LD=$(TIVA_LD)
 	VERSION=$(shell $(CC) -dumpversion)
-	CFLAGS+=$(TIVA_CFLAGS) \
-          -DTIVA \
-          -Dgcc \
-          -I./freertos/FreeRTOS/Source/include \
-          -I./freertos/FreeRTOS/ \
-          -I./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F \
-					-I$(TIVA_WARE_LOCATION)
+	CFLAGS+=$(TIVA_CFLAGS)
 	LD_FLAGS=-g \
 					 -L$(TIVA_WARE_LOCATION)/driverlib/gcc \
            -L/usr/lib/arm-none-eabi/newlib/armv7e-m/fpu \
@@ -168,8 +162,8 @@ BUILD_WITH=@echo "Building with $<"
 
 # Build will build project
 build:
-	$(MAKE) main_tiva.axf PLATFORM=tiva LOG_LEVEL=0
 	$(MAKE) main.out COLOR_LOGS=t LOG_LEVEL=2
+	$(MAKE) main_tiva.axf PLATFORM=tiva LOG_LEVEL=0
 
 # PHONY target so you don't have to type .out
 test:

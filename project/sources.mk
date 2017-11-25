@@ -31,7 +31,6 @@ endif
 ifeq ($(PLATFORM),tiva)
 APP_SRC_C += \
 	$(APP_SRC_DIR)/tiva_main.c \
-	$(APP_SRC_DIR)/mock_i2c.c \
   ./freertos/FreeRTOS/Source/queue.c \
   ./freertos/FreeRTOS/Source/tasks.c \
   ./freertos/FreeRTOS/Source/list.c \
