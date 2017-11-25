@@ -116,6 +116,7 @@ endif
 else ifeq ($(PLATFORM),tiva)
 	CC=$(TIVA_CC)
 	LD=$(TIVA_LD)
+	VERSION=$(shell $(CC) -dumpversion)
 	CFLAGS+=$(TIVA_CFLAGS) \
           -DTIVA \
           -Dgcc \
@@ -124,7 +125,7 @@ else ifeq ($(PLATFORM),tiva)
           -I./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F
 	LD_FLAGS=-g \
            -L/usr/lib/arm-none-eabi/newlib/armv7e-m/fpu \
-           -L/usr/lib/gcc/arm-none-eabi/5.4.1/fpu \
+           -L/usr/lib/gcc/arm-none-eabi/$(VERSION)/fpu \
            -Tprop/tiva/linker/linker_script.ld  \
 					 --entry ResetISR  \
 					 --gc-sections
