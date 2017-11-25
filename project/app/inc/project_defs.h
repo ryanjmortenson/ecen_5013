@@ -19,6 +19,12 @@ typedef enum status {
   FAILURE
 } status_t;
 
+// Set pthread return types if tiva isn't being build
+#ifndef TIVA
+#define PTHREAD_RETURN_TYPE void *
+#define PTHREAD_RETURN(val) pthread_exit(val)
+#endif // TIVA
+
 // Max file name
 #define FILE_NAME_MAX (255)
 
