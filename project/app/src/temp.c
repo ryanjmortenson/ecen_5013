@@ -6,14 +6,20 @@
 *
 */
 
-#ifndef TIVA
-
 #include <errno.h>
 #include <stdint.h>
-#include <mqueue.h>
-#include <pthread.h>
 #include <string.h>
 #include <unistd.h>
+
+#ifndef TIVA
+#include <mqueue.h>
+#include <pthread.h>
+#else
+#include "FreeRTOS.h"
+#include "task.h"
+#include "pthread_wrapper.h"
+#include "mqueue_wrapper.h"
+#endif // TIVA
 
 #include "project_defs.h"
 
@@ -24,7 +30,7 @@
 #include "tmp102.h"
 #include "workers.h"
 
-#define PERIOD_US (1000000)
+#define PERIOD_US (100)
 #define I2C_BUS (2)
 #define KELVIN_OFFSET (273.15F)
 #define F_OFFSET (32)
@@ -95,7 +101,7 @@ void * temp_req(void * param)
 * @param param NULL
 * @return NULL
 */
-void * temp_thread(void * param)
+PTHREAD_RETURN_TYPE temp_thread(void * param)
 {
   FUNC_ENTRY;
 
@@ -108,7 +114,7 @@ void * temp_thread(void * param)
     }
     usleep(PERIOD_US);
   }
-  return NULL;
+  PTHREAD_RETURN(NULL);
 }
 
 status_t send_temp_req(temp_units_t temp_units, staleness_t staleness, task_id_t from)
@@ -233,5 +239,3 @@ status_t dest_temp()
   mq_close(msg_q);
   return status;
 }
-
-#endif // TIVA
