@@ -30,7 +30,6 @@
 #include "FreeRTOS.h"
 #include "pthread_wrapper.h"
 
-
 typedef struct bus_mutex {
   pthread_mutex_t lock;
   uint16_t refcount;
@@ -60,7 +59,7 @@ static void init_gpio()
     SysCtlPeripheralReset(SYSCTL_PERIPH_I2C0);
     SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C0);
     while(!SysCtlPeripheralReady(SYSCTL_PERIPH_I2C0));
-    I2CMasterInitExpClk(I2C0_BASE, 16000000, true);
+    I2CMasterInitExpClk(I2C0_BASE, 120000000, true);
     initialized = 1;
   }
 }

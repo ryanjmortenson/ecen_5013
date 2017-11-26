@@ -10,6 +10,7 @@
 #include "driverlib/debug.h"
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
+#include "driverlib/rom_map.h"
 
 // Project includes
 #include "light.h"
@@ -69,7 +70,7 @@ static void task(void *params)
     led_state = ~led_state;
     GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, led_state);
     send_msg(msg_q, &msg, NULL, 0);
-    usleep(100);
+    usleep(1000000);
 
   }
   PTHREAD_RETURN(NULL);
@@ -83,6 +84,14 @@ static void task(void *params)
 int main() {
   pthread_t test;
   int32_t res;
+
+  SysCtlMOSCConfigSet(SYSCTL_MOSC_HIGHFREQ);
+
+
+  MAP_SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
+              SYSCTL_OSC_MAIN |
+              SYSCTL_USE_PLL |
+              SYSCTL_CFG_VCO_480), 120000000);
 
   prep_led();
 
