@@ -125,8 +125,8 @@ else ifeq ($(PLATFORM),tiva)
 	CFLAGS+=$(TIVA_CFLAGS)
 	LD_FLAGS=-g \
 					 -L$(TIVA_WARE_LOCATION)/driverlib/gcc \
-           -L/usr/lib/arm-none-eabi/newlib/armv7e-m/fpu \
-           -L/usr/lib/gcc/arm-none-eabi/$(VERSION)/fpu \
+           -L/usr/lib/arm-none-eabi/lib/armv7e-m/fpu \
+           -L/usr/lib/gcc/arm-none-eabi/$(VERSION)/armv7e-m/fpu \
            -Tprop/tiva/linker/linker_script.ld  \
 					 --entry ResetISR  \
 					 --gc-sections
