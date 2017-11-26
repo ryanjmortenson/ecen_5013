@@ -29,7 +29,7 @@
 #include "project_defs.h"
 #include "workers.h"
 
-#define PERIOD_US (100)
+#define PERIOD_US (1000000)
 #define DARK (50.0f)
 #define I2C_BUS (2)
 

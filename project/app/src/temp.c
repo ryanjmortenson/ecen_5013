@@ -30,7 +30,7 @@
 #include "tmp102.h"
 #include "workers.h"
 
-#define PERIOD_US (100)
+#define PERIOD_US (1000000)
 #define I2C_BUS (2)
 #define KELVIN_OFFSET (273.15F)
 #define F_OFFSET (32)
