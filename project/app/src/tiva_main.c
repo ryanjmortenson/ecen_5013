@@ -13,6 +13,7 @@
 #include "driverlib/rom_map.h"
 
 // Project includes
+#include "air.h"
 #include "light.h"
 #include "workers.h"
 #include "pthread_wrapper.h"
@@ -85,14 +86,14 @@ int main() {
   pthread_t test;
   int32_t res;
 
+  // Set frequency for 120 MHz which seems to be required by the ethernet
   SysCtlMOSCConfigSet(SYSCTL_MOSC_HIGHFREQ);
-
-
   MAP_SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
               SYSCTL_OSC_MAIN |
               SYSCTL_USE_PLL |
               SYSCTL_CFG_VCO_480), 120000000);
 
+  // Get led ready to blink
   prep_led();
 
   res = pthread_create(&test, NULL, task, NULL);
@@ -138,6 +139,12 @@ int main() {
   }
 
   res = init_temp();
+  if (res != 0)
+  {
+    res = *(uint32_t *)NULL;
+  }
+
+  res = init_air();
   if (res != 0)
   {
     res = *(uint32_t *)NULL;

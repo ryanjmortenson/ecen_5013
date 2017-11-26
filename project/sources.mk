@@ -12,6 +12,7 @@ TIVA_APP_OUT=$(APP_OUT)/$(TIVA)
 APP_SRC_C += \
 	$(APP_SRC_DIR)/circbuf.c \
 	$(APP_SRC_DIR)/light.c \
+	$(APP_SRC_DIR)/air.c \
 	$(APP_SRC_DIR)/linkedlist.c \
 	$(APP_SRC_DIR)/log.c \
 	$(APP_SRC_DIR)/log_msg.c \
@@ -19,6 +20,7 @@ APP_SRC_C += \
 	$(APP_SRC_DIR)/workers.c \
 	$(APP_SRC_DIR)/temp.c \
 	$(APP_SRC_DIR)/apds9301.c \
+	$(APP_SRC_DIR)/ccs811.c \
 	$(APP_SRC_DIR)/tmp102.c
 
 # Add mock i2c if platform isn't

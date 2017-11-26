@@ -41,6 +41,7 @@ typedef enum task_id {
   LIGHT_TASK,
   TEMP_TASK,
   LOG_TASK,
+  AIR_TASK,
   TEST_TASK,
   TASK_ID_LIST_END
 } task_id_t;
