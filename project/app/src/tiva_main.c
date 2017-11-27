@@ -60,47 +60,10 @@ static void * cb (void * params)
 * @param[in] parameters for function
 * @return NULL
 */
-static void task(void *params)
+static void main_thread(void *params)
 {
   uint8_t led_state = 0;
-
-  message_t msg = MSG_INIT(LOG, MAIN_TASK, MAIN_TASK);
-  mqd_t msg_q = get_writeable_queue();
-  for(;;)
-  {
-    led_state = ~led_state;
-    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, led_state);
-    send_msg(msg_q, &msg, NULL, 0);
-    usleep(1000000);
-
-  }
-  PTHREAD_RETURN(NULL);
-}
-
-/*!
-* @brief Main task that starts up all sub tasks, bail out mechanism is dereferencing
-* null to get into a fault handler for inspecting back trace.
-* @return 0
-*/
-int main() {
-  pthread_t test;
   int32_t res;
-
-  // Set frequency for 120 MHz which seems to be required by the ethernet
-  SysCtlMOSCConfigSet(SYSCTL_MOSC_HIGHFREQ);
-  MAP_SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
-              SYSCTL_OSC_MAIN |
-              SYSCTL_USE_PLL |
-              SYSCTL_CFG_VCO_480), 120000000);
-
-  // Get led ready to blink
-  prep_led();
-
-  res = pthread_create(&test, NULL, task, NULL);
-  if (res != 0)
-  {
-    res = *(uint32_t *)NULL;
-  }
 
   res = init_workers(3);
   if (res != 0)
@@ -145,6 +108,44 @@ int main() {
   }
 
   res = init_air();
+  if (res != 0)
+  {
+    res = *(uint32_t *)NULL;
+  }
+  message_t msg = MSG_INIT(LOG, MAIN_TASK, MAIN_TASK);
+  mqd_t msg_q = get_writeable_queue();
+  for(;;)
+  {
+    led_state = ~led_state;
+    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, led_state);
+    send_msg(msg_q, &msg, NULL, 0);
+    usleep(1000000);
+
+  }
+  PTHREAD_RETURN(NULL);
+}
+
+/*!
+* @brief Main task that starts up all sub tasks, bail out mechanism is dereferencing
+* null to get into a fault handler for inspecting back trace.
+* @return 0
+*/
+int main() {
+  pthread_t task;
+  int32_t res;
+
+  // Set frequency for 120 MHz which seems to be required by the ethernet
+  SysCtlMOSCConfigSet(SYSCTL_MOSC_HIGHFREQ);
+  MAP_SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
+              SYSCTL_OSC_MAIN |
+              SYSCTL_USE_PLL |
+              SYSCTL_CFG_VCO_480), 120000000);
+
+  // Get led ready to blink
+  prep_led();
+
+  // Through main thread off to start other threads
+  res = pthread_create(&task, NULL, main_thread, NULL);
   if (res != 0)
   {
     res = *(uint32_t *)NULL;
