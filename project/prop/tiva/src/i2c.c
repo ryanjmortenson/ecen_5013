@@ -30,6 +30,9 @@
 #include "FreeRTOS.h"
 #include "pthread_wrapper.h"
 
+// Required for the APDS9301 which has a minimum of 1.3 useconds bus free time
+#define BUSY_WAIT SysCtlDelay(120000000/(3 * 1000000)*1)
+
 typedef struct bus_mutex {
   pthread_mutex_t lock;
   uint16_t refcount;
@@ -40,10 +43,9 @@ struct i2c_descriptor {
 };
 
 i2c_descriptor_t desc;
-
 bus_mutex_t bus_lock = {0};
-
 static uint8_t initialized = 0;
+
 static void init_gpio()
 {
   if (initialized == 0)
@@ -111,10 +113,12 @@ status_t i2c_write_bytes(i2c_descriptor_t * i2cd, uint8_t * bytes, uint8_t len)
 
   pthread_mutex_lock(&bus_lock.lock);
   I2CMasterSlaveAddrSet(I2C0_BASE, i2cd->addr, false);
+  BUSY_WAIT;
   if (len == 1)
   {
     I2CMasterDataPut(I2C0_BASE, *bytes);
     I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_SINGLE_SEND);
+    BUSY_WAIT;
     while (I2CMasterBusy(I2C0_BASE));
   }
   else
@@ -124,6 +128,7 @@ status_t i2c_write_bytes(i2c_descriptor_t * i2cd, uint8_t * bytes, uint8_t len)
       bytes += i;
       I2CMasterDataPut(I2C0_BASE, *bytes);
       I2CMasterControl(I2C0_BASE, (i == 0) ? I2C_MASTER_CMD_BURST_SEND_START : I2C_MASTER_CMD_BURST_SEND_CONT);
+      BUSY_WAIT;
       while (I2CMasterBusy(I2C0_BASE));
     }
     I2CMasterDataPut(I2C0_BASE, *(bytes + 1));
@@ -150,17 +155,20 @@ status_t i2c_read_bytes(i2c_descriptor_t * i2cd, uint8_t * bytes, uint8_t len)
   if (len == 1)
   {
     I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_SINGLE_RECEIVE);
+    BUSY_WAIT;
     while (I2CMasterBusy(I2C0_BASE));
     *bytes = I2CMasterDataGet(I2C0_BASE);
   }
   else
   {
     I2CMasterControl(I2C0_BASE, I2C_MASTER_CMD_BURST_RECEIVE_START);
+    BUSY_WAIT;
     while (I2CMasterBusy(I2C0_BASE));
     *bytes = I2CMasterDataGet(I2C0_BASE);
     for (uint8_t i = 1; i < len; i++)
     {
       I2CMasterControl(I2C0_BASE, (i == len - 1) ? I2C_MASTER_CMD_BURST_RECEIVE_FINISH : I2C_MASTER_CMD_BURST_RECEIVE_CONT);
+      BUSY_WAIT;
       while (I2CMasterBusy(I2C0_BASE));
       *(bytes + i) = I2CMasterDataGet(I2C0_BASE);
     }
