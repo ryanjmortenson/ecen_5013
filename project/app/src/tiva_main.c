@@ -22,6 +22,8 @@
 #include "temp.h"
 
 int32_t abort_signal;
+extern uint32_t task_heap_low;
+extern uint32_t TASK_HEAP_SIZE;
 
 /*!
 * @brief Prep the onboard led
@@ -133,6 +135,10 @@ static void main_thread(void *params)
 int main() {
   pthread_t task;
   int32_t res;
+  HeapRegion_t heap_regions[2] = {0};
+  heap_regions[0].pucStartAddress = (uint8_t *)&task_heap_low;
+  heap_regions[0].xSizeInBytes = (uint32_t)&TASK_HEAP_SIZE;
+
 
   // Set frequency for 120 MHz which seems to be required by the ethernet
   SysCtlMOSCConfigSet(SYSCTL_MOSC_HIGHFREQ);
@@ -143,6 +149,8 @@ int main() {
 
   // Get led ready to blink
   prep_led();
+
+  vPortDefineHeapRegions(heap_regions);
 
   // Through main thread off to start other threads
   res = pthread_create(&task, NULL, main_thread, NULL);

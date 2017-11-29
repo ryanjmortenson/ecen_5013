@@ -37,7 +37,7 @@ APP_SRC_C += \
   ./freertos/FreeRTOS/Source/tasks.c \
   ./freertos/FreeRTOS/Source/list.c \
   ./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
-  ./freertos/FreeRTOS/Source/portable/MemMang/heap_2.c
+  ./freertos/FreeRTOS/Source/portable/MemMang/heap_5.c
 endif
 
 TEST_SRC+= \

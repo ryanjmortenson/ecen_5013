@@ -22,6 +22,9 @@
  *
  *****************************************************************************/
 
+TASK_HEAP_SIZE = 0x10000;
+HEAP_SIZE = 0x10000;
+
 MEMORY
 {
     FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 0x00100000
@@ -64,6 +67,9 @@ SECTIONS
         _ebss = .;
     } > SRAM
     heap_low = .;
-    . = . + 0x10000;
+    . = . + HEAP_SIZE; 
     heap_top = .;
+    task_heap_low = .;
+    . = . + TASK_HEAP_SIZE; 
+    task_heap_high = .;
 }
