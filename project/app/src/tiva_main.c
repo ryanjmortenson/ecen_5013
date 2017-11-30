@@ -11,6 +11,15 @@
 #include "driverlib/gpio.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/rom_map.h"
+#include "driverlib/rom.h"
+
+
+#include "inc/hw_ints.h"
+#include "inc/hw_types.h"
+#include "driverlib/rom.h"
+#include "utils/lwiplib.h"
+#include "utils/locator.h"
+#include "utils/ustdlib.h"
 
 // Project includes
 #include "air.h"
@@ -66,6 +75,40 @@ static void main_thread(void *params)
 {
   uint8_t led_state = 0;
   int32_t res;
+
+
+  uint32_t ui32User0, ui32User1;
+  uint8_t pui8MAC[6];
+
+  //
+  // Get the MAC address from the user registers.
+  //
+  ROM_FlashUserGet(&ui32User0, &ui32User1);
+  if((ui32User0 == 0xffffffff) || (ui32User1 == 0xffffffff))
+  {
+    res = *(uint32_t *)NULL;
+  }
+
+  //
+  // Convert the 24/24 split MAC address from NV ram into a 32/16 split MAC
+  // address needed to program the hardware registers, then program the MAC
+  // address into the Ethernet Controller registers.
+  //
+  pui8MAC[0] = ((ui32User0 >>  0) & 0xff);
+  pui8MAC[1] = ((ui32User0 >>  8) & 0xff);
+  pui8MAC[2] = ((ui32User0 >> 16) & 0xff);
+  pui8MAC[3] = ((ui32User1 >>  0) & 0xff);
+  pui8MAC[4] = ((ui32User1 >>  8) & 0xff);
+  pui8MAC[5] = ((ui32User1 >> 16) & 0xff);
+
+  //
+  // Lower the priority of the Ethernet interrupt handler.  This is required
+  // so that the interrupt handler can safely call the interrupt-safe
+  // FreeRTOS functions (specifically to send messages to the queue).
+  //
+  ROM_IntPrioritySet(INT_EMAC0, 0xC0);
+
+  lwIPInit(120000000, pui8MAC, 0, 0, 0, IPADDR_USE_DHCP);
 
   res = init_workers(3);
   if (res != 0)

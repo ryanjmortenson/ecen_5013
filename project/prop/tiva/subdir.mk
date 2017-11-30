@@ -17,6 +17,9 @@ TIVA_CFLAGS=-mthumb \
             -I./freertos/FreeRTOS/Source/include \
             -I./freertos/FreeRTOS/ \
             -I./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F \
+						-I$(TIVA_WARE_LOCATION)/third_party/lwip-1.4.1/src/include \
+						-I$(TIVA_WARE_LOCATION)/third_party/lwip-1.4.1/src/include/ipv4 \
+						-I$(TIVA_WARE_LOCATION)/third_party/lwip-1.4.1/ports/tiva-tm4c129/include \
             -I$(TIVA_WARE_LOCATION) \
             -DPART_TM4C1294NCPDT \
             -DTARGET_IS_TM4C129_RA1

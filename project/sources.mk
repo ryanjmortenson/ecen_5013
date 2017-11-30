@@ -33,6 +33,7 @@ endif
 ifeq ($(PLATFORM),tiva)
 APP_SRC_C += \
 	$(APP_SRC_DIR)/tiva_main.c \
+	$(TIVA_WARE_LOCATION)/utils/lwiplib.c \
   ./freertos/FreeRTOS/Source/queue.c \
   ./freertos/FreeRTOS/Source/tasks.c \
   ./freertos/FreeRTOS/Source/list.c \
