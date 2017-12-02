@@ -6,11 +6,13 @@
 *
 */
 
-#ifndef TIVA
-
 #include <errno.h>
 #include <fcntl.h>
+#ifndef TIVA
 #include <mqueue.h>
+#else
+#include "mqueue_wrapper.h"
+#endif
 #include <stdarg.h>
 #include <stdint.h>
 #include <string.h>
@@ -39,7 +41,6 @@ char * task_str[] = {
   [TEST_TASK] = "TEST_TASK"
 };
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static int fd = 0;
 static mqd_t msg_q;
 
@@ -229,7 +230,10 @@ status_t log_msg_dest()
       status = FAILURE;
       break;
     }
+
+#ifndef TIVA
     msg_q = -1;
+#endif
 
     // Unegister call backs for printing
     res = unregister_cb(LOG, LOG_TASK, print_log);
@@ -261,5 +265,3 @@ status_t log_msg_dest()
   } while(0);
   return status;
 }
-
-#endif // TIVA
