@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <sys/time.h>
+#include <string.h>
+#include <errno.h>
 
 // Free RTOS includes
 #include "FreeRTOS.h"
@@ -20,7 +22,8 @@
 #include "driverlib/rom.h"
 #include "utils/lwiplib.h"
 #include "utils/locator.h"
-#include "utils/ustdlib.h"
+#include "lwip/sockets.h"
+#include "lwip/netdb.h"
 
 // Project includes
 #include "air.h"
@@ -75,12 +78,10 @@ static void * cb (void * params)
 static void main_thread(void *params)
 {
   uint8_t led_state = 0;
-  int32_t res;
-
-
+  volatile int32_t res;
   uint32_t ui32User0, ui32User1;
   uint8_t pui8MAC[6];
-
+  struct sockaddr_in addr;
   //
   // Get the MAC address from the user registers.
   //
@@ -110,6 +111,22 @@ static void main_thread(void *params)
   ROM_IntPrioritySet(INT_EMAC0, 0xC0);
 
   lwIPInit(120000000, pui8MAC, 0, 0, 0, IPADDR_USE_DHCP);
+  usleep(5000000);
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_len = sizeof(addr);
+  addr.sin_family = AF_INET;
+  addr.sin_port = PP_HTONS(12345);
+  addr.sin_addr.s_addr = inet_addr("10.0.0.21");
+
+  uint32_t sockfd = lwip_socket(AF_INET, SOCK_STREAM, 0);
+  res = lwip_connect(sockfd, (struct sockaddr *)&addr, sizeof(addr));
+  volatile char * err = strerror(errno);
+  if (res == 0)
+  {
+    lwip_write(sockfd, "woop", 5);
+    lwip_close(sockfd);
+  }
+
 
   res = init_workers(3);
   if (res != 0)
@@ -166,9 +183,8 @@ static void main_thread(void *params)
     GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, led_state);
     send_msg(msg_q, &msg, NULL, 0);
     usleep(1000000);
-
   }
-  PTHREAD_RETURN(NULL);
+  PTHREAD_RETURN(res);
 }
 
 /*!
@@ -179,14 +195,23 @@ static void main_thread(void *params)
 int main() {
   pthread_t task;
   int32_t res;
+<<<<<<< HEAD
   HeapRegion_t heap_regions[2];
   heap_regions[0].pucStartAddress = (uint8_t *)&task_heap_low;
   heap_regions[0].xSizeInBytes = (uint32_t)&TASK_HEAP_SIZE;
   heap_regions[1].pucStartAddress = NULL;
   heap_regions[1].xSizeInBytes = 0;
+=======
+  HeapRegion_t heap_regions[2] = {0};
+
+  // Define heap regions for FreeRTOS
+  heap_regions[0].pucStartAddress = (uint8_t *)&task_heap_low;
+  heap_regions[0].xSizeInBytes = (uint32_t)&TASK_HEAP_SIZE;
+  vPortDefineHeapRegions(heap_regions);
+>>>>>>> fff955a... Stupid example of sockets
 
   // Set frequency for 120 MHz which seems to be required by the ethernet
-  SysCtlMOSCConfigSet(SYSCTL_MOSC_HIGHFREQ);
+  MAP_SysCtlMOSCConfigSet(SYSCTL_MOSC_HIGHFREQ);
   MAP_SysCtlClockFreqSet((SYSCTL_XTAL_25MHZ |
               SYSCTL_OSC_MAIN |
               SYSCTL_USE_PLL |
@@ -194,8 +219,6 @@ int main() {
 
   // Get led ready to blink
   prep_led();
-
-  vPortDefineHeapRegions(heap_regions);
 
   // Through main thread off to start other threads
   res = pthread_create(&task, NULL, main_thread, NULL);
