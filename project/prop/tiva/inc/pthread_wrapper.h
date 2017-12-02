@@ -26,6 +26,6 @@ status_t mutex_init(SemaphoreHandle_t * sem);
 #define pthread_mutex_unlock(lock) xSemaphoreGive(*lock)
 #define pthread_mutex_init(lock, attr) mutex_init(lock)
 #define pthread_mutex_destroy(lock) vSemaphoreDelete(lock)
-#define usleep(us) vTaskDelay((us * 4)/ (portTICK_PERIOD_MS * 1000))
+#define usleep(us) vTaskDelay((us)/ (portTICK_PERIOD_MS * 1000))
 
 #endif // _PTHREAD_WRAPPER_H
