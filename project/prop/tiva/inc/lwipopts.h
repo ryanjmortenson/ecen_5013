@@ -4,20 +4,20 @@
 //
 // Copyright (c) 2013-2017 Texas Instruments Incorporated.  All rights reserved.
 // Software License Agreement
-// 
+//
 // Texas Instruments (TI) is supplying this software for use solely and
 // exclusively on TI's microcontroller products. The software is owned by
 // TI and/or its suppliers, and is protected under applicable copyright
 // laws. You may not combine this software with "viral" open-source
 // software in order to form a larger program.
-// 
+//
 // THIS SOFTWARE IS PROVIDED "AS IS" AND WITH ALL FAULTS.
 // NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT
 // NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
 // A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. TI SHALL NOT, UNDER ANY
 // CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
 // DAMAGES, FOR ANY REASON WHATSOEVER.
-// 
+//
 // This is part of revision 2.1.4.178 of the DK-TM4C129X Firmware Package.
 //
 //*****************************************************************************
@@ -194,7 +194,7 @@
 // ---------- DNS options -----------
 //
 //*****************************************************************************
-//#define LWIP_DNS                        0
+#define LWIP_DNS                        1
 //#define DNS_TABLE_SIZE                  4
 //#define DNS_MAX_NAME_LENGTH             256
 //#define DNS_MAX_SERVERS                 2
@@ -298,20 +298,20 @@
 //
 //*****************************************************************************
 //#define LWIP_TCPIP_CORE_LOCKING         0
-#define LWIP_NETCONN                    0           // default is 1
+#define LWIP_NETCONN                    1           // default is 1
 
 //*****************************************************************************
 //
 // ---------- Socket Options ----------
 //
 //*****************************************************************************
-#define LWIP_SOCKET                     0           // default is 1
-//#define LWIP_COMPAT_SOCKETS             1
+#define LWIP_SOCKET                     1           // default is 1
+//#define LWIP_COMPAT_SOCKETS             0
 //#define LWIP_POSIX_SOCKETS_IO_NAMES     1
 //#define LWIP_TCP_KEEPALIVE              0
 //#define LWIP_SO_RCVTIMEO                0
 //#define LWIP_SO_RCVBUF                  0
-//#define SO_REUSE                        0
+#define SO_REUSE                        1
 
 //*****************************************************************************
 //
