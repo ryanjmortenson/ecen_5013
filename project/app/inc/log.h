@@ -117,7 +117,7 @@ void log_level
 // Error and Fatal definitions.  Fatal should be used sparingly and
 // mostly debugging
 
-#ifndef UNITTEST
+#if !defined(TIVA) && !defined(UNITTEST)
 #define LOG_ERROR(...) LOG(LOG_LEVEL_ERROR, __VA_ARGS__)
 #define LOG_FATAL(...) LOG(LOG_LEVEL_FATAL, __VA_ARGS__)
 #else
