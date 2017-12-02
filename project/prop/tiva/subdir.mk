@@ -9,8 +9,8 @@ TIVA_CFLAGS=-mthumb \
             -mfloat-abi=hard \
             -ffunction-sections \
             -fdata-sections \
-            -T linker_script.ld \
-            -L ./prop/tiva/linker \
+            -Tlinker_script.ld \
+            -L./prop/tiva/linker \
             -DTIVA \
             -Dgcc \
             -I$(TIVA_PROP_INC_DIR) \
@@ -22,7 +22,9 @@ TIVA_CFLAGS=-mthumb \
 						-I$(TIVA_WARE_LOCATION)/third_party/lwip-1.4.1/ports/tiva-tm4c129/include \
             -I$(TIVA_WARE_LOCATION) \
             -DPART_TM4C1294NCPDT \
-            -DTARGET_IS_TM4C129_RA1
+            -DTARGET_IS_TM4C129_RA1 \
+            -DLWIP_DNS_API_DECLARE_STRUCTS \
+            -DLWIP_PROVIDE_ERRNO
 
 # Set up rules for proprietary tiva targets
 $(TIVA_PROP_OUT)/%.o: CFLAGS+=-MD -MP
