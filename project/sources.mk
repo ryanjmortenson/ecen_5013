@@ -10,18 +10,20 @@ BBB_APP_OUT=$(APP_OUT)/$(BBB)
 TIVA_APP_OUT=$(APP_OUT)/$(TIVA)
 
 APP_SRC_C += \
-	$(APP_SRC_DIR)/circbuf.c \
-	$(APP_SRC_DIR)/light.c \
 	$(APP_SRC_DIR)/air.c \
+	$(APP_SRC_DIR)/apds9301.c \
+	$(APP_SRC_DIR)/ccs811.c \
+	$(APP_SRC_DIR)/circbuf.c \
+	$(APP_SRC_DIR)/client_task.c \
+	$(APP_SRC_DIR)/light.c \
 	$(APP_SRC_DIR)/linkedlist.c \
 	$(APP_SRC_DIR)/log.c \
 	$(APP_SRC_DIR)/log_msg.c \
 	$(APP_SRC_DIR)/main_task.c \
-	$(APP_SRC_DIR)/workers.c \
+	$(APP_SRC_DIR)/socket_helper.c \
 	$(APP_SRC_DIR)/temp.c \
-	$(APP_SRC_DIR)/apds9301.c \
-	$(APP_SRC_DIR)/ccs811.c \
-	$(APP_SRC_DIR)/tmp102.c
+	$(APP_SRC_DIR)/tmp102.c \
+	$(APP_SRC_DIR)/workers.c
 
 # Add mock i2c if platform isn't
 ifeq ($(PLATFORM),)
@@ -39,6 +41,9 @@ APP_SRC_C += \
   ./freertos/FreeRTOS/Source/list.c \
   ./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
   ./freertos/FreeRTOS/Source/portable/MemMang/heap_5.c
+else
+APP_SRC_C += \
+	$(APP_SRC_DIR)/server_task.c
 endif
 
 TEST_SRC+= \
