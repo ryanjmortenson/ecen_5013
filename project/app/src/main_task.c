@@ -63,30 +63,42 @@ void main_task()
       SEND_LOG_ERROR("Couldn't get temp f");
     }
 
+    usleep(1000000);
+
     if (get_temp_c(count % 2, MAIN_TASK) != SUCCESS)
     {
       SEND_LOG_ERROR("Couldn't get temp c");
     }
+
+    usleep(1000000);
 
     if (get_temp_k(count % 2, MAIN_TASK) != SUCCESS)
     {
       SEND_LOG_ERROR("Couldn't get temp k");
     }
 
+    usleep(1000000);
+
     if(send_light_req(count % 2, MAIN_TASK) != SUCCESS)
     {
       SEND_LOG_ERROR("Couldn't send light req");
     }
+
+    usleep(1000000);
 
     if(send_is_dark_req(MAIN_TASK) != SUCCESS)
     {
       SEND_LOG_ERROR("Couldn't send light req");
     }
 
+    usleep(1000000);
+
     if(send_air_req(count % 2, (count + 1) % 2, MAIN_TASK) != SUCCESS)
     {
       SEND_LOG_ERROR("Couldn't air req");
     }
+
+    usleep(1000000);
 
     if (is_dark(&dark) == SUCCESS)
     {
@@ -99,8 +111,10 @@ void main_task()
     {
       SEND_LOG_ERROR("Couldn't determine if dark");
     }
+
+    usleep(1000000);
+
     count++;
-    usleep(5000000);
   }
 }
 
