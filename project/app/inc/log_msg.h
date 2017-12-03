@@ -13,7 +13,7 @@
 #include "workers.h"
 
 typedef struct log_msg {
-  log_level_t level;
+  uint8_t level;
   char file_name[128];
   char function[32];
   uint32_t line_no;

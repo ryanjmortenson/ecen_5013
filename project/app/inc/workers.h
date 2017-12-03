@@ -53,9 +53,10 @@ typedef enum task_id {
 
 // Message structure
 typedef struct message {
-  type_t type;
-  task_id_t to;
-  task_id_t from;
+  uint8_t type;
+  uint8_t network_routed;
+  uint8_t to;
+  uint8_t from;
   char msg[512];
 } message_t;
 
@@ -108,7 +109,6 @@ mqd_t get_writeable_queue();
 * @return Status of send
 */
 status_t send_msg(mqd_t msg_q, message_t * msg, void * data, uint32_t len);
-
-#define MSG_INIT(_type, _to, _from) {.type = _type, .to = _to, .from = _from}
+#define MSG_INIT(_type, _to, _from) {.type = _type, .to = _to, .from = _from, .network_routed = 0}
 
 #endif // _WORKERS_H
