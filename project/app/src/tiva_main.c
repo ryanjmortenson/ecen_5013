@@ -2,7 +2,6 @@
 #include <stdbool.h>
 #include <sys/time.h>
 #include <string.h>
-#include <errno.h>
 
 // Free RTOS includes
 #include "FreeRTOS.h"
@@ -31,6 +30,7 @@
 #include "workers.h"
 #include "pthread_wrapper.h"
 #include "main_task.h"
+#include "main_client_task.h"
 #include "mqueue_wrapper.h"
 #include "temp.h"
 
@@ -61,34 +61,22 @@ void vApplicationStackOverflowHook(xTaskHandle task_handle, char *task_name)
 }
 
 /*!
-* @brief Temporary handler
-* @param[in] params for function
-* @return NULL
-*/
-static void * cb (void * params)
-{
-  return NULL;
-}
-
-/*!
 * @brief Test task that just sends messages empy log messages
 * @param[in] parameters for function
 * @return NULL
 */
 static void main_thread(void *params)
 {
-  uint8_t led_state = 0;
-  volatile int32_t res;
   uint32_t ui32User0, ui32User1;
   uint8_t pui8MAC[6];
-  struct sockaddr_in addr;
+
   //
   // Get the MAC address from the user registers.
   //
   ROM_FlashUserGet(&ui32User0, &ui32User1);
   if((ui32User0 == 0xffffffff) || (ui32User1 == 0xffffffff))
   {
-    res = *(uint32_t *)NULL;
+    return;
   }
 
   //
@@ -111,78 +99,25 @@ static void main_thread(void *params)
   ROM_IntPrioritySet(INT_EMAC0, 0xC0);
 
   lwIPInit(120000000, pui8MAC, 0, 0, 0, IPADDR_USE_DHCP);
-  usleep(5000000);
-  memset(&addr, 0, sizeof(addr));
-  addr.sin_len = sizeof(addr);
-  addr.sin_family = AF_INET;
-  addr.sin_port = PP_HTONS(12345);
-  addr.sin_addr.s_addr = inet_addr("10.0.0.21");
+  usleep(3000000);
 
-  uint32_t sockfd = lwip_socket(AF_INET, SOCK_STREAM, 0);
-  res = lwip_connect(sockfd, (struct sockaddr *)&addr, sizeof(addr));
-  volatile char * err = strerror(errno);
-  if (res == 0)
+  int32_t argc = 3;
+  char *argv[] = {
+    "main_tiva.axf",
+    NULL,
+    "3"
+  };
+
+  if (init_main_client_task(argc, argv) != SUCCESS)
   {
-    lwip_write(sockfd, "woop", 5);
-    lwip_close(sockfd);
+    return;
   }
 
+  main_client_task();
 
-  res = init_workers(3);
-  if (res != 0)
+  if (dest_main_client_task() != SUCCESS)
   {
-    res = *(uint32_t *)NULL;
-  }
-
-  res = register_cb(LOG, MAIN_TASK, cb);
-  if (res != 0)
-  {
-    res = *(uint32_t *)NULL;
-  }
-
-  res = register_cb(HEARTBEAT, MAIN_TASK, cb);
-  if (res != 0)
-  {
-    res = *(uint32_t *)NULL;
-  }
-
-  res = register_cb(HEARTBEAT_SETUP, MAIN_TASK, cb);
-  if (res != 0)
-  {
-    res = *(uint32_t *)NULL;
-  }
-
-  res = initialize_q();
-  if (res != 0)
-  {
-    res = *(uint32_t *)NULL;
-  }
-
-  res = init_light();
-  if (res != 0)
-  {
-    res = *(uint32_t *)NULL;
-  }
-
-  res = init_temp();
-  if (res != 0)
-  {
-    res = *(uint32_t *)NULL;
-  }
-
-  res = init_air();
-  if (res != 0)
-  {
-    res = *(uint32_t *)NULL;
-  }
-  message_t msg = MSG_INIT(LOG, MAIN_TASK, MAIN_TASK);
-  mqd_t msg_q = get_writeable_queue();
-  for(;;)
-  {
-    led_state = ~led_state;
-    GPIOPinWrite(GPIO_PORTN_BASE, GPIO_PIN_0, led_state);
-    send_msg(msg_q, &msg, NULL, 0);
-    usleep(1000000);
+    return;
   }
   PTHREAD_RETURN(res);
 }
@@ -195,20 +130,12 @@ static void main_thread(void *params)
 int main() {
   pthread_t task;
   int32_t res;
-<<<<<<< HEAD
   HeapRegion_t heap_regions[2];
   heap_regions[0].pucStartAddress = (uint8_t *)&task_heap_low;
   heap_regions[0].xSizeInBytes = (uint32_t)&TASK_HEAP_SIZE;
   heap_regions[1].pucStartAddress = NULL;
   heap_regions[1].xSizeInBytes = 0;
-=======
-  HeapRegion_t heap_regions[2] = {0};
-
-  // Define heap regions for FreeRTOS
-  heap_regions[0].pucStartAddress = (uint8_t *)&task_heap_low;
-  heap_regions[0].xSizeInBytes = (uint32_t)&TASK_HEAP_SIZE;
   vPortDefineHeapRegions(heap_regions);
->>>>>>> fff955a... Stupid example of sockets
 
   // Set frequency for 120 MHz which seems to be required by the ethernet
   MAP_SysCtlMOSCConfigSet(SYSCTL_MOSC_HIGHFREQ);
