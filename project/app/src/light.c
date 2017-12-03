@@ -70,8 +70,6 @@ void * light_req(void * param)
     light_rsp.lux = stale_reading;
   }
 
-  // SEND_LOG_HIGH("Lux %f", stale_reading);
-
   if (send_msg(msg_q, &out, &light_rsp, sizeof(light_rsp)) != SUCCESS)
   {
     LOG_ERROR("Could not send light response");
