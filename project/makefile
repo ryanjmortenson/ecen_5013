@@ -53,6 +53,8 @@ LIB_OUT_FILE=libexercise3problem5.a
 
 # Set CFLAGS used by every build type
 CFLAGS=-I$(APP_INC_DIR) \
+       -Wall \
+       -Werror \
        -std=c99 \
        -D_POSIX_C_SOURCE=199309L \
        -D_DEFAULT_SOURCE
