@@ -502,7 +502,7 @@ status_t init_main_task(int argc, char *argv[])
       break;
     }
 
-    if (log_msg_init(file_name) != SUCCESS)
+    if (log_msg_init(file_name, 1) != SUCCESS)
     {
       LOG_ERROR("Could not initialize logging");
       status = FAILURE;
