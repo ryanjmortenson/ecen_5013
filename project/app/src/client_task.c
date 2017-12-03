@@ -171,7 +171,7 @@ uint32_t client_init()
       break;
     }
 
-    res = register_cb(LOG, LOG_TASK, client_send_cb);
+    res = register_cb(UNROUTED, ALL_TASKS, client_send_cb);
     if (res < 0)
     {
       LOG_ERROR("Could not register call back");
