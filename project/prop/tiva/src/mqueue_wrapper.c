@@ -1,4 +1,5 @@
 #include "mqueue_wrapper.h"
+#include "workers.h"
 
 static mqd_t queue = NULL;
 
@@ -22,7 +23,7 @@ int32_t mq_close(mqd_t queue)
 }
 
 int32_t mq_getattr(mqd_t queue, struct mq_attr * attr) {
-  attr->mq_msgsize = 530;
+  attr->mq_msgsize = sizeof(message_t);
   attr->mq_curmsgs = uxQueueMessagesWaiting(queue);
   return 0;
 }
