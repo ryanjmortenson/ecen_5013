@@ -20,6 +20,8 @@ APP_SRC_C += \
 	$(APP_SRC_DIR)/log.c \
 	$(APP_SRC_DIR)/log_msg.c \
 	$(APP_SRC_DIR)/main_task.c \
+	$(APP_SRC_DIR)/main_client_task.c \
+	$(APP_SRC_DIR)/main_helper.c \
 	$(APP_SRC_DIR)/socket_helper.c \
 	$(APP_SRC_DIR)/temp.c \
 	$(APP_SRC_DIR)/tmp102.c \
@@ -43,7 +45,8 @@ APP_SRC_C += \
   ./freertos/FreeRTOS/Source/portable/MemMang/heap_5.c
 else
 APP_SRC_C += \
-	$(APP_SRC_DIR)/server_task.c
+	$(APP_SRC_DIR)/server_task.c \
+	$(APP_SRC_DIR)/main_server_task.c
 endif
 
 TEST_SRC+= \

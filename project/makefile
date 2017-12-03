@@ -162,7 +162,8 @@ BUILD_WITH=@echo "Building with $<"
 
 # Build will build project
 build:
-	$(MAKE) main.out COLOR_LOGS=t LOG_LEVEL=2
+	$(MAKE) main_client.out PLATFORM=bbb COLOR_LOGS=t LOG_LEVEL=3
+	$(MAKE) main_server.out COLOR_LOGS=t LOG_LEVEL=3
 	$(MAKE) main_tiva.axf PLATFORM=tiva LOG_LEVEL=0
 
 # PHONY target so you don't have to type .out
@@ -282,6 +283,8 @@ CLEAN+=$(OUT) \
        *.map \
        *.objdump \
 			 main.out \
+			 main_server.out \
+			 *.log \
 			 *.axf \
        $(UNIT_TEST_OUT) \
        $(LIB_OUT_FILE) \
