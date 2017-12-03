@@ -108,6 +108,7 @@ void send_log
   }
 }
 
+#ifndef TIVA
 /*!
 * @brief Print a log message caught on message queue
 * @param[in] param log msg struct
@@ -169,15 +170,19 @@ static void * write_log(void * param)
   }
   return NULL;
 }
+#endif // TIVA
 
 status_t log_msg_init(char * file_name, uint8_t print)
 {
   FUNC_ENTRY;
   status_t status = SUCCESS;
+#ifndef TIVA
   status_t res;
+#endif // TIVA
 
   do
   {
+#ifndef TIVA
     if (file_name != NULL)
     {
       // Open file for writing
@@ -210,6 +215,7 @@ status_t log_msg_init(char * file_name, uint8_t print)
         break;
       }
     }
+#endif // TIVA
 
     // Get a writeable queue
     msg_q = get_writeable_queue();
@@ -233,7 +239,7 @@ status_t log_msg_dest()
   {
     // Close queue
     res = mq_close(msg_q);
-    if (close < 0)
+    if (res < 0)
     {
       LOG_ERROR("Could not close message queue, %s", strerror(errno));
       status = FAILURE;
@@ -241,9 +247,6 @@ status_t log_msg_dest()
     }
 
 #ifndef TIVA
-    msg_q = -1;
-#endif
-
     // Unegister call backs for printing
     res = unregister_cb(LOG, LOG_TASK, print_log);
     if (res == FAILURE)
@@ -253,6 +256,7 @@ status_t log_msg_dest()
       break;
     }
 
+    msg_q = -1;
     // Unegister call backs for writing log
     res = unregister_cb(LOG, LOG_TASK, write_log);
     if (res == FAILURE)
@@ -261,6 +265,7 @@ status_t log_msg_dest()
       status = FAILURE;
       break;
     }
+#endif // TIVA
 
     // Close file
     res = close(fd);
