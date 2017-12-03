@@ -23,6 +23,7 @@ typedef enum status {
 #ifndef TIVA
 #define PTHREAD_RETURN_TYPE void *
 #define PTHREAD_RETURN(val) pthread_exit(val)
+#else
 #define gettimeofday(tv, extra)
 #endif // TIVA
 
