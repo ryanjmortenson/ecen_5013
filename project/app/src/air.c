@@ -21,6 +21,7 @@
 #include "mqueue_wrapper.h"
 #endif // TIVA
 
+#include "air.h"
 #include "ccs811.h"
 #include "log.h"
 #include "log_msg.h"
@@ -37,6 +38,39 @@ static const task_id_t TASK_ID = AIR_TASK;
 
 static mqd_t msg_q;
 static pthread_t air_task;
+
+void * air_req(void * param)
+{
+  FUNC_ENTRY;
+  CHECK_NULL2(param);
+  message_t * in = (message_t *)param;
+  air_rsp_t air_rsp;
+  message_t out = MSG_INIT(AIR_RSP, in->from, AIR_TASK);
+
+  if (send_msg(msg_q, &out, &air_rsp, sizeof(air_rsp)) != SUCCESS)
+  {
+    LOG_ERROR("Could not send air reading");
+  }
+  return NULL;
+}
+
+status_t send_air_req(air_meas_type_t type, staleness_t staleness, task_id_t from)
+{
+  FUNC_ENTRY;
+  air_req_t air_req;
+  status_t status = SUCCESS;
+  message_t msg = MSG_INIT(AIR_REQ, AIR_TASK, from);
+
+  // Fill out temp request and send
+  air_req.type = type;
+  air_req.staleness = staleness;
+  if (send_msg(msg_q, &msg, &air_req, sizeof(air_req)) != SUCCESS)
+  {
+    LOG_ERROR("Could not send air request");
+    status = FAILURE;
+  }
+  return status;
+}
 
 /*!
 * @brief Main air task
@@ -67,7 +101,16 @@ status_t init_air()
     res = ccs811_init(I2C_BUS);
     if (res == FAILURE)
     {
-      LOG_ERROR("Could not init apds9301");
+      LOG_ERROR("Could not init ccs811");
+      status = FAILURE;
+      break;
+    }
+
+    // Register temp request handler
+    res = register_cb(AIR_REQ, AIR_TASK, air_req);
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not register callback, %s", strerror(errno));
       status = FAILURE;
       break;
     }
