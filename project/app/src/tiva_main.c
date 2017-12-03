@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <sys/time.h>
 
 // Free RTOS includes
 #include "FreeRTOS.h"
@@ -178,10 +179,11 @@ static void main_thread(void *params)
 int main() {
   pthread_t task;
   int32_t res;
-  HeapRegion_t heap_regions[2] = {0};
+  HeapRegion_t heap_regions[2];
   heap_regions[0].pucStartAddress = (uint8_t *)&task_heap_low;
   heap_regions[0].xSizeInBytes = (uint32_t)&TASK_HEAP_SIZE;
-
+  heap_regions[1].pucStartAddress = NULL;
+  heap_regions[1].xSizeInBytes = 0;
 
   // Set frequency for 120 MHz which seems to be required by the ethernet
   SysCtlMOSCConfigSet(SYSCTL_MOSC_HIGHFREQ);
