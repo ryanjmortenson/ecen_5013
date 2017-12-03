@@ -38,6 +38,9 @@ char * task_str[] = {
   [LIGHT_TASK] = "LIGHT_TASK",
   [TEMP_TASK] = "TEMP_TASK",
   [LOG_TASK] = "LOG_TASK",
+  [AIR_TASK] = "AIR_TASK",
+  [CLIENT_TASK] = "CLIENT_TASK",
+  [SERVER_TASK] = "SERVER_TASK",
   [TEST_TASK] = "TEST_TASK"
 };
 
@@ -167,7 +170,7 @@ static void * write_log(void * param)
   return NULL;
 }
 
-status_t log_msg_init(char * file_name)
+status_t log_msg_init(char * file_name, uint8_t print)
 {
   FUNC_ENTRY;
   status_t status = SUCCESS;
@@ -175,31 +178,37 @@ status_t log_msg_init(char * file_name)
 
   do
   {
-    // Open file for writing
-    fd = open(file_name, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
-    if (fd < 0)
+    if (file_name != NULL)
     {
-      LOG_ERROR("Could not open file, %s", strerror(errno));
-      status = FAILURE;
-      break;
-    }
-    LOG_MED("Opened file %s", file_name);
+      // Open file for writing
+      fd = open(file_name, O_CREAT | O_WRONLY | O_TRUNC, S_IRWXU);
+      if (fd < 0)
+      {
+        LOG_ERROR("Could not open file, %s", strerror(errno));
+        status = FAILURE;
+        break;
+      }
+      LOG_MED("Opened file %s", file_name);
 
-    // Register call backs for both printing and writing logs
-    res = register_cb(LOG, LOG_TASK, write_log);
-    if (res == FAILURE)
-    {
-      LOG_ERROR("Could not register callback, %s", strerror(errno));
-      status = FAILURE;
-      break;
+      // Register call backs for both printing and writing logs
+      res = register_cb(LOG, LOG_TASK, write_log);
+      if (res == FAILURE)
+      {
+        LOG_ERROR("Could not register callback, %s", strerror(errno));
+        status = FAILURE;
+        break;
+      }
     }
 
-    res = register_cb(LOG, LOG_TASK, print_log);
-    if (res == FAILURE)
+    if (print != 0)
     {
-      LOG_ERROR("Could not register callback, %s", strerror(errno));
-      status = FAILURE;
-      break;
+      res = register_cb(LOG, LOG_TASK, print_log);
+      if (res == FAILURE)
+      {
+        LOG_ERROR("Could not register callback, %s", strerror(errno));
+        status = FAILURE;
+        break;
+      }
     }
 
     // Get a writeable queue

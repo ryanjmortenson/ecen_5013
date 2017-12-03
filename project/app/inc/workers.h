@@ -25,6 +25,8 @@ typedef void * (*CALLBACK)(void * params);
 typedef enum type {
   SHUTDOWN   = 0,
   LOG,
+  AIR_REQ,
+  AIR_RSP,
   TEMP_REQ,
   TEMP_RSP,
   LIGHT_REQ,
@@ -42,6 +44,8 @@ typedef enum task_id {
   TEMP_TASK,
   LOG_TASK,
   AIR_TASK,
+  CLIENT_TASK,
+  SERVER_TASK,
   TEST_TASK,
   TASK_ID_LIST_END
 } task_id_t;

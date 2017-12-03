@@ -26,7 +26,7 @@ typedef struct log_msg {
 * @param[in] file_name file name of log file
 * @return SUCCESS/FAILURE
 */
-status_t log_msg_init(char * file_name);
+status_t log_msg_init(char * file_name, uint8_t print);
 
 /*!
 * @brief Destroy the log message catching functionality
