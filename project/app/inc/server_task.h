@@ -9,6 +9,7 @@
 #ifndef _SERVER_TASK_H
 #define _SERVER_TASK_H
 
-uint32_t server_init();
+status_t server_init();
+status_t server_dest();
 
 #endif // _SERVER_TASK_H

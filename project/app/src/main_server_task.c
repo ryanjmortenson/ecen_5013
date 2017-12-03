@@ -231,6 +231,12 @@ status_t dest_main_server_task()
 {
   status_t status = SUCCESS;
 
+  if (server_dest() != SUCCESS)
+  {
+    LOG_ERROR("Could not destroy server");
+    status = FAILURE;
+  }
+
   if (dest_temp(0) != SUCCESS)
   {
     LOG_ERROR("Could not destroy temp task");

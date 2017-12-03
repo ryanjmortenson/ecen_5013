@@ -37,6 +37,8 @@ int32_t newsockfd = -1;
 #define SERVER_PORT (12345)
 #define SOCKET_BACKLOG_LEN (5)
 
+pthread_t server_task;
+
 void * server_send_cb(void * param)
 {
   CHECK_NULL2(param);
@@ -162,6 +164,9 @@ PTHREAD_RETURN_TYPE server_thread(void * param)
       break;
     }
   }
+
+  pthread_cancel(connection_task);
+  pthread_join(connection_task, NULL);
   LOG_HIGH("server thread exiting");
   close(sockfd);
   PTHREAD_RETURN(NULL);
@@ -170,7 +175,6 @@ PTHREAD_RETURN_TYPE server_thread(void * param)
 uint32_t server_init()
 {
   FUNC_ENTRY;
-  pthread_t server_task;
   int32_t res = 0;
   status_t status = SUCCESS;
 
@@ -211,3 +215,42 @@ uint32_t server_init()
   } while (0);
   return status;
 } // server_init()
+
+uint32_t server_dest()
+{
+  FUNC_ENTRY;
+  int32_t res = 0;
+  status_t status = SUCCESS;
+
+  do
+  {
+    res = pthread_cancel(server_task);
+    if (res < 0)
+    {
+      LOG_ERROR("Could not cancel server task, %s", strerror(res));
+      status = FAILURE;
+      break;
+    }
+
+    res = pthread_join(server_task, NULL);
+    if (res < 0)
+    {
+      LOG_ERROR("Server task could not join, continuing with shutdown %s",
+                strerror(res));
+      status = FAILURE;
+    }
+    else
+    {
+      LOG_HIGH("Server task joined");
+    }
+
+    res = unregister_cb(UNROUTED, ALL_TASKS, server_send_cb);
+    if (res < 0)
+    {
+      LOG_ERROR("Could not unregister call back");
+      status = FAILURE;
+      break;
+    }
+  } while (0);
+  return status;
+} // server_dest()
