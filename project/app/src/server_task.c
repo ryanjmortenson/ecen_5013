@@ -32,26 +32,47 @@
 // Global abort flag
 extern int32_t abort_signal;
 static mqd_t msg_q;
+int32_t newsockfd = -1;
 
 #define SERVER_PORT (12345)
 #define SOCKET_BACKLOG_LEN (5)
 
-PTHREAD_RETURN_TYPE connection_thread(void * param)
+void * server_send_cb(void * param)
 {
   CHECK_NULL2(param);
-  int32_t sockfd = *(int32_t *)param;
+  message_t * in = (message_t *)param;
+  int32_t res;
+
+  if (newsockfd >= 0 && in->network_routed == 0)
+  {
+    in->network_routed = 1;
+    res = socket_write(newsockfd, in, sizeof(*in));
+    if (res < 0)
+    {
+      LOG_ERROR("Could not write to socket");
+    }
+  }
+  return NULL;
+}
+
+PTHREAD_RETURN_TYPE connection_thread(void * param)
+{
   int32_t res;
   message_t msg;
-  LOG_MED("Spawned a new connection thread for fd: %d", sockfd);
+  LOG_MED("Spawned a new connection thread for fd: %d", newsockfd);
 
   while(!abort_signal)
   {
-    res = socket_recv(sockfd, &msg, sizeof(msg));
+    res = socket_recv(newsockfd, &msg, sizeof(msg));
     if (res < 0)
     {
       LOG_ERROR("Could not received message, %s", strerror(errno));
       abort_signal = 1;
       break;
+    }
+    else
+    {
+      LOG_FATAL("Received message");
     }
 
     // Message is already filled out so don't overwrite current data
@@ -62,7 +83,6 @@ PTHREAD_RETURN_TYPE connection_thread(void * param)
       break;
     }
   }
-  free(param);
   PTHREAD_RETURN(NULL);
 }
 
@@ -74,10 +94,10 @@ PTHREAD_RETURN_TYPE server_thread(void * param)
   struct sockaddr_in cli_addr;
 
   int32_t sockfd;
-  int32_t * newsockfd;
   int32_t res = 0;
   uint32_t clilen = sizeof(cli_addr);
   pthread_t connection_task;
+  int32_t enable = 1;
 
   do
   {
@@ -96,10 +116,18 @@ PTHREAD_RETURN_TYPE server_thread(void * param)
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(SERVER_PORT);
 
+    res = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
+    if (res < 0)
+    {
+      LOG_ERROR("Could not set sockopt, %s", strerror(errno));
+      abort_signal = 1;
+      break;
+    }
+
     res = bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr));
     if (res < 0)
     {
-      LOG_ERROR("Could not create socket fd, %s", strerror(errno));
+      LOG_ERROR("Could not bind socket fd, %s", strerror(errno));
       abort_signal = 1;
       break;
     }
@@ -119,15 +147,14 @@ PTHREAD_RETURN_TYPE server_thread(void * param)
   while(!abort_signal)
   {
     // Wait for incoming connections
-    newsockfd = malloc(sizeof(*newsockfd));
-    *newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
+    newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, &clilen);
 
     // Log connection stats
     LOG_HIGH("Accepted Connection from %d on port %d",
             cli_addr.sin_addr.s_addr,
             cli_addr.sin_port);
 
-    res = pthread_create(&connection_task, NULL, connection_thread, newsockfd);
+    res = pthread_create(&connection_task, NULL, connection_thread, NULL);
     if (res < 0)
     {
       LOG_ERROR("Could not create connection thread");
@@ -145,7 +172,7 @@ uint32_t server_init()
   FUNC_ENTRY;
   pthread_t server_task;
   int32_t res = 0;
-  status_t status;
+  status_t status = SUCCESS;
 
   do
   {
@@ -162,6 +189,14 @@ uint32_t server_init()
     if (res < 0)
     {
       LOG_ERROR("Could not create server task, %s", strerror(res));
+      status = FAILURE;
+      break;
+    }
+
+    res = register_cb(UNROUTED, ALL_TASKS, server_send_cb);
+    if (res < 0)
+    {
+      LOG_ERROR("Could not register call back");
       status = FAILURE;
       break;
     }

@@ -35,6 +35,7 @@
 
 // Global abort flag
 extern int32_t abort_signal;
+static mqd_t msg_q;
 
 //static const task_id_t TASK_ID = CLIENT_TASK;
 int32_t sockfd = -1;
@@ -45,17 +46,14 @@ void * client_send_cb(void * param)
   message_t * in = (message_t *)param;
   int32_t res;
 
-  if (sockfd > 0)
+  if (sockfd >= 0 && in->network_routed == 0)
   {
+    in->network_routed = 1;
     res = socket_write(sockfd, in, sizeof(*in));
     if (res < 0)
     {
       LOG_ERROR("Could not write to socket");
     }
-  }
-  else
-  {
-    LOG_ERROR("Socket fd is not initialized");
   }
   return NULL;
 }
@@ -99,9 +97,13 @@ PTHREAD_RETURN_TYPE client_thread(void * param)
       abort_signal = 1;
       break;
     }
-    else
+
+    // Message is already filled out so don't overwrite current data
+    if (send_msg(msg_q, &msg, NULL, 0) == FAILURE)
     {
-      LOG_FATAL("Received message");
+      LOG_ERROR("Could not add message to queue");
+      abort_signal = 1;
+      break;
     }
   }
   LOG_HIGH("client_service exiting");
@@ -144,6 +146,14 @@ uint32_t client_init()
     memcpy(&serv_addr.sin_addr.s_addr, server->h_addr, server->h_length);
     serv_addr.sin_port = htons(SERVER_PORT);
 
+    res = register_cb(UNROUTED, ALL_TASKS, client_send_cb);
+    if (res < 0)
+    {
+      LOG_ERROR("Could not register call back");
+      status = FAILURE;
+      break;
+    }
+
     LOG_HIGH("Trying connection to %s on port %d", ADDRESS, SERVER_PORT);
     res = connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr));
     if (res < 0)
@@ -171,10 +181,10 @@ uint32_t client_init()
       break;
     }
 
-    res = register_cb(UNROUTED, ALL_TASKS, client_send_cb);
-    if (res < 0)
+    msg_q = get_writeable_queue();
+    if (msg_q < 0)
     {
-      LOG_ERROR("Could not register call back");
+      LOG_ERROR("Could not get message queue");
       status = FAILURE;
       break;
     }
