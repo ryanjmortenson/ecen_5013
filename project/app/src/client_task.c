@@ -1,6 +1,6 @@
-#include <time.h>
 #include <stdint.h>
 #include <string.h>
+#include <sys/time.h>
 
 #ifndef TIVA
 #include <errno.h>
@@ -21,6 +21,7 @@
 #define socket(family, type, other) lwip_socket(family, type, other)
 #define read(fd, data, len) lwip_read(fd, data, len)
 #define shutdown(fd, flags) lwip_shutdown(fd, flags)
+#define gethostbyname(addr) lwip_gethostbyname(addr)
 #endif
 
 #include "log.h"
