@@ -2,6 +2,15 @@
 #include <unistd.h>
 
 #include "log.h"
+#ifdef TIVA
+#include "FreeRTOS.h"
+#include "task.h"
+#include "pthread_wrapper.h"
+#include "lwip/sockets.h"
+#include "lwip/netdb.h"
+#define read(fd, data, len) lwip_read(fd, data, len)
+#define write(fd, data, len) lwip_write(fd, data, len)
+#endif // TIVA
 
 int32_t socket_recv(int32_t sockfd, void * data, uint32_t count)
 {
