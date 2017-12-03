@@ -117,11 +117,13 @@ PTHREAD_RETURN_TYPE worker_thread(void * param)
       while (res == LL_ENUM_NO_ERROR)
       {
         res = ll_iter_next(&iter, (void *)&reg);
-        if (res == LL_ENUM_NO_ERROR &&
-            (reg->type == msg.type) &&
-            (reg->to == msg.to))
+        if (res == LL_ENUM_NO_ERROR)
         {
-          reg->cb((void *)&msg);
+          if (((reg->type == msg.type) && (reg->to == msg.to)) ||
+              ((reg->type == UNROUTED) && (reg->to == ALL_TASKS)))
+          {
+            reg->cb((void *)&msg);
+          }
         }
       }
       pthread_rwlock_unlock(&ll_rwlock);
@@ -189,6 +191,7 @@ status_t register_cb(type_t type, task_id_t to, CALLBACK cb)
 {
   registartion_t * reg;
   status_t res = FAILURE;
+  int32_t insert_point = 0;
 
   if (initialized == 0)
   {
@@ -205,9 +208,15 @@ status_t register_cb(type_t type, task_id_t to, CALLBACK cb)
     reg->cb = cb;
     reg->to = to;
 
+    // Insert at end if type is unrouted
+    if (type == UNROUTED)
+    {
+      insert_point = INSERT_AT_END;
+    }
+
     // Write lock the linked list
     pthread_rwlock_wrlock(&ll_rwlock);
-    if (ll_insert(reg_head, reg, INSERT_AT_END) == LL_ENUM_NO_ERROR)
+    if (ll_insert(reg_head, reg, insert_point) == LL_ENUM_NO_ERROR)
     {
       LOG_LOW("Inserted type: %d to: %d", type, to);
       res = SUCCESS;

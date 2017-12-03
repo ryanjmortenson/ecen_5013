@@ -35,6 +35,7 @@ typedef enum type {
   IS_DARK_RSP,
   HEARTBEAT_SETUP,
   HEARTBEAT,
+  UNROUTED
 } type_t;
 
 typedef enum task_id {
