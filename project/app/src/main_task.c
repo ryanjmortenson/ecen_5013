@@ -16,6 +16,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "air.h"
 #include "light.h"
 #include "log.h"
 #include "log_msg.h"
@@ -66,6 +67,21 @@ mqd_t msg_q;
 /***********************************************************
                       Internal funtions
  ***********************************************************/
+
+/*!
+* @brief Handle air response from air request
+* @param param msg holding air response
+* @return NULL
+*/
+void * air_rsp_handler(void * param)
+{
+  FUNC_ENTRY;
+  CHECK_NULL2(param);
+  message_t * msg = (message_t *)param;
+  air_rsp_t * rsp = (air_rsp_t *)msg->msg;
+  SEND_LOG_HIGH("Air rsp: %d, %f", rsp->type, rsp->reading);
+  return NULL;
+}
 
 /*!
 * @brief Handle light response from light request
@@ -300,6 +316,11 @@ void main_task()
       SEND_LOG_ERROR("Couldn't send light req");
     }
 
+    if(send_air_req(count % 2, (count + 1) % 2, MAIN_TASK) != SUCCESS)
+    {
+      SEND_LOG_ERROR("Couldn't air req");
+    }
+
     if (is_dark(&dark) == SUCCESS)
     {
       if (dark)
@@ -460,6 +481,13 @@ status_t init_main_task(int argc, char *argv[])
       break;
     }
 
+    if (register_cb(AIR_RSP, MAIN_TASK, air_rsp_handler) != SUCCESS)
+    {
+      LOG_ERROR("Could not register air response handler");
+      status = FAILURE;
+      break;
+    }
+
     if (register_cb(HEARTBEAT_SETUP, MAIN_TASK, hb_setup) != SUCCESS)
     {
       LOG_ERROR("Could not register heartbeat setup handler");
@@ -495,6 +523,13 @@ status_t init_main_task(int argc, char *argv[])
       break;
     }
 
+    if (init_air() != SUCCESS)
+    {
+      LOG_ERROR("Could not initialize air");
+      status = FAILURE;
+      break;
+    }
+
 #ifdef BBB
     if (init_led(USR3_LED) != SUCCESS)
     {
@@ -518,6 +553,12 @@ status_t init_main_task(int argc, char *argv[])
 status_t dest_main_task()
 {
   status_t status = SUCCESS;
+
+  if (dest_air() != SUCCESS)
+  {
+    LOG_ERROR("Could not destory light task");
+    status = FAILURE;
+  }
 
   if (dest_light() != SUCCESS)
   {
@@ -552,6 +593,12 @@ status_t dest_main_task()
   if (unregister_cb(TEMP_RSP, MAIN_TASK, temp_rsp_handler) != SUCCESS)
   {
     LOG_ERROR("Could not unregister temp response handler");
+    status = FAILURE;
+  }
+
+  if (unregister_cb(AIR_RSP, MAIN_TASK, air_rsp_handler) != SUCCESS)
+  {
+    LOG_ERROR("Could not unregister air response handler");
     status = FAILURE;
   }
 
