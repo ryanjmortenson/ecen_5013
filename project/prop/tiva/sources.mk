@@ -6,6 +6,7 @@ TIVA_PROP_OUT=prop/tiva/out
 # Build a list of source
 TIVA_PROP_SRCS+= \
 	$(TIVA_PROP_SRC_DIR)/mqueue_wrapper.c \
+	$(TIVA_PROP_SRC_DIR)/lwip_missing.c \
 	$(TIVA_PROP_SRC_DIR)/i2c.c \
 	$(TIVA_PROP_SRC_DIR)/pthread_wrapper.c \
 	$(TIVA_PROP_SRC_DIR)/sbrk.c \
