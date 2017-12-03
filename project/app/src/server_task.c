@@ -72,10 +72,6 @@ PTHREAD_RETURN_TYPE connection_thread(void * param)
       abort_signal = 1;
       break;
     }
-    else
-    {
-      LOG_FATAL("Received message");
-    }
 
     // Message is already filled out so don't overwrite current data
     if (send_msg(msg_q, &msg, NULL, 0) == FAILURE)
@@ -100,6 +96,7 @@ PTHREAD_RETURN_TYPE server_thread(void * param)
   uint32_t clilen = sizeof(cli_addr);
   pthread_t connection_task;
   int32_t enable = 1;
+  struct timeval timeout = {.tv_sec = 1, .tv_usec = 0};
 
   do
   {
@@ -117,6 +114,14 @@ PTHREAD_RETURN_TYPE server_thread(void * param)
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(SERVER_PORT);
+
+    res = setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout));
+    if (res < 0)
+    {
+      LOG_ERROR("Could not set sockopt, %s", strerror(errno));
+      abort_signal = 1;
+      break;
+    }
 
     res = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable));
     if (res < 0)
