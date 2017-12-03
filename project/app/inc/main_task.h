@@ -12,12 +12,6 @@
 #include "workers.h"
 #include "project_defs.h"
 
-#define SIGNAL_ABORT() abort_signal = 1
-
-typedef struct hb_setup {
-  uint32_t period_seconds;
-} hb_setup_t;
-
 /*!
 * @brief Initialize main task
 * @param[in] argc argument count
