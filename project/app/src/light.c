@@ -287,7 +287,7 @@ status_t dest_light(uint8_t dest_task)
     res = pthread_join(light_task, NULL);
     if (res < 0)
     {
-      LOG_ERROR("Temp task could not join, continuing with shutdown %s",
+      LOG_ERROR("Light task could not join, continuing with shutdown %s",
                 strerror(res));
       status = FAILURE;
     }
