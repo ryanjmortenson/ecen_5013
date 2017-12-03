@@ -90,7 +90,7 @@ PTHREAD_RETURN_TYPE air_thread(void * param)
   PTHREAD_RETURN(NULL);
 }
 
-status_t init_air()
+status_t init_air(uint8_t start_task)
 {
   FUNC_ENTRY;
   status_t status = SUCCESS;
@@ -98,23 +98,6 @@ status_t init_air()
 
   do
   {
-    res = ccs811_init(I2C_BUS);
-    if (res == FAILURE)
-    {
-      LOG_ERROR("Could not init ccs811");
-      status = FAILURE;
-      break;
-    }
-
-    // Register temp request handler
-    res = register_cb(AIR_REQ, AIR_TASK, air_req);
-    if (res == FAILURE)
-    {
-      LOG_ERROR("Could not register callback, %s", strerror(errno));
-      status = FAILURE;
-      break;
-    }
-
     msg_q = get_writeable_queue();
     if (msg_q < 0)
     {
@@ -123,67 +106,88 @@ status_t init_air()
       break;
     }
 
-    if (send_hb_setup(PERIOD_US / 1000000, AIR_TASK))
+    if (start_task == 1)
     {
-      LOG_ERROR("Could not set up heartbeat");
-      status = FAILURE;
-      break;
-    }
+      if (send_hb_setup(PERIOD_US / 1000000, AIR_TASK))
+      {
+        LOG_ERROR("Could not set up heartbeat");
+        status = FAILURE;
+        break;
+      }
 
-    res = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-    if (res < 0)
-    {
-      LOG_ERROR("Could not set cancellability of air task, %s",
-                strerror(res));
-      status = FAILURE;
-      break;
-    }
+      res = ccs811_init(I2C_BUS);
+      if (res == FAILURE)
+      {
+        LOG_ERROR("Could not init ccs811");
+        status = FAILURE;
+        break;
+      }
 
-    res = pthread_create(&air_task, NULL, air_thread, NULL);
-    if (res < 0)
-    {
-      LOG_ERROR("Could not create air task, %s", strerror(res));
-      status = FAILURE;
-      break;
+      // Register temp request handler
+      res = register_cb(AIR_REQ, AIR_TASK, air_req);
+      if (res == FAILURE)
+      {
+        LOG_ERROR("Could not register callback, %s", strerror(errno));
+        status = FAILURE;
+        break;
+      }
+      res = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+      if (res < 0)
+      {
+        LOG_ERROR("Could not set cancellability of air task, %s",
+                  strerror(res));
+        status = FAILURE;
+        break;
+      }
+
+      res = pthread_create(&air_task, NULL, air_thread, NULL);
+      if (res < 0)
+      {
+        LOG_ERROR("Could not create air task, %s", strerror(res));
+        status = FAILURE;
+        break;
+      }
     }
     SEND_INIT_COMPLETE();
   } while(0);
   return status;
 }
 
-status_t dest_air()
+status_t dest_air(uint8_t dest_task)
 {
   FUNC_ENTRY;
   int32_t res = 0;
   status_t status = SUCCESS;
 
-  res = pthread_cancel(air_task);
-  if (res < 0)
+  if (dest_task == 1)
   {
-    LOG_ERROR("Could not create air task, continuing with shutdown, %s",
-              strerror(res));
-    status = FAILURE;
-  }
+    res = pthread_cancel(air_task);
+    if (res < 0)
+    {
+      LOG_ERROR("Could not create air task, continuing with shutdown, %s",
+                strerror(res));
+      status = FAILURE;
+    }
 
-  res = pthread_join(air_task, NULL);
-  if (res < 0)
-  {
-    LOG_ERROR("Air task could not join, continuing with shutdown %s",
-              strerror(res));
-    status = FAILURE;
-  }
-  else
-  {
-    LOG_HIGH("Air task joined");
-  }
+    res = pthread_join(air_task, NULL);
+    if (res < 0)
+    {
+      LOG_ERROR("Air task could not join, continuing with shutdown %s",
+                strerror(res));
+      status = FAILURE;
+    }
+    else
+    {
+      LOG_HIGH("Air task joined");
+    }
 
-  res = ccs811_dest();
-  if (res == FAILURE)
-  {
-    LOG_ERROR("Could not destroy apds9301");
-    status = FAILURE;
+    res = ccs811_dest();
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not destroy apds9301");
+      status = FAILURE;
+    }
   }
-
   mq_close(msg_q);
   return status;
 }

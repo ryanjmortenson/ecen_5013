@@ -35,13 +35,13 @@ typedef struct air_rsp
 * @brief Initialize air task
 * @return status of initializing air
 */
-status_t init_air();
+status_t init_air(uint8_t start_task);
 
 /*!
 * @brief Destroy air task
 * @return status of destroying air
 */
-status_t dest_air();
+status_t dest_air(uint8_t dest_task);
 
 status_t send_air_req(air_meas_type_t type, staleness_t staleness, task_id_t from);
 #endif /* _AIR_H */

@@ -135,7 +135,7 @@ status_t send_temp_req(temp_units_t temp_units, staleness_t staleness, task_id_t
   return status;
 }
 
-status_t init_temp()
+status_t init_temp(uint8_t start_task)
 {
   FUNC_ENTRY;
   status_t status = SUCCESS;
@@ -143,23 +143,6 @@ status_t init_temp()
 
   do
   {
-    res = tmp102_init(I2C_BUS);
-    if (res == FAILURE)
-    {
-      LOG_ERROR("Could not initialize tmp102");
-      status = FAILURE;
-      break;
-    }
-
-    // Register temp request handler
-    res = register_cb(TEMP_REQ, TEMP_TASK, temp_req);
-    if (res == FAILURE)
-    {
-      LOG_ERROR("Could not register callback, %s", strerror(errno));
-      status = FAILURE;
-      break;
-    }
-
     msg_q = get_writeable_queue();
     if (msg_q < 0)
     {
@@ -168,73 +151,96 @@ status_t init_temp()
       break;
     }
 
-    res = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-    if (res < 0)
+    if (start_task == 1)
     {
-      LOG_ERROR("Could not set cancellability of temp task, %s",
-                strerror(res));
-      status = FAILURE;
-      break;
-    }
+      if (send_hb_setup(PERIOD_US / 1000000, TEMP_TASK))
+      {
+        LOG_ERROR("Could not set up heartbeat");
+        status = FAILURE;
+        break;
+      }
 
-    if (send_hb_setup(PERIOD_US / 1000000, TEMP_TASK))
-    {
-      LOG_ERROR("Could not set up heartbeat");
-      status = FAILURE;
-      break;
-    }
+      res = tmp102_init(I2C_BUS);
+      if (res == FAILURE)
+      {
+        LOG_ERROR("Could not initialize tmp102");
+        status = FAILURE;
+        break;
+      }
 
-    res = pthread_create(&temp_task, NULL, temp_thread, NULL);
-    if (res < 0)
-    {
-      LOG_ERROR("Could not create temp task, %s", strerror(res));
-      status = FAILURE;
-      break;
+      // Register temp request handler
+      res = register_cb(TEMP_REQ, TEMP_TASK, temp_req);
+      if (res == FAILURE)
+      {
+        LOG_ERROR("Could not register callback, %s", strerror(errno));
+        status = FAILURE;
+        break;
+      }
+
+      res = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+      if (res < 0)
+      {
+        LOG_ERROR("Could not set cancellability of temp task, %s",
+                  strerror(res));
+        status = FAILURE;
+        break;
+      }
+
+      res = pthread_create(&temp_task, NULL, temp_thread, NULL);
+      if (res < 0)
+      {
+        LOG_ERROR("Could not create temp task, %s", strerror(res));
+        status = FAILURE;
+        break;
+      }
     }
     SEND_INIT_COMPLETE();
   } while(0);
   return status;
 }
 
-status_t dest_temp()
+status_t dest_temp(uint8_t dest_task)
 {
   FUNC_ENTRY;
   int32_t res = 0;
   status_t status = SUCCESS;
 
-  res = pthread_cancel(temp_task);
-  if (res < 0)
+  if (dest_task == 1)
   {
-    LOG_ERROR("Could not create temp task, continuing with shutdown, %s",
-              strerror(res));
-    status = FAILURE;
-  }
+    res = pthread_cancel(temp_task);
+    if (res < 0)
+    {
+      LOG_ERROR("Could not create temp task, continuing with shutdown, %s",
+                strerror(res));
+      status = FAILURE;
+    }
 
-  res = pthread_join(temp_task, NULL);
-  if (res < 0)
-  {
-    LOG_ERROR("Temp task could not join, continuing with shutdown %s",
-              strerror(res));
-    status = FAILURE;
-  }
-  else
-  {
-    LOG_HIGH("Temp task joined");
-  }
+    res = pthread_join(temp_task, NULL);
+    if (res < 0)
+    {
+      LOG_ERROR("Temp task could not join, continuing with shutdown %s",
+                strerror(res));
+      status = FAILURE;
+    }
+    else
+    {
+      LOG_HIGH("Temp task joined");
+    }
 
-  // Unregister temp request handler
-  res = unregister_cb(TEMP_REQ, TEMP_TASK, temp_req);
-  if (res == FAILURE)
-  {
-    LOG_ERROR("Could not unregister callback, %s", strerror(errno));
-    status = FAILURE;
-  }
+    // Unregister temp request handler
+    res = unregister_cb(TEMP_REQ, TEMP_TASK, temp_req);
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not unregister callback, %s", strerror(errno));
+      status = FAILURE;
+    }
 
-  res = tmp102_dest();
-  if (res == FAILURE)
-  {
-    LOG_ERROR("Destroy tmp102 sensor");
-    status = FAILURE;
+    res = tmp102_dest();
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Destroy tmp102 sensor");
+      status = FAILURE;
+    }
   }
   mq_close(msg_q);
   return status;

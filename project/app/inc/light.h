@@ -31,13 +31,13 @@ typedef struct is_dark_rsp
 * @brief Initialize light task
 * @return status of initializing light
 */
-status_t init_light();
+status_t init_light(uint8_t start_task);
 
 /*!
 * @brief Destroy light task
 * @return status of destroying light
 */
-status_t dest_light();
+status_t dest_light(uint8_t dest_task);
 
 /*!
 * @brief Determine if it is dark

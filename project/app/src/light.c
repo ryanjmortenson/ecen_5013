@@ -196,7 +196,7 @@ status_t send_is_dark_req(task_id_t from)
   return status;
 }
 
-status_t init_light()
+status_t init_light(uint8_t start_task)
 {
   FUNC_ENTRY;
   status_t status = SUCCESS;
@@ -204,31 +204,6 @@ status_t init_light()
 
   do
   {
-    res = apds9301_init(I2C_BUS);
-    if (res == FAILURE)
-    {
-      LOG_ERROR("Could not init apds9301");
-      status = FAILURE;
-      break;
-    }
-
-    // Register light request handler
-    res = register_cb(LIGHT_REQ, LIGHT_TASK, light_req);
-    if (res == FAILURE)
-    {
-      LOG_ERROR("Could not register callback, %s", strerror(errno));
-      status = FAILURE;
-      break;
-    }
-
-    res = register_cb(IS_DARK_REQ, LIGHT_TASK, is_dark_req);
-    if (res == FAILURE)
-    {
-      LOG_ERROR("Could not register callback, %s", strerror(errno));
-      status = FAILURE;
-      break;
-    }
-
     msg_q = get_writeable_queue();
     if (msg_q < 0)
     {
@@ -237,82 +212,112 @@ status_t init_light()
       break;
     }
 
-    if (send_hb_setup(PERIOD_US / 1000000, LIGHT_TASK))
+    if (start_task == 1)
     {
-      LOG_ERROR("Could not set up heartbeat");
-      status = FAILURE;
-      break;
-    }
+      if (send_hb_setup(PERIOD_US / 1000000, LIGHT_TASK))
+      {
+        LOG_ERROR("Could not set up heartbeat");
+        status = FAILURE;
+        break;
+      }
 
-    res = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-    if (res < 0)
-    {
-      LOG_ERROR("Could not set cancellability of light task, %s",
-                strerror(res));
-      status = FAILURE;
-      break;
-    }
+      res = apds9301_init(I2C_BUS);
+      if (res == FAILURE)
+      {
+        LOG_ERROR("Could not init apds9301");
+        status = FAILURE;
+        break;
+      }
 
-    res = pthread_create(&light_task, NULL, light_thread, NULL);
-    if (res < 0)
-    {
-      LOG_ERROR("Could not create light task, %s", strerror(res));
-      status = FAILURE;
-      break;
+      // Register light request handler
+      res = register_cb(LIGHT_REQ, LIGHT_TASK, light_req);
+      if (res == FAILURE)
+      {
+        LOG_ERROR("Could not register callback, %s", strerror(errno));
+        status = FAILURE;
+        break;
+      }
+
+      res = register_cb(IS_DARK_REQ, LIGHT_TASK, is_dark_req);
+      if (res == FAILURE)
+      {
+        LOG_ERROR("Could not register callback, %s", strerror(errno));
+        status = FAILURE;
+        break;
+      }
+
+      res = pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+      if (res < 0)
+      {
+        LOG_ERROR("Could not set cancellability of light task, %s",
+                  strerror(res));
+        status = FAILURE;
+        break;
+      }
+
+      res = pthread_create(&light_task, NULL, light_thread, NULL);
+      if (res < 0)
+      {
+        LOG_ERROR("Could not create light task, %s", strerror(res));
+        status = FAILURE;
+        break;
+      }
     }
     SEND_INIT_COMPLETE();
   } while(0);
   return status;
 }
 
-status_t dest_light()
+status_t dest_light(uint8_t dest_task)
 {
   FUNC_ENTRY;
   int32_t res = 0;
   status_t status = SUCCESS;
 
-  res = pthread_cancel(light_task);
-  if (res < 0)
+  if (dest_task == 1)
   {
-    LOG_ERROR("Could not create light task, continuing with shutdown, %s",
-              strerror(res));
-    status = FAILURE;
-  }
+    res = pthread_cancel(light_task);
+    if (res < 0)
+    {
+      LOG_ERROR("Could not create light task, continuing with shutdown, %s",
+                strerror(res));
+      status = FAILURE;
+    }
 
-  res = pthread_join(light_task, NULL);
-  if (res < 0)
-  {
-    LOG_ERROR("Temp task could not join, continuing with shutdown %s",
-              strerror(res));
-    status = FAILURE;
-  }
-  else
-  {
-    LOG_HIGH("Light task joined");
-  }
+    res = pthread_join(light_task, NULL);
+    if (res < 0)
+    {
+      LOG_ERROR("Temp task could not join, continuing with shutdown %s",
+                strerror(res));
+      status = FAILURE;
+    }
+    else
+    {
+      LOG_HIGH("Light task joined");
+    }
 
-  // Unregister light request handlers
-  res = unregister_cb(LIGHT_REQ, LIGHT_TASK, light_req);
-  if (res == FAILURE)
-  {
-    LOG_ERROR("Could not unregister callback");
-    status = FAILURE;
-  }
+    // Unregister light request handlers
+    res = unregister_cb(LIGHT_REQ, LIGHT_TASK, light_req);
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not unregister callback");
+      status = FAILURE;
+    }
 
-  res = unregister_cb(IS_DARK_REQ, LIGHT_TASK, is_dark_req);
-  if (res == FAILURE)
-  {
-    LOG_ERROR("Could not unregister callback");
-    status = FAILURE;
-  }
+    res = unregister_cb(IS_DARK_REQ, LIGHT_TASK, is_dark_req);
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not unregister callback");
+      status = FAILURE;
+    }
 
-  res = apds9301_dest();
-  if (res == FAILURE)
-  {
-    LOG_ERROR("Could not destroy apds9301");
-    status = FAILURE;
+    res = apds9301_dest();
+    if (res == FAILURE)
+    {
+      LOG_ERROR("Could not destroy apds9301");
+      status = FAILURE;
+    }
   }
-
   mq_close(msg_q);
   return status;
 }

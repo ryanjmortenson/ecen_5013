@@ -35,13 +35,13 @@ typedef struct temp_rsp
 * @brief Initialize temperature task
 * @return status of initializing temp
 */
-status_t init_temp();
+status_t init_temp(uint8_t start_task);
 
 /*!
 * @brief Destroy temperature task
 * @return status of destroying temp
 */
-status_t dest_temp();
+status_t dest_temp(uint8_t dest_task);
 
 /*!
 * @brief Sends a request for temperature
