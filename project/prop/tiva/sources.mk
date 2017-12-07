@@ -14,6 +14,12 @@ TIVA_PROP_SRCS+= \
 
 # Build a list of objects and dependencies
 TIVA_PROP_OBJS=$(subst src,out,$(patsubst %.S,%.o,$(patsubst %.c,%.o,$(TIVA_PROP_SRCS))))
+TIVA_PROP_OBJS += $(TIVA_PROP_OUT)/queue.o \
+                  $(TIVA_PROP_OUT)/lwiplib.o \
+                  $(TIVA_PROP_OUT)/tasks.o \
+                  $(TIVA_PROP_OUT)/list.o \
+                  $(TIVA_PROP_OUT)/port.o \
+                  $(TIVA_PROP_OUT)/heap_5.o
 TIVA_PROP_DEPS=$(patsubst %.o,%.d,$(TIVA_PROP_OBJS))
 
 # Build a list of things to clean

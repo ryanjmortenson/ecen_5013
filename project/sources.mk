@@ -62,12 +62,6 @@ SRC_LIST = $(subst $(APP_SRC_DIR)/,,$(APP_SRC_CPP))
 X86_OBJS = $(subst src,out/$(X86),$(patsubst %.c,%.o,$(APP_SRC_C)))
 BBB_OBJS = $(subst src,out/$(BBB),$(patsubst %.c,%.o,$(APP_SRC_C)))
 TIVA_OBJS = $(subst src,out/$(TIVA),$(patsubst %.c,%.o,$(APP_SRC_C)))
-TIVA_OBJS += $(OUT_DIR)/lwiplib.o \
-						 $(OUT_DIR)/queue.o \
-						 $(OUT_DIR)/tasks.o \
-						 $(OUT_DIR)/list.o \
-						 $(OUT_DIR)/port.o \
-						 $(OUT_DIR)/heap_5.o
 X86_TEST_OBJS = $(subst src,out/$(X86),$(patsubst %.c,%.o,$(TEST_SRC)))
 BBB_TEST_OBJS = $(subst src,out/$(BBB),$(patsubst %.c,%.o,$(TEST_SRC)))
 TIVA_TEST_OBJS = $(subst src,out/$(TIVA),$(patsubst %.c,%.o,$(TEST_SRC)))

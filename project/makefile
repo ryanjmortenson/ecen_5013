@@ -91,6 +91,12 @@ else
 	CFLAGS+=-D LOG_LEVEL=$(LOG_LEVEL)
 endif
 
+# Build will build project
+build:
+	$(MAKE) main_client.out PLATFORM=bbb COLOR_LOGS=t LOG_LEVEL=3
+	$(MAKE) main_server.out COLOR_LOGS=t LOG_LEVEL=3
+	$(MAKE) main_tiva.axf PLATFORM=tiva LOG_LEVEL=0
+
 # Call sub make files to build dependencies for each target
 -include sources.mk
 -include prop/bbb/subdir.mk
@@ -159,12 +165,6 @@ BUILD_WITH=@echo "Building with $<"
 
 # Set PHONY for all targets that don't have outputs for tracking
 .PHONY: build build-lib compile-all debug allasm alli allobjdump clean test
-
-# Build will build project
-build:
-	$(MAKE) main_client.out PLATFORM=bbb COLOR_LOGS=t LOG_LEVEL=3
-	$(MAKE) main_server.out COLOR_LOGS=t LOG_LEVEL=3
-	$(MAKE) main_tiva.axf PLATFORM=tiva LOG_LEVEL=0
 
 # PHONY target so you don't have to type .out
 test:
@@ -264,31 +264,6 @@ allobjdump: $(OBJS) $(EXERCISE_OUT_FILE)
 	$(BUILD_TARGET)
 	$(BUILD_WITH)
 	$(OBJDUMP) -D "$<" > "$@"
-
-# lwip lib is a special snow flake and needs to be built differently (
-# no -Werr or -Wall
-$(OUT_DIR)/lwiplib.o:$(TIVA_WARE_LOCATION)/utils/lwiplib.c
-	$(BUILD_TARGET)
-	$(BUILD_WITH)
-	$(CC) $(TIVA_CFLAGS) -g3 -O3 -DLWIP_LIB -c -o "$@" "$<"
-
-# Build the freertos "main" functionailty
-$(OUT_DIR)/%.o:./freertos/FreeRTOS/Source/%.c
-	$(BUILD_TARGET)
-	$(BUILD_WITH)
-	$(CC) $(TIVA_CFLAGS) -c -o "$@" "$<"
-
-# Build the freertos port functionality
-$(OUT_DIR)/port.o:./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c
-	$(BUILD_TARGET)
-	$(BUILD_WITH)
-	$(CC) $(TIVA_CFLAGS) -c -o "$@" "$<"
-
-# Build the freertos memory manager
-$(OUT_DIR)/heap_5.o:./freertos/FreeRTOS/Source/portable/MemMang/heap_5.c
-	$(BUILD_TARGET)
-	$(BUILD_WITH)
-	$(CC) $(TIVA_CFLAGS) -c -o "$@" "$<"
 
 # Builds .o files from .c files
 $(OUT_DIR)/%.o: CFLAGS+=-MD -MP
