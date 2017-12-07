@@ -440,6 +440,11 @@ extern void UARTprintf(const char *pcString, ...);
 //#define SNMP_MSG_DEBUG                  LWIP_DBG_OFF
 //#define SNMP_MIB_DEBUG                  LWIP_DBG_OFF
 //#define DNS_DEBUG                       LWIP_DBG_OFF
+#ifndef LWIP_LIB
 #define LWIP_TIMEVAL_PRIVATE 0
+#else
+#define LWIP_TIMEVAL_PRIVATE 1
+#endif
+
 
 #endif /* __LWIPOPTS_H__ */

@@ -36,13 +36,7 @@ endif
 # Add mock i2c if platform isn't
 ifeq ($(PLATFORM),tiva)
 APP_SRC_C += \
-	$(APP_SRC_DIR)/tiva_main.c \
-	$(TIVA_WARE_LOCATION)/utils/lwiplib.c \
-  ./freertos/FreeRTOS/Source/queue.c \
-  ./freertos/FreeRTOS/Source/tasks.c \
-  ./freertos/FreeRTOS/Source/list.c \
-  ./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c \
-  ./freertos/FreeRTOS/Source/portable/MemMang/heap_5.c
+	$(APP_SRC_DIR)/tiva_main.c
 else
 APP_SRC_C += \
 	$(APP_SRC_DIR)/server_task.c \
@@ -68,6 +62,12 @@ SRC_LIST = $(subst $(APP_SRC_DIR)/,,$(APP_SRC_CPP))
 X86_OBJS = $(subst src,out/$(X86),$(patsubst %.c,%.o,$(APP_SRC_C)))
 BBB_OBJS = $(subst src,out/$(BBB),$(patsubst %.c,%.o,$(APP_SRC_C)))
 TIVA_OBJS = $(subst src,out/$(TIVA),$(patsubst %.c,%.o,$(APP_SRC_C)))
+TIVA_OBJS += $(OUT_DIR)/lwiplib.o \
+						 $(OUT_DIR)/queue.o \
+						 $(OUT_DIR)/tasks.o \
+						 $(OUT_DIR)/list.o \
+						 $(OUT_DIR)/port.o \
+						 $(OUT_DIR)/heap_5.o
 X86_TEST_OBJS = $(subst src,out/$(X86),$(patsubst %.c,%.o,$(TEST_SRC)))
 BBB_TEST_OBJS = $(subst src,out/$(BBB),$(patsubst %.c,%.o,$(TEST_SRC)))
 TIVA_TEST_OBJS = $(subst src,out/$(TIVA),$(patsubst %.c,%.o,$(TEST_SRC)))

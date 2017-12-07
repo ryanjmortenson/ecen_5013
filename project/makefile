@@ -265,6 +265,31 @@ allobjdump: $(OBJS) $(EXERCISE_OUT_FILE)
 	$(BUILD_WITH)
 	$(OBJDUMP) -D "$<" > "$@"
 
+# lwip lib is a special snow flake and needs to be built differently (
+# no -Werr or -Wall
+$(OUT_DIR)/lwiplib.o:$(TIVA_WARE_LOCATION)/utils/lwiplib.c
+	$(BUILD_TARGET)
+	$(BUILD_WITH)
+	$(CC) $(TIVA_CFLAGS) -g3 -O3 -DLWIP_LIB -c -o "$@" "$<"
+
+# Build the freertos "main" functionailty
+$(OUT_DIR)/%.o:./freertos/FreeRTOS/Source/%.c
+	$(BUILD_TARGET)
+	$(BUILD_WITH)
+	$(CC) $(TIVA_CFLAGS) -c -o "$@" "$<"
+
+# Build the freertos port functionality
+$(OUT_DIR)/port.o:./freertos/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.c
+	$(BUILD_TARGET)
+	$(BUILD_WITH)
+	$(CC) $(TIVA_CFLAGS) -c -o "$@" "$<"
+
+# Build the freertos memory manager
+$(OUT_DIR)/heap_5.o:./freertos/FreeRTOS/Source/portable/MemMang/heap_5.c
+	$(BUILD_TARGET)
+	$(BUILD_WITH)
+	$(CC) $(TIVA_CFLAGS) -c -o "$@" "$<"
+
 # Builds .o files from .c files
 $(OUT_DIR)/%.o: CFLAGS+=-MD -MP
 $(OUT_DIR)/%.o: $(APP_SRC_DIR)/%.c
