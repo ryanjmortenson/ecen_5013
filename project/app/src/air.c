@@ -47,6 +47,7 @@ void * air_req(void * param)
   air_rsp_t air_rsp;
   message_t out = MSG_INIT(AIR_RSP, in->from, AIR_TASK);
 
+  SEND_LOG_MED("Reading air quality");
   if (send_msg(msg_q, &out, &air_rsp, sizeof(air_rsp)) != SUCCESS)
   {
     LOG_ERROR("Could not send air reading");
