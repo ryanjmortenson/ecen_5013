@@ -38,7 +38,7 @@ void * air_rsp_handler(void * param)
   CHECK_NULL2(param);
   message_t * msg = (message_t *)param;
   air_rsp_t * rsp = (air_rsp_t *)msg->msg;
-  SEND_LOG_HIGH("Air rsp: %d, %f", rsp->type, rsp->reading);
+  SEND_LOG_HIGH("Air rsp: %d, %d", rsp->type, rsp->reading);
   return NULL;
 }
 
