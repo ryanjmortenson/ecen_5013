@@ -7,7 +7,7 @@
 status_t mutex_init(SemaphoreHandle_t * sem);
 
 #define pthread_t TaskHandle_t
-#define pthread_create(thread, attrs, func, params) xTaskCreate(func, "THREAD", 1024, NULL, 3, thread);
+#define pthread_create(thread, attrs, func, params) xTaskCreate(func, "THREAD", 1024, NULL, 9, thread);
 #define PTHREAD_RETURN_TYPE void
 #define PTHREAD_RETURN(val) vTaskDelete(NULL)
 #define pthread_join(thread, val) (0)
