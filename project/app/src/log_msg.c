@@ -15,6 +15,7 @@
 #endif
 #include <stdarg.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -61,6 +62,18 @@ static mqd_t msg_q;
 #define FILE_NAME_BUF_MAX (32)
 #define FUNCTION_MAX (20)
 
+static inline void tv_to_ts(struct timeval *tv, timestruct_t * ts)
+{
+  ts->seconds = tv->tv_sec;
+  ts->useconds = tv->tv_usec;
+}
+
+static inline void ts_to_tv(timestruct_t * ts, struct timeval * tv)
+{
+  tv->tv_sec = ts->seconds;
+  tv->tv_usec = ts->useconds;
+}
+
 /*!
 * @brief Send a log message via message queue
 * @param[in] level logging level for this statement
@@ -79,32 +92,39 @@ void send_log
   ...
 )
 {
-  log_msg_t log;
+  log_msg_t * log;
   va_list var_args;
   char * fmt;
+  struct timeval tv;
   char fmt_buffer[LOG_BUFFER_MAX];
   message_t msg = MSG_INIT(LOG, LOG_TASK, from);
 
-  if (msg_q > 0)
+  log = malloc(sizeof(*log));
+
+  if (log != NULL && msg_q > 0)
   {
+    memset(log, 0, sizeof(*log));
+
     // Fill out the "easy" parts of the log message
-    log.level = level;
-    log.line_no = line_no;
-    memcpy(log.file_name, file_name, FILE_NAME_BUF_MAX);
-    memcpy(log.function, function, FUNCTION_MAX);
+    log->level = level;
+    log->line_no = line_no;
+    memcpy(log->file_name, file_name, FILE_NAME_BUF_MAX);
+    memcpy(log->function, function, FUNCTION_MAX);
 
     // File out the message porition by going through var args
     va_start(var_args, from);
     fmt = va_arg(var_args, char *);
     vsnprintf(fmt_buffer, LOG_BUFFER_MAX, fmt, var_args);
-    memcpy(log.message, fmt_buffer, LOG_BUFFER_MAX);
+    memcpy(log->message, fmt_buffer, LOG_BUFFER_MAX);
 
     // Send the top level message
-    gettimeofday(&log.tv, NULL);
-    if (send_msg(msg_q, &msg, &log, sizeof(log)))
+    gettimeofday(&tv, NULL);
+    tv_to_ts(&tv, &log->ts);
+    if (send_msg(msg_q, &msg, log, sizeof(*log)))
     {
       LOG_ERROR("Could not send log message");
     }
+    free(log);
   }
 }
 
@@ -118,8 +138,10 @@ static void * print_log(void * param)
 {
   message_t * msg = (message_t *)param;
   log_msg_t * log = (log_msg_t *)msg->msg;
+  struct timeval tv;
   char ts[TIMESTAMP_LEN];
-  create_timestamp(&log->tv, ts);
+  ts_to_tv(&log->ts, &tv);
+  create_timestamp(&tv, ts);
   if (log->level < LOG_LEVEL || log->level > LOG_LEVEL_FUNC)
   {
 #ifndef UNITTEST
@@ -147,8 +169,10 @@ static void * write_log(void * param)
   log_msg_t * log = (log_msg_t*)msg->msg;
   char log_buf[LOG_BUFFER_MAX];
   size_t len;
+  struct timeval tv;
   char ts[TIMESTAMP_LEN];
-  create_timestamp(&log->tv, ts);
+  ts_to_tv(&log->ts, &tv);
+  create_timestamp(&tv, ts);
   len = snprintf(log_buf,
                  LOG_BUFFER_MAX,
                  LOG_FMT,

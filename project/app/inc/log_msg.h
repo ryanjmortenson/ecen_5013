@@ -12,13 +12,18 @@
 #include <sys/time.h>
 #include "workers.h"
 
+typedef struct timestruct {
+  uint32_t seconds;
+  uint32_t useconds;
+} timestruct_t;
+
 typedef struct log_msg {
   uint8_t level;
   char file_name[128];
   char function[32];
   uint32_t line_no;
   char message[256];
-  struct timeval tv;
+  timestruct_t ts;
 } log_msg_t;
 
 /*!
