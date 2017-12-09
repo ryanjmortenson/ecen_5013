@@ -138,9 +138,8 @@ status_t send_hb(task_id_t from)
   FUNC_ENTRY;
   status_t status = SUCCESS;
   message_t msg = MSG_INIT(HEARTBEAT, TASK_ID, from);
-  uint8_t byte;
 
-  if (send_msg(msg_q, &msg, &byte, 1) != SUCCESS)
+  if (send_msg(msg_q, &msg, NULL, 0) != SUCCESS)
   {
     LOG_ERROR("Could not send heartbeat");
     status = FAILURE;
