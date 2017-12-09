@@ -94,7 +94,7 @@ void * hb_handler(void * param)
   memset(&new_value, 0, sizeof(new_value));
   new_value.it_value.tv_sec = reg->period_seconds * 3;
 
-  SEND_LOG_LOW("Received heartbeat from %d", msg->from);
+  SEND_LOG_LOW("Received heartbeat from %s", task_str[msg->from]);
   if (reg->timerid != 0)
   {
     res = timer_settime(reg->timerid, 0, &new_value, NULL);
