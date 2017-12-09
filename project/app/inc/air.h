@@ -28,7 +28,7 @@ typedef struct air_req
 typedef struct air_rsp
 {
   air_meas_type_t type;
-  float reading;
+  uint16_t reading;
 } air_rsp_t;
 
 /*!

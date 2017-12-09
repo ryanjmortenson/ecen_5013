@@ -35,4 +35,6 @@ status_t ccs811_init(int32_t i2c_bus);
 status_t ccs811_dest();
 status_t ccs811_w_reg(ccs811_addr_t reg, uint8_t * bytes, uint8_t len);
 status_t ccs811_start_app();
+status_t ccs811_r_tvoc(uint16_t * tvoc);
+status_t ccs811_r_co2(uint16_t * co2);
 #endif // _CCS811_H

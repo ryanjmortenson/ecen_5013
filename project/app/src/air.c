@@ -44,10 +44,28 @@ void * air_req(void * param)
   FUNC_ENTRY;
   CHECK_NULL2(param);
   message_t * in = (message_t *)param;
-  air_rsp_t air_rsp;
+  air_req_t * air = (air_req_t *)in->msg;
+  air_rsp_t air_rsp = {0};
   message_t out = MSG_INIT(AIR_RSP, in->from, AIR_TASK);
 
-  SEND_LOG_MED("Reading air quality");
+  air_rsp.type = air->type;
+  if (air->type == AIR_TVOC)
+  {
+    SEND_LOG_MED("Reading TVOC");
+    if (ccs811_r_tvoc(&air_rsp.reading) != SUCCESS)
+    {
+      LOG_ERROR("TVOC Reading failed");
+    }
+  }
+  else
+  {
+    SEND_LOG_MED("Reading CO2");
+    if (ccs811_r_co2(&air_rsp.reading) != SUCCESS)
+    {
+      LOG_ERROR("CO2 Reading failed");
+    }
+  }
+
   if (send_msg(msg_q, &out, &air_rsp, sizeof(air_rsp)) != SUCCESS)
   {
     LOG_ERROR("Could not send air reading");
