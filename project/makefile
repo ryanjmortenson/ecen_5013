@@ -119,7 +119,7 @@ else ifneq ($(findstring armv7,$(shell uname -a)),)
 	CC=gcc
 endif
 	CFLAGS+=-DBBB \
-					-I$(BBB_PROP_INC_DIR)
+          -I$(BBB_PROP_INC_DIR)
 	OBJS=$(BBB_PROP_OBJS) \
        $(BBB_OBJS)
 	OBJS+=$(OUT_DIR)/$(patsubst %.out,%.o,$(MAKECMDGOALS))
@@ -130,12 +130,12 @@ else ifeq ($(PLATFORM),tiva)
 	VERSION=$(shell $(CC) -dumpversion)
 	CFLAGS+=$(TIVA_CFLAGS)
 	LD_FLAGS=-g \
-					 -L$(TIVA_WARE_LOCATION)/driverlib/gcc \
+           -L$(TIVA_WARE_LOCATION)/driverlib/gcc \
            -L/usr/lib/arm-none-eabi/lib/armv7e-m/fpu \
            -L/usr/lib/gcc/arm-none-eabi/$(VERSION)/armv7e-m/fpu \
            -Tprop/tiva/linker/linker_script.ld  \
-					 --entry ResetISR  \
-					 --gc-sections
+           --entry ResetISR  \
+           --gc-sections
 	OBJS=$(TIVA_PROP_OBJS) \
        $(TIVA_OBJS)
 	OUT_DIR=$(TIVA_APP_OUT)
@@ -282,10 +282,11 @@ CLEAN+=$(OUT) \
        exercise*.out \
        *.map \
        *.objdump \
-			 main.out \
-			 main_server.out \
-			 *.log \
-			 *.axf \
+       main.out \
+       main_server.out \
+       main_client.out \
+       *.log \
+       *.axf \
        $(UNIT_TEST_OUT) \
        $(LIB_OUT_FILE) \
        $(CMOCKA_LIB)
