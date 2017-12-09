@@ -17,6 +17,7 @@
 #include <unistd.h>
 
 #include "air.h"
+#include "humidity.h"
 #include "light.h"
 #include "log.h"
 #include "log_msg.h"
@@ -186,6 +187,13 @@ status_t init_main_server_task(int argc, char *argv[])
       break;
     }
 
+    if (init_humidity(0) != SUCCESS)
+    {
+      LOG_ERROR("Could not initialize humidity");
+      status = FAILURE;
+      break;
+    }
+
     if (init_air(0) != SUCCESS)
     {
       LOG_ERROR("Could not initialize air");
@@ -240,6 +248,12 @@ status_t dest_main_server_task()
   if (dest_temp(0) != SUCCESS)
   {
     LOG_ERROR("Could not destroy temp task");
+    status = FAILURE;
+  }
+
+  if (dest_humidity(0) != SUCCESS)
+  {
+    LOG_ERROR("Could not destroy air task");
     status = FAILURE;
   }
 

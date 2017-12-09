@@ -33,6 +33,8 @@ typedef enum type {
   LIGHT_RSP,
   IS_DARK_REQ,
   IS_DARK_RSP,
+  HUMIDITY_REQ,
+  HUMIDITY_RSP,
   HEARTBEAT_SETUP,
   HEARTBEAT,
   UNROUTED
@@ -47,6 +49,7 @@ typedef enum task_id {
   AIR_TASK,
   CLIENT_TASK,
   SERVER_TASK,
+  HUMIDITY_TASK,
   TEST_TASK,
   TASK_ID_LIST_END
 } task_id_t;

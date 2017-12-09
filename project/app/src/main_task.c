@@ -17,6 +17,7 @@
 #include <unistd.h>
 
 #include "air.h"
+#include "humidity.h"
 #include "light.h"
 #include "log.h"
 #include "log_msg.h"
@@ -311,6 +312,13 @@ status_t init_main_task(int argc, char *argv[])
       break;
     }
 
+    if (init_air(1) != SUCCESS)
+    {
+      LOG_ERROR("Could not initialize humidity");
+      status = FAILURE;
+      break;
+    }
+
 #ifdef BBB
     if (init_led(USR3_LED) != SUCCESS)
     {
@@ -334,6 +342,12 @@ status_t init_main_task(int argc, char *argv[])
 status_t dest_main_task()
 {
   status_t status = SUCCESS;
+
+  if (dest_humidity(1) != SUCCESS)
+  {
+    LOG_ERROR("Could not destory light task");
+    status = FAILURE;
+  }
 
   if (dest_air(1) != SUCCESS)
   {

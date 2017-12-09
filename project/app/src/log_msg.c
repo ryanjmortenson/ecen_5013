@@ -40,6 +40,7 @@ char * task_str[] = {
   [TEMP_TASK] = "TEMP_TASK",
   [LOG_TASK] = "LOG_TASK",
   [AIR_TASK] = "AIR_TASK",
+  [HUMIDITY_TASK] = "HUMIDITY_TASK",
   [CLIENT_TASK] = "CLIENT_TASK",
   [SERVER_TASK] = "SERVER_TASK",
   [TEST_TASK] = "TEST_TASK"

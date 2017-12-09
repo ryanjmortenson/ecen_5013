@@ -18,6 +18,7 @@
 
 #include "air.h"
 #include "light.h"
+#include "humidity.h"
 #include "log.h"
 #include "log_msg.h"
 #include "main_client_task.h"
@@ -135,6 +136,13 @@ status_t init_main_client_task(int argc, char *argv[])
       break;
     }
 
+    if (init_humidity(1) != SUCCESS)
+    {
+      LOG_ERROR("Could not initialize humidity");
+      status = FAILURE;
+      break;
+    }
+
     if (init_light(1) != SUCCESS)
     {
       LOG_ERROR("Could not initialize light");
@@ -165,6 +173,12 @@ status_t init_main_client_task(int argc, char *argv[])
 status_t dest_main_client_task()
 {
   status_t status = SUCCESS;
+
+  if (dest_humidity(1) != SUCCESS)
+  {
+    LOG_ERROR("Could not destroy humidity task");
+    status = FAILURE;
+  }
 
   if (dest_temp(1) != SUCCESS)
   {
