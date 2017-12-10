@@ -46,6 +46,11 @@ uint8_t hum_setting = 0x01;
 uint8_t meas_setting = 0x27;
 uint8_t config_setting = 0;
 
+/*!
+* @brief Compensate temperature from bme280
+* @param temp the temperature data read from bme280
+* @return compensated temperature
+*/
 static uint32_t comp_temp(uint32_t temp)
 {
     uint32_t first = (((temp >> 3) - (comps.t1_val << 1)) * comps.t2_val) >> 11;
@@ -54,6 +59,11 @@ static uint32_t comp_temp(uint32_t temp)
     return (comps.t_fine * 5 + 128) >> 8;
 }
 
+/*!
+* @brief Compensate humidity from bme280
+* @param humidity read from bme280
+* @return compensated humidity
+*/
 static inline uint32_t comp_hum(int32_t humidity)
 {
   int32_t hum;
@@ -79,6 +89,7 @@ status_t bme280_init(int32_t i2c_bus)
       break;
     }
 
+    // Set 3 registers to put bme280 into measurement mode
     if (bme280_w_reg(BME280_CTRL_HUM, &hum_setting, 1) != SUCCESS)
     {
       LOG_ERROR("Could not read E5 comp");
@@ -104,6 +115,7 @@ status_t bme280_init(int32_t i2c_bus)
     // values returned are not correct
     usleep(1000000);
 
+    // Read required registers to get compensation values
     if (bme280_r_reg(BME280_DIG_E5, (uint8_t *)&comps.e5_val, 1) != SUCCESS)
     {
       LOG_ERROR("Could not read E5 comp");

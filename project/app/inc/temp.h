@@ -47,7 +47,7 @@ status_t dest_temp(uint8_t dest_task);
 * @brief Sends a request for temperature
 * @param temp_units units for the temp to returned in
 * @param staleness of reading (read new or keep old)
-* @return status of destroying temp
+* @return status of sending message
 */
 status_t send_temp_req
 (

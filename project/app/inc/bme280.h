@@ -33,10 +33,42 @@ typedef enum bme280_addr {
   BME280_DIG_T3  = 0x8c
 } bme280_addr_t;
 
+/*!
+* @brief Initialize bme280 module
+* @param i2c_bus the i2c bus being used
+* @return status of initializing bme280 module
+*/
 status_t bme280_init(int32_t i2c_bus);
+
+/*!
+* @brief Destroy bme280 module
+* @return status of destroying bme280
+*/
 status_t bme280_dest();
+
+/*!
+* @brief Generic write register bytes
+* @param[in] reg which register to write
+* @param[in] bytes to write from register
+* @param[in] len num bytes to write
+* @return status of writing register
+*/
 status_t bme280_w_reg(bme280_addr_t reg, uint8_t * bytes, uint8_t len);
+
+/*!
+* @brief Generic read register bytes
+* @param[in] reg which register to read
+* @param[out] bytes place to store bytes read from register
+* @param[in] len num bytes to read
+* @return status of reading register
+*/
 status_t bme280_r_reg(bme280_addr_t reg, uint8_t * bytes, uint8_t len);
+
+/*!
+* @brief Read humidity
+* @param[out] humidity output
+* @return status of reading humidity
+*/
 status_t bme280_r_humidity(uint16_t * humidity);
 
 #endif // _BME280_H

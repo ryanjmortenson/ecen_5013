@@ -33,6 +33,11 @@ status_t init_humidity(uint8_t start_task);
 */
 status_t dest_humidity(uint8_t dest_task);
 
+/*!
+* @brief Sends a request for humidity
+* @param staleness of reading (read new or keep old)
+* @return status of sending request
+*/
 status_t send_humidity_req(staleness_t staleness, task_id_t from);
 
 #endif /* _HUMIDITY_H */

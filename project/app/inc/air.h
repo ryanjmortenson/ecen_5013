@@ -43,5 +43,11 @@ status_t init_air(uint8_t start_task);
 */
 status_t dest_air(uint8_t dest_task);
 
+/*!
+* @brief Sends a request for air quality
+* @param type type either tvoc or co2
+* @param staleness of reading (read new or keep old)
+* @return status of sending request
+*/
 status_t send_air_req(air_meas_type_t type, staleness_t staleness, task_id_t from);
 #endif /* _AIR_H */

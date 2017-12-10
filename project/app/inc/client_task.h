@@ -9,6 +9,16 @@
 #ifndef _CLIENT_TASK_H
 #define _CLIENT_TASK_H
 
+/*!
+* @brief Initialize client task
+* @return status of client
+*/
 uint32_t client_init();
+
+/*!
+* @brief Destroy client task
+* @return status of destroying client
+*/
+status_t client_dest();
 
 #endif // _CLIENT_TASK_H

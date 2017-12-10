@@ -1,3 +1,11 @@
+/** @file sbrk.c
+*
+* @brief Make an sbrk to use with malloc
+* @author Ryan Mortenson
+* @tools GCC 5.4.0, vim 7.4, make 4.1, Ubuntu 16.04
+*
+*/
+
 #include <sys/stat.h>
 #include <stdint.h>
 

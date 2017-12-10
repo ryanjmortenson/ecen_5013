@@ -9,7 +9,16 @@
 #ifndef _SERVER_TASK_H
 #define _SERVER_TASK_H
 
+/*!
+* @brief Initialize server task
+* @return status of server
+*/
 status_t server_init();
+
+/*!
+* @brief Destroy server task
+* @return status of destroying server
+*/
 status_t server_dest();
 
 #endif // _SERVER_TASK_H
