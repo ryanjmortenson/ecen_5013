@@ -20,7 +20,7 @@
 
 void test_light_init(void **state)
 {
-  assert_int_equal(init_light(), FAILURE);
+  assert_int_equal(init_light(1), FAILURE);
 }
 
 void test_is_dark(void **state)
@@ -32,5 +32,5 @@ void test_is_dark(void **state)
 
 void test_light_dest(void **state)
 {
-  assert_int_equal(dest_light(), FAILURE);
+  assert_int_equal(dest_light(1), FAILURE);
 }

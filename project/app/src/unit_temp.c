@@ -19,10 +19,10 @@
 
 void test_temp_init(void **state)
 {
-  assert_int_equal(init_temp(), FAILURE);
+  assert_int_equal(init_temp(1), FAILURE);
 }
 
 void test_temp_dest(void **state)
 {
-  assert_int_equal(dest_temp(), FAILURE);
+  assert_int_equal(dest_temp(1), FAILURE);
 }

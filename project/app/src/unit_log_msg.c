@@ -31,10 +31,10 @@ void test_log_msg_init(void **state)
 {
   struct stat fstat;
   assert_int_equal(log_msg_dest(), FAILURE);
-  assert_int_equal(log_msg_init(NULL), FAILURE);
-  assert_int_equal(log_msg_init(TEST_LOG_NAME), FAILURE);
+  assert_int_equal(log_msg_init(NULL, 0), SUCCESS);
+  assert_int_equal(log_msg_init(TEST_LOG_NAME, 0), FAILURE);
   assert_int_equal(init_workers(1), SUCCESS);
-  assert_int_equal(log_msg_init(TEST_LOG_NAME), SUCCESS);
+  assert_int_equal(log_msg_init(TEST_LOG_NAME, 1), SUCCESS);
   assert_int_equal(stat(TEST_LOG_NAME, &fstat), 0);
 }
 
