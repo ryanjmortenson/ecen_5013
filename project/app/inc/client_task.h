@@ -9,11 +9,13 @@
 #ifndef _CLIENT_TASK_H
 #define _CLIENT_TASK_H
 
+#include "project_defs.h"
+
 /*!
 * @brief Initialize client task
 * @return status of client
 */
-uint32_t client_init();
+status_t client_init();
 
 /*!
 * @brief Destroy client task
