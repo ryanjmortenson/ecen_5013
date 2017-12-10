@@ -9,6 +9,15 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifndef TIVA
+#include <unistd.h>
+#else
+#include "FreeRTOS.h"
+#include "task.h"
+#include "pthread_wrapper.h"
+#include "mqueue_wrapper.h"
+#endif
+
 #include "i2c.h"
 #include "log.h"
 #include "project_defs.h"
@@ -90,6 +99,10 @@ status_t bme280_init(int32_t i2c_bus)
       status = FAILURE;
       break;
     }
+
+    // This is for the tiva build, if a sleep isn't placed here the compensation
+    // values returned are not correct
+    usleep(1000000);
 
     if (bme280_r_reg(BME280_DIG_E5, (uint8_t *)&comps.e5_val, 1) != SUCCESS)
     {
