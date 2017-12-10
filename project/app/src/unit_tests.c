@@ -16,6 +16,8 @@
 #include "unit_circbuf.h"
 #include "unit_light.h"
 #include "unit_temp.h"
+#include "unit_air.h"
+#include "unit_humidity.h"
 #include "unit_tmp102.h"
 #include "unit_log_msg.h"
 #include "unit_linkedlist.h"
@@ -65,6 +67,28 @@ uint32_t unit_test_log_msg()
     cmocka_unit_test(test_log_msg_init),
     cmocka_unit_test(test_log_msg_send),
     cmocka_unit_test(test_log_msg_dest)
+  };
+
+  return cmocka_run_group_tests(tests, NULL, NULL);
+}
+
+// Execute unit tests for humidity.c
+uint32_t unit_test_humidity()
+{
+  const struct CMUnitTest tests[] = {
+    cmocka_unit_test(test_humidity_init),
+    cmocka_unit_test(test_humidity_dest)
+  };
+
+  return cmocka_run_group_tests(tests, NULL, NULL);
+}
+
+// Execute unit tests for air.c
+uint32_t unit_test_air()
+{
+  const struct CMUnitTest tests[] = {
+    cmocka_unit_test(test_air_init),
+    cmocka_unit_test(test_air_dest)
   };
 
   return cmocka_run_group_tests(tests, NULL, NULL);
@@ -148,6 +172,8 @@ int main()
   unit_test_main_task();
   unit_test_light();
   unit_test_temp();
+  unit_test_humidity();
+  unit_test_air();
   unit_test_log_msg();
   unit_test_tmp102();
   unit_test_apds9301();
