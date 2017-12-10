@@ -37,7 +37,7 @@ uint8_t hum_setting = 0x01;
 uint8_t meas_setting = 0x27;
 uint8_t config_setting = 0;
 
-static inline uint32_t comp_temp(uint32_t temp)
+static uint32_t comp_temp(uint32_t temp)
 {
     uint32_t first = (((temp >> 3) - (comps.t1_val << 1)) * comps.t2_val) >> 11;
     uint32_t second = (((((temp >> 4) - comps.t1_val) * ((temp >> 4) - (comps.t1_val))) >> 12) * (comps.t3_val)) >> 14;
@@ -45,11 +45,13 @@ static inline uint32_t comp_temp(uint32_t temp)
     return (comps.t_fine * 5 + 128) >> 8;
 }
 
-static inline uint32_t comp_hum(uint32_t humidity)
+static inline uint32_t comp_hum(int32_t humidity)
 {
-  uint32_t hum = (comps.t_fine - 76800);
-  hum = (((((humidity << 14) - (comps.h4_val << 20) - (comps.h5_val * hum)) + 16384) >> 15) * (((((((hum * comps.h6_val) >> 10) * (((hum * comps.h3_val) >> 11) + 32768)) >> 10) + 2097152) * comps.h2_val + 8192) >> 14));
-  hum = hum - (((((hum >> 15) * (hum >> 15)) >> 7) * comps.h1_val) >> 4);
+  int32_t hum;
+
+  hum = (comps.t_fine - ((int32_t)76800));
+  hum = (((((humidity << 14) - (((int32_t)comps.h4_val) << 20) - (((int32_t)comps.h5_val) * hum)) + ((int32_t)16384)) >> 15) * (((((((hum * ((int32_t)comps.h6_val)) >> 10) * (((hum * ((int32_t)comps.h3_val)) >> 11) + ((int32_t)32768))) >> 10) + ((int32_t)2097152)) * ((int32_t)comps.h2_val) + 8192) >> 14));
+  hum = (hum - (((((hum >> 15) * (hum >> 15)) >> 7) * ((int32_t)comps.h1_val)) >> 4));
   hum = (hum < 0 ? 0 : hum);
   hum = (hum > 419430400 ? 419430400 : hum);
   return (hum >> 12);
@@ -226,12 +228,15 @@ status_t bme280_r_temp(uint32_t * temp)
     LOG_ERROR("Could not read temp msb");
     status = FAILURE;
   }
+  // Swap endianess for calculation
+  temp_msb = (temp_msb << 8) | (temp_msb >> 8);
 
   if (bme280_r_reg(BME280_TEMP_XLSB, (uint8_t *)&temp_xlsb, 1) != SUCCESS)
   {
-    LOG_ERROR("Could not read xlsb");
+    LOG_ERROR("Could not read temp xlsb");
     status = FAILURE;
   }
+
   *temp = comp_temp((temp_msb << 4) | (temp_xlsb >> 4));
   return status;
 }
@@ -248,6 +253,8 @@ status_t bme280_r_humidity(uint16_t * humidity)
     LOG_ERROR("Could not read humidity");
     status = FAILURE;
   }
+  // Swap endianess
+  *humidity = (*humidity << 8) | (*humidity >> 8);
   *humidity = comp_hum(*humidity);
   return status;
 }

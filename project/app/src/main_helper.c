@@ -121,6 +121,7 @@ void * hb_handler(void * param)
 void * hb_setup(void * param)
 {
   FUNC_ENTRY;
+#if 0
   CHECK_NULL2(param);
   message_t * msg = (message_t *)param;
   hb_setup_t * hb_setup = (hb_setup_t *)msg->msg;
@@ -182,6 +183,7 @@ void * hb_setup(void * param)
             hb_setup->period_seconds,
             &reg->timerid);
   }
+#endif
   return NULL;
 }
 
