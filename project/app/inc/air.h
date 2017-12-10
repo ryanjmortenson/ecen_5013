@@ -21,13 +21,13 @@ typedef enum air_meas_type
 
 typedef struct air_req
 {
-  air_meas_type_t type;
+  uint8_t type;
   staleness_t staleness;
 } air_req_t;
 
 typedef struct air_rsp
 {
-  air_meas_type_t type;
+  uint8_t type;
   uint16_t reading;
 } air_rsp_t;
 
