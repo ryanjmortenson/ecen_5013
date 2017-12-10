@@ -23,8 +23,8 @@ struct {
  uint8_t h1_val;
  int16_t h2_val;
  uint8_t h3_val;
- int8_t  h4_val;
- int8_t  h5_val;
+ int16_t  h4_val;
+ int16_t  h5_val;
  int8_t  h6_val;
  int8_t  e5_val;
  uint16_t t1_val;
@@ -127,7 +127,7 @@ status_t bme280_init(int32_t i2c_bus)
     }
     comps.h4_val = (comps.h4_val << 4) | (comps.e5_val & 0xf);
 
-    if (bme280_r_reg(BME280_DIG_E6, (uint8_t *)&comps.h5_val, 1) != SUCCESS)
+    if (bme280_r_reg(BME280_DIG_E5, (uint8_t *)&comps.h5_val, 1) != SUCCESS)
     {
       LOG_ERROR("Could not read E5 comp");
       status = FAILURE;
