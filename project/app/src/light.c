@@ -41,7 +41,7 @@ extern int32_t abort_signal;
 static const task_id_t TASK_ID = LIGHT_TASK;
 
 static mqd_t msg_q;
-static pthread_t light_task;
+static pthread_t light_task = 0;
 static float stale_reading;
 
 /*!
@@ -317,6 +317,7 @@ status_t dest_light(uint8_t dest_task)
       LOG_ERROR("Could not destroy apds9301");
       status = FAILURE;
     }
+    light_task = 0;
   }
   mq_close(msg_q);
   return status;

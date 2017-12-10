@@ -37,7 +37,7 @@ extern int32_t abort_signal;
 static const task_id_t TASK_ID = HUMIDITY_TASK;
 
 static mqd_t msg_q;
-static pthread_t humidity_task;
+static pthread_t humidity_task = 0;
 static uint16_t stale_reading;
 
 void * humidity_req(void * param)
@@ -173,7 +173,7 @@ status_t dest_humidity(uint8_t dest_task)
   if (dest_task == 1)
   {
     res = pthread_cancel(humidity_task);
-    if (res < 0)
+    if (res != 0)
     {
       LOG_ERROR("Could not create humidity task, continuing with shutdown, %s",
                 strerror(res));
@@ -198,6 +198,7 @@ status_t dest_humidity(uint8_t dest_task)
       LOG_ERROR("Could not destroy apds9301");
       status = FAILURE;
     }
+    humidity_task = 0;
   }
   mq_close(msg_q);
   return status;

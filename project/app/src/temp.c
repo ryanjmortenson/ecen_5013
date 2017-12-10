@@ -51,7 +51,7 @@ char * temp_units_str[] = {
 extern int32_t abort_signal;
 
 static mqd_t msg_q;
-static pthread_t temp_task;
+static pthread_t temp_task = 0;
 static float stale_reading;
 
 /*!
@@ -241,6 +241,7 @@ status_t dest_temp(uint8_t dest_task)
       LOG_ERROR("Destroy tmp102 sensor");
       status = FAILURE;
     }
+    temp_task = 0;
   }
   mq_close(msg_q);
   return status;

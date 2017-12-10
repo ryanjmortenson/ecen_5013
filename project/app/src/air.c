@@ -181,7 +181,7 @@ status_t dest_air(uint8_t dest_task)
   if (dest_task == 1)
   {
     res = pthread_cancel(air_task);
-    if (res < 0)
+    if (res != 0)
     {
       LOG_ERROR("Could not create air task, continuing with shutdown, %s",
                 strerror(res));
@@ -206,6 +206,7 @@ status_t dest_air(uint8_t dest_task)
       LOG_ERROR("Could not destroy apds9301");
       status = FAILURE;
     }
+    air_task = 0;
   }
   mq_close(msg_q);
   return status;
