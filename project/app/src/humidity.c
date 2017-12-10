@@ -38,13 +38,25 @@ static const task_id_t TASK_ID = HUMIDITY_TASK;
 
 static mqd_t msg_q;
 static pthread_t humidity_task;
+static uint16_t stale_reading;
 
 void * humidity_req(void * param)
 {
   FUNC_ENTRY;
   CHECK_NULL2(param);
-  message_t out;
+  message_t * in = (message_t *)param;
+  message_t out = MSG_INIT(HUMIDITY_RSP, in->from, HUMIDITY_TASK);
+  humidity_req_t * req = (humidity_req_t *)in->msg;
   humidity_rsp_t humidity_rsp;
+
+  if (req->staleness == STALENESS_NEW)
+  {
+    bme280_r_humidity(&humidity_rsp.humidity);
+  }
+  else
+  {
+    humidity_rsp.humidity = stale_reading;
+  }
 
   if (send_msg(msg_q, &out, &humidity_rsp, sizeof(humidity_rsp)) != SUCCESS)
   {
@@ -58,7 +70,7 @@ status_t send_humidity_req(staleness_t staleness, task_id_t from)
   FUNC_ENTRY;
   humidity_req_t humidity_req;
   status_t status = SUCCESS;
-  message_t msg = MSG_INIT(AIR_REQ, AIR_TASK, from);
+  message_t msg = MSG_INIT(HUMIDITY_REQ, HUMIDITY_TASK, from);
 
   // Fill out temp request and send
   humidity_req.staleness = staleness;
@@ -83,6 +95,7 @@ PTHREAD_RETURN_TYPE humidity_thread(void * param)
   {
     // Periodically send heartbeat
     send_hb(HUMIDITY_TASK);
+    bme280_r_humidity(&stale_reading);
     usleep(PERIOD_US);
   }
   PTHREAD_RETURN(NULL);

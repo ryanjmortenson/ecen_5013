@@ -27,6 +27,13 @@ typedef struct hb_reg {
 } hb_reg_t;
 
 /*!
+* @brief Handle humidity response from humidity request
+* @param param msg holding humidity response
+* @return NULL
+*/
+void * hum_rsp_handler(void * param);
+
+/*!
 * @brief Handle air response from air request
 * @param param msg holding air response
 * @return NULL

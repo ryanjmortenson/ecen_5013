@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 #include "air.h"
+#include "humidity.h"
 #include "light.h"
 #include "log.h"
 #include "log_msg.h"
@@ -31,6 +32,16 @@ extern char * task_str[];
 
 // Array of heartbeat registrations
 hb_reg_t hb_reg[TASK_ID_LIST_END];
+
+void * hum_rsp_handler(void * param)
+{
+  FUNC_ENTRY;
+  CHECK_NULL2(param);
+  message_t * msg = (message_t *)param;
+  humidity_rsp_t * rsp = (humidity_rsp_t *)msg->msg;
+  SEND_LOG_HIGH("Humidity rsp: %f", ((float) rsp->humidity) / 1024);
+  return NULL;
+}
 
 void * air_rsp_handler(void * param)
 {

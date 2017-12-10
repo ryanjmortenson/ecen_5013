@@ -19,7 +19,7 @@ typedef struct humidity_req
 
 typedef struct humidity_rsp
 {
-  float humidity;
+  uint16_t humidity;
 } humidity_rsp_t;
 /*!
 * @brief Initialize humidity task

@@ -55,7 +55,6 @@ void main_task()
 {
   FUNC_ENTRY;
   int count = 0;
-  uint8_t dark;
 
   while(!abort_signal)
   {
@@ -101,19 +100,10 @@ void main_task()
 
     usleep(1000000);
 
-    if (is_dark(&dark) == SUCCESS)
+    if(send_humidity_req(count % 2, MAIN_TASK) != SUCCESS)
     {
-      if (dark)
-      {
-        SEND_LOG_FATAL("Seems to be dark");
-      }
+      SEND_LOG_ERROR("Couldn't air req");
     }
-    else
-    {
-      SEND_LOG_ERROR("Couldn't determine if dark");
-    }
-
-    usleep(1000000);
 
     count++;
   }
@@ -242,6 +232,14 @@ status_t init_main_task(int argc, char *argv[])
     }
 
     // Register callbacks for various messages
+    if (register_cb(HUMIDITY_RSP, MAIN_TASK, hum_rsp_handler) != SUCCESS)
+    {
+      LOG_ERROR("Could not register light response handler");
+      status = FAILURE;
+      break;
+    }
+
+    // Register callbacks for various messages
     if (register_cb(LIGHT_RSP, MAIN_TASK, light_rsp_handler) != SUCCESS)
     {
       LOG_ERROR("Could not register light response handler");
@@ -312,7 +310,7 @@ status_t init_main_task(int argc, char *argv[])
       break;
     }
 
-    if (init_air(1) != SUCCESS)
+    if (init_humidity(1) != SUCCESS)
     {
       LOG_ERROR("Could not initialize humidity");
       status = FAILURE;

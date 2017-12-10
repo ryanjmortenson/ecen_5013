@@ -131,6 +131,13 @@ status_t init_main_server_task(int argc, char *argv[])
     }
 
     // Register callbacks for various messages
+    if (register_cb(HUMIDITY_RSP, MAIN_TASK, hum_rsp_handler) != SUCCESS)
+    {
+      LOG_ERROR("Could not register humidity response handler");
+      status = FAILURE;
+      break;
+    }
+
     if (register_cb(LIGHT_RSP, MAIN_TASK, light_rsp_handler) != SUCCESS)
     {
       LOG_ERROR("Could not register light response handler");
@@ -288,6 +295,12 @@ status_t dest_main_server_task()
   }
 
   if (unregister_cb(AIR_RSP, MAIN_TASK, air_rsp_handler) != SUCCESS)
+  {
+    LOG_ERROR("Could not unregister air response handler");
+    status = FAILURE;
+  }
+
+  if (unregister_cb(HUMIDITY_RSP, MAIN_TASK, hum_rsp_handler) != SUCCESS)
   {
     LOG_ERROR("Could not unregister air response handler");
     status = FAILURE;
