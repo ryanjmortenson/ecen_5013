@@ -151,8 +151,9 @@ static void * print_log(void * param)
               log->file_name,
               log->function,
               log->line_no,
-              "(%10.10s) %s",
+              "(%10.10s) (%d) %s",
               task_str[msg->from],
+              msg->fd,
               log->message);
 #endif // UNITTEST
   }

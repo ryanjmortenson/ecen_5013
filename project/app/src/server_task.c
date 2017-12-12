@@ -33,6 +33,7 @@
 extern int32_t abort_signal;
 static mqd_t msg_q;
 int32_t newsockfd = -1;
+pthread_t connection_task;
 
 #define SERVER_PORT (12345)
 #define SOCKET_BACKLOG_LEN (5)
@@ -74,6 +75,7 @@ PTHREAD_RETURN_TYPE connection_thread(void * param)
     }
 
     // Message is already filled out so don't overwrite current data
+    msg.fd = newsockfd;
     if (send_msg(msg_q, &msg, NULL, 0) == FAILURE)
     {
       LOG_ERROR("Could not add message to queue");
@@ -94,7 +96,6 @@ PTHREAD_RETURN_TYPE server_thread(void * param)
   int32_t sockfd;
   int32_t res = 0;
   uint32_t clilen = sizeof(cli_addr);
-  pthread_t connection_task;
   int32_t enable = 1;
   struct timeval timeout = {.tv_sec = 1, .tv_usec = 0};
 
@@ -259,3 +260,9 @@ uint32_t server_dest()
   } while (0);
   return status;
 } // server_dest()
+
+void clean_up_socket()
+{
+  pthread_cancel(connection_task);
+  newsockfd = -1;
+}

@@ -31,7 +31,7 @@
 #include "workers.h"
 
 #define SERVER_PORT (12345)
-#define ADDRESS "10.0.0.21"
+#define ADDRESS "10.0.0.39"
 
 // Global abort flag
 extern int32_t abort_signal;

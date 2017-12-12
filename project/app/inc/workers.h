@@ -56,6 +56,7 @@ typedef enum task_id {
 
 // Message structure
 typedef struct message {
+  int32_t fd;
   uint8_t type;
   uint8_t network_routed;
   uint8_t to;

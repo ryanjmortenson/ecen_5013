@@ -21,4 +21,7 @@ status_t server_init();
 */
 status_t server_dest();
 
+
+void clean_up_socket();
+
 #endif // _SERVER_TASK_H

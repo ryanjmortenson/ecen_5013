@@ -16,6 +16,7 @@
 #include "main_helper.h"
 #include "project_defs.h"
 #include "temp.h"
+#include "server_task.h"
 #include "workers.h"
 
 // Abort signal for all threads
@@ -152,7 +153,6 @@ void * hb_setup(void * param)
 
     memset(&new_value, 0, sizeof(new_value));
     new_value.it_value.tv_sec = hb_setup->period_seconds * 3;
-    new_value.it_interval.tv_sec = hb_setup->period_seconds;
     reg->period_seconds = hb_setup->period_seconds;
     res = timer_settime(reg->timerid, 0, &new_value, NULL);
     if (res < 0)
@@ -196,7 +196,8 @@ void hb_timeout_handler(int sig, siginfo_t * info, void * data)
 #ifdef BBB
       set_brightness(USR3_LED, ON_BRIGHTNESS);
 #endif // BBB
-      SIGNAL_ABORT();
+      clean_up_socket();
+      del_timers();
     }
   }
 }
@@ -215,6 +216,7 @@ void del_timers()
       timer_delete(hb_reg[i].timerid);
     }
   }
+  init_timers();
 }
 #endif // TIVA
 
