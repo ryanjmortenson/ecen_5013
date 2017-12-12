@@ -21,7 +21,9 @@ status_t server_init();
 */
 status_t server_dest();
 
-
+/*!
+* @brief Destroy a socket thread
+*/
 void clean_up_socket();
 
 #endif // _SERVER_TASK_H

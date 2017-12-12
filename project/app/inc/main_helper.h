@@ -90,8 +90,14 @@ void hb_timeout_handler(int sig, siginfo_t * info, void * data);
 */
 void sigint_handler(int sig);
 
+/*!
+* @brief Set all timers to 0
+*/
 void init_timers();
 
+/*!
+* @brief Delete all timers
+*/
 void del_timers();
 #endif // TIVA
 
