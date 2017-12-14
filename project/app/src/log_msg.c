@@ -8,11 +8,6 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#ifndef TIVA
-#include <mqueue.h>
-#else
-#include "mqueue_wrapper.h"
-#endif
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -22,11 +17,20 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/time.h>
 
 #include "project_defs.h"
 #include "log.h"
 #include "log_msg.h"
 #include "workers.h"
+
+#ifndef TIVA
+#include <mqueue.h>
+#else
+#include "mqueue_wrapper.h"
+extern status_t _gettimeofday(struct timeval * tv, struct timezone * tz);
+#define gettimeofday(tv, tz) _gettimeofday(tv, tz)
+#endif
 
 char * staleness_str[] = {
   "STALENESS_NEW",
